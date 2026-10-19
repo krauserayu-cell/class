@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>春日部防衛隊出動！發掘「特別的向日葵班」互動寫作任務單</title>
+    <!-- 引入圓體與手寫風字體 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --shin-red: #FF4757;
+            --shin-yellow: #FFD32A;
+            --shin-blue: #1E90FF;
+            --shin-green: #2ED573;
+            --comic-black: #222222;
+            --bg-cream: #FFFDF5;
+            --input-focus: #FFF9C4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+        }
+
+        body {
+            background-color: #3a3f47;
+            font-family: 'Zen Maru Gothic', 'Noto Sans TC', sans-serif;
+            color: var(--comic-black);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 80px 0 40px 0;
+        }
+
+        /* 頂部懸浮控制列（列印時自動隱藏） */
+        .toolbar {
+            position: fixed;
+            top: 12px;
+            z-index: 1000;
+            background: var(--comic-black);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+            border: 3px solid var(--shin-yellow);
+            max-width: 95vw;
+        }
+
+        .toolbar-title {
+            font-size: 14px;
+            font-weight: 900;
+            color: var(--shin-yellow);
+            margin-right: 4px;
+        }
+
+        .save-status {
+            font-size: 12px;
+            background: #333;
+            color: var(--shin-green);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--shin-green);
+            font-weight: 700;
+        }
+
+        .tool-btn {
+            border: 2px solid #fff;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tool-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+        }
+
+        .btn-demo { background: var(--shin-yellow); color: var(--comic-black); border-color: var(--comic-black); }
+        .btn-save { background: var(--shin-green); color: var(--comic-black); border-color: var(--comic-black); }
+        .btn-load { background: var(--shin-blue); color: #fff; }
+        .btn-clear { background: #666; color: #fff; }
+        .btn-print { background: var(--shin-red); color: #fff; }
+
+        /* A4 紙張設定 */
+        .a4-page {
+            width: 210mm;
+            min-height: 297mm;
+            background-color: var(--bg-cream);
+            background-image: radial-gradient(#e6dfc8 1px, transparent 1px);
+            background-size: 12px 12px;
+            padding: 10mm 12mm;
+            margin-bottom: 24px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            border: 4px solid var(--comic-black);
+        }
+
+        /* 動漫風標題橫幅 */
+        .header-banner {
+            background: linear-gradient(135deg, var(--shin-yellow) 0%, #FFA502 100%);
+            border: 3.5px solid var(--comic-black);
+            border-radius: 16px;
+            padding: 10px 16px;
+            box-shadow: 4px 4px 0px var(--comic-black);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .title-group h1 {
+            font-size: 21px;
+            font-weight: 900;
+            color: var(--comic-black);
+            text-shadow: 1.5px 1.5px 0px #fff;
+        }
+
+        .title-badge {
+            display: inline-block;
+            background: var(--shin-red);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 900;
+            padding: 2px 10px;
+            border-radius: 20px;
+            border: 2px solid var(--comic-black);
+            margin-bottom: 3px;
+            transform: rotate(-1deg);
+        }
+
+        .student-info {
+            background: #fff;
+            border: 2.5px solid var(--comic-black);
+            border-radius: 10px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            min-width: 215px;
+        }
+
+        /* 互動輸入框通用樣式 */
+        .comic-input {
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0b4870;
+            background: rgba(255, 255, 255, 0.7);
+            border: none;
+            border-bottom: 2px dashed var(--comic-black);
+            padding: 1px 6px;
+            outline: none;
+            transition: background 0.2s, border-color 0.2s;
+            border-radius: 4px 4px 0 0;
+        }
+
+        .comic-input:focus {
+            background: var(--input-focus);
+            border-bottom: 2px solid var(--shin-red);
+        }
+
+        .comic-input::placeholder {
+            color: #999;
+            font-weight: 400;
+            font-size: 11px;
+        }
+
+        .comic-textarea {
+            width: 100%;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 700;
+            color: #0b4870;
+            border: 1.5px dashed #888;
+            background: #FAFAFA;
+            border-radius: 6px;
+            padding: 5px 8px;
+            resize: none;
+            outline: none;
+            line-height: 1.5;
+            transition: all 0.2s;
+        }
+
+        .comic-textarea:focus {
+            background: var(--input-focus);
+            border-color: var(--shin-red);
+            border-style: solid;
+        }
+
+        .comic-textarea::placeholder {
+            color: #999;
+            font-weight: 400;
+            font-size: 11px;
+        }
+
+        /* 漫畫對話框 */
+        .dialogue-box {
+            background: #fff;
+            border: 3px solid var(--comic-black);
+            border-radius: 14px;
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 3px 3px 0px var(--comic-black);
+            margin-top: 6px;
+        }
+
+        .avatar-badge {
+            background: var(--shin-red);
+            color: #fff;
+            border: 2.5px solid var(--comic-black);
+            border-radius: 12px;
+            padding: 4px 8px;
+            font-weight: 900;
+            font-size: 12px;
+            text-align: center;
+            min-width: 72px;
+            flex-shrink: 0;
+            box-shadow: 2px 2px 0px var(--comic-black);
+        }
+
+        .avatar-badge.nene { background: #FF6B81; }
+        .avatar-badge.bo { background: var(--shin-green); color: var(--comic-black); }
+
+        .dialogue-text {
+            font-size: 12.5px;
+            line-height: 1.45;
+            font-weight: 500;
+        }
+
+        .highlight {
+            background: linear-gradient(transparent 55%, var(--shin-yellow) 55%);
+            font-weight: 900;
+            padding: 0 2px;
+        }
+
+        /* 關卡標題 */
+        .stage-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+
+        .stage-tag {
+            background: var(--comic-black);
+            color: var(--shin-yellow);
+            font-weight: 900;
+            font-size: 13px;
+            padding: 3px 10px;
+            border-radius: 6px;
+            letter-spacing: 1px;
+        }
+
+        .stage-title {
+            font-size: 16px;
+            font-weight: 900;
+            color: var(--comic-black);
+        }
+
+        /* 第一關：架構比較表 */
+        .comic-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #fff;
+            border: 3px solid var(--comic-black);
+            box-shadow: 3px 3px 0px var(--comic-black);
+            font-size: 11.5px;
+        }
+
+        .comic-table th {
+            background: var(--shin-blue);
+            color: #fff;
+            border: 2px solid var(--comic-black);
+            padding: 5px 6px;
+            font-size: 12px;
+            font-weight: 900;
+            text-align: center;
+        }
+
+        .comic-table th:nth-child(3) { background: #FF9F1A; color: var(--comic-black); }
+        .comic-table th:nth-child(4) { background: var(--shin-green); color: var(--comic-black); }
+
+        .comic-table td {
+            border: 2px solid var(--comic-black);
+            padding: 4.5px 7px;
+            vertical-align: middle;
+            line-height: 1.35;
+        }
+
+        .part-label {
+            font-weight: 900;
+            text-align: center;
+            background: #F1F2F6;
+            width: 68px;
+        }
+
+        .tag-fruit {
+            background: var(--shin-red);
+            color: #fff;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 10px;
+            display: inline-block;
+            margin-top: 2px;
+        }
+
+        .tag-cause {
+            background: var(--shin-blue);
+            color: #fff;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 10px;
+            display: inline-block;
+            margin-top: 2px;
+        }
+
+        /* 第二關：情報收集站卡片 */
+        .brainstorm-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .target-card {
+            background: #fff;
+            border: 3px solid var(--comic-black);
+            border-radius: 12px;
+            padding: 8px 10px;
+            box-shadow: 3px 3px 0px var(--comic-black);
+        }
+
+        .target-card.card-1 { border-top: 8px solid var(--shin-red); }
+        .target-card.card-2 { border-top: 8px solid var(--shin-blue); }
+
+        .card-header {
+            font-weight: 900;
+            font-size: 13.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 4px;
+        }
+
+        .fill-row {
+            font-size: 12px;
+            margin-bottom: 6px;
+            line-height: 1.6;
+            font-weight: 700;
+        }
+
+        /* 第二頁：實戰寫作框 */
+        .writing-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-grow: 1;
+            margin-top: 4px;
+        }
+
+        .para-box {
+            background: #fff;
+            border: 2.5px solid var(--comic-black);
+            border-radius: 10px;
+            padding: 7px 11px;
+            box-shadow: 3px 3px 0px var(--comic-black);
+            position: relative;
+        }
+
+        .para-badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 900;
+            padding: 1.5px 8px;
+            border-radius: 5px;
+            border: 1.5px solid var(--comic-black);
+            margin-bottom: 4px;
+        }
+
+        .badge-intro { background: var(--shin-yellow); }
+        .badge-fruit { background: #FF6B81; color: #fff; }
+        .badge-cause { background: #70A1FF; color: #fff; }
+        .badge-outro { background: var(--shin-green); }
+
+        .para-content {
+            font-size: 13px;
+            line-height: 2.1;
+            font-weight: 500;
+            text-align: justify;
+        }
+
+        /* 帶橫線的互動多行寫作區 */
+        .ruled-textarea {
+            width: 100%;
+            border: none;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #0b4870;
+            background-color: transparent;
+            background-image: repeating-linear-gradient(
+                transparent,
+                transparent 26px,
+                #888 26px,
+                #888 27px
+            );
+            line-height: 27px;
+            padding: 0 4px;
+            margin-top: 2px;
+        }
+
+        .ruled-textarea:focus {
+            background-color: rgba(255, 249, 196, 0.5);
+        }
+
+        .ruled-textarea::placeholder {
+            color: #aaa;
+            font-weight: 400;
+            font-size: 11.5px;
+        }
+
+        /* 底部檢核表 */
+        .checklist-bar {
+            background: var(--shin-yellow);
+            border: 3px solid var(--comic-black);
+            border-radius: 12px;
+            padding: 7px 12px;
+            box-shadow: 3px 3px 0px var(--comic-black);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11.5px;
+            font-weight: 700;
+        }
+
+        .check-items {
+            display: flex;
+            gap: 10px;
+        }
+
+        .check-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #fff;
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1.5px solid var(--comic-black);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .check-item input[type="checkbox"] {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--shin-red);
+            cursor: pointer;
+        }
+
+        .page-footer {
+            text-align: center;
+            font-size: 10.5px;
+            font-weight: 700;
+            color: #555;
+            margin-top: 2px;
+        }
+
+        /* 螢幕下方：自動組合全文預覽區（列印時隱藏） */
+        .essay-preview-panel {
+            width: 210mm;
+            background: #fff;
+            border: 4px solid var(--comic-black);
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            margin-bottom: 30px;
+        }
+
+        .preview-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--comic-black);
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+
+        .preview-body {
+            background: var(--bg-cream);
+            border: 2px dashed #aaa;
+            border-radius: 10px;
+            padding: 14px 18px;
+            font-size: 14px;
+            line-height: 1.9;
+            white-space: pre-wrap;
+            color: var(--comic-black);
+            min-height: 150px;
+        }
+
+        /* 列印專用設定 */
+        @media print {
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+            body {
+                background: none;
+                padding: 0;
+                margin: 0;
+            }
+            .toolbar, .essay-preview-panel {
+                display: none !important;
+            }
+            .a4-page {
+                box-shadow: none;
+                margin: 0;
+                border: none;
+                width: 210mm;
+                height: 297mm;
+                page-break-after: always;
+            }
+            .a4-page:last-child {
+                page-break-after: auto;
+            }
+            /* 列印時若未填寫，隱藏 placeholder 讓紙本保持乾淨可手寫 */
+            .comic-input::placeholder,
+            .comic-textarea::placeholder,
+            .ruled-textarea::placeholder {
+                color: transparent !important;
+            }
+            .comic-input, .comic-textarea {
+                background: transparent !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 頂部互動控制列（列印時不會印出） -->
+    <div class="toolbar">
+        <span class="toolbar-title">🌻 向日葵班互動寫作單</span>
+        <span class="save-status" id="saveStatus">✔ 已自動儲存</span>
+        <button class="tool-btn btn-demo" onclick="loadSunflowerDemo()">✨ 帶入「云馨＆排球」範文</button>
+        <button class="tool-btn btn-save" onclick="exportJSON()">💾 下載存檔</button>
+        <button class="tool-btn btn-load" onclick="document.getElementById('fileInput').click()">📂 讀取存檔</button>
+        <input type="file" id="fileInput" accept=".json" style="display:none" onchange="importJSON(event)">
+        <button class="tool-btn btn-clear" onclick="clearAllFields()">🗑️ 清空重寫</button>
+        <button class="tool-btn btn-print" onclick="window.print()">🖨️ 列印 / 存成 PDF</button>
+    </div>
+
+    <!-- ==================== 第 1 頁：架構對照與構思 ==================== -->
+    <div class="a4-page">
+        <div>
+            <!-- 標題區 -->
+            <div class="header-banner">
+                <div class="title-group">
+                    <div class="title-badge">⚡ 春日部防衛隊 × 向日葵班特別企劃</div>
+                    <h1>🌻 發掘「特別的向日葵班」寫作任務單</h1>
+                </div>
+                <div class="student-info">
+                    <div>班級：<b>五年乙班（向日葵班）</b></div>
+                    <div>
+                        座號：<input type="text" id="stu_seat" class="comic-input save-field" style="width: 42px; text-align: center;" placeholder="座號">
+                        姓名：<input type="text" id="stu_name" class="comic-input save-field" style="width: 95px;" placeholder="輸入姓名">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 小新開場白 -->
+            <div class="dialogue-box">
+                <div class="avatar-badge">🦸‍♂️ 動感小新</div>
+                <div class="dialogue-text">
+                    「嘿嘿～各位向日葵班的隊員們！我們讀了《特別的海》，發現大海有<span class="highlight">『烏龜喝牛奶』</span>和<span class="highlight">『海水畫表格』</span>的秘密！其實我們東勢國小向日葵班也臥虎藏龍喔！今天我們要用課文的<b>『總—分—總』</b>和<b>『先果後因』</b>大絕招，直接在網頁上把同學的超能力寫下來！」
+                </div>
+            </div>
+
+            <!-- 第一關：架構分析 -->
+            <div class="stage-header">
+                <span class="stage-tag">STAGE 1</span>
+                <span class="stage-title">🔍 風間的情報分析室：課文 vs. 向日葵班範文大對照</span>
+            </div>
+
+            <table class="comic-table">
+                <thead>
+                    <tr>
+                        <th>段落架構</th>
+                        <th style="width: 28%;">🌊 原課文：《特別的海》</th>
+                        <th style="width: 34%;">🌻 範文：《特別的向日葵班》</th>
+                        <th style="width: 26%;">💡 寫作秘密公式</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="part-label">第一段<br>【總說】</td>
+                        <td>常見的層層湛藍、道道白浪<br>⬇ 不過，還有<b>特別的海</b></td>
+                        <td>常見的陣陣讀書聲、朵朵笑臉<br>⬇ 不過，還有<b>特別的風景（高手）</b></td>
+                        <td><b>【提問引入法】</b><br>先寫熟悉的日常畫面，再用「不過」引出特別的主角！</td>
+                    </tr>
+                    <tr>
+                        <td class="part-label">第二段<br>【分說1】<br><span class="tag-fruit">先寫果</span></td>
+                        <td><b>龜山島牛奶海</b><br>• 比喻：<b>「烏龜喝牛奶」</b><br>• 景象：乳白與淺藍交錯、臭雞蛋味</td>
+                        <td><b>畫畫高手——云馨</b><br>• 比喻：<b>「畫筆變魔術」</b><br>• 景象：五彩渲染、栩栩如生、常勝軍獎狀</td>
+                        <td><b>【先寫結果：有多厲害？】</b><br>用「你見過……嗎？」開頭，描寫親眼看到的厲害畫面！</td>
+                    </tr>
+                    <tr>
+                        <td class="part-label">第三段<br>【分說1】<br><span class="tag-cause">再寫因</span></td>
+                        <td><b>為什麼會這樣？</b><br>• 原來：火山活動、海底熱泉<br>• 煙囪成了<b>「酸牛奶製造機」</b></td>
+                        <td><b>為什麼這麼厲害？</b><br>• 原來：五年熱情不間斷、細心觀察練習<br>• 巧手成了<b>「夢想製造機」</b></td>
+                        <td><b>【再寫原因：為什麼厲害？】</b><br>用「原來……」揭曉秘密！寫出他背後付出了哪些努力。</td>
+                    </tr>
+                    <tr>
+                        <td class="part-label">第四段<br>【分說2】<br><span class="tag-fruit">先寫果</span></td>
+                        <td><b>馬祖西莒方格海</b><br>• 比喻：<b>「海水畫表格」</b>、「燕鷗餐盤」<br>• 景象：長方形與菱形格子、夜晚藍眼淚</td>
+                        <td><b>排球高手——亦呈、佑諶、雋翊</b><br>• 比喻：<b>「排球畫閃電」</b>、「他們的舞台」<br>• 景象：攔網與扣殺、眼神默契、屢獲佳績</td>
+                        <td><b>【先寫結果：有多厲害？】</b><br>用「另外」換個場景，介紹第二組高手的帥氣表現！</td>
+                    </tr>
+                    <tr>
+                        <td class="part-label">第五段<br>【分說2】<br><span class="tag-cause">再寫因</span></td>
+                        <td><b>為什麼會這樣？</b><br>• 原來：地形與海流關係<br>• 兩組波浪一行一列交錯而成</td>
+                        <td><b>為什麼這麼厲害？</b><br>• 原來：渴望勝利與團隊精神、晴雨不退縮<br>• 汗水與淚水一球一拍交錯成冠軍默契</td>
+                        <td><b>【再寫原因：為什麼厲害？】</b><br>再次用「原來……」說明他們平常是怎麼辛苦練習的。</td>
+                    </tr>
+                    <tr>
+                        <td class="part-label">第六段<br>【總結】</td>
+                        <td>大海千變萬化，還有其他海洋奇觀等著我們深入探索！</td>
+                        <td>向日葵班千變萬化，每個人都有特別的優點等著我們深入探索！</td>
+                        <td><b>【首尾呼應＋問句結尾】</b><br>總結全班特色，留下問句讓大家繼續探索！</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 第二關：構思站 -->
+            <div class="stage-header" style="margin-top: 10px;">
+                <span class="stage-tag">STAGE 2</span>
+                <span class="stage-title">🖍️ 妮妮與阿呆的情報收集站：鎖定你要寫的班級高手！</span>
+            </div>
+
+            <div class="dialogue-box" style="margin-top: 2px; margin-bottom: 6px; padding: 6px 12px;">
+                <div class="avatar-badge nene">🐰 編劇妮妮</div>
+                <div class="dialogue-text">
+                    「現在換你當總編劇囉！你可以點上方<b>『✨ 帶入云馨＆排球範文』</b>參考老師的寫法，或是寫班上其他高手（例如：<b>跳繩神人、解題學霸、搞笑大王、跑步飛毛腿</b>，或是寫<b>你自己</b>）！直接點下面的格子就能打字喔！」
+                </div>
+            </div>
+
+            <div class="brainstorm-grid">
+                <!-- 目標一卡片 -->
+                <div class="target-card card-1">
+                    <div class="card-header">
+                        <span>🎯 鎖定目標（一）：個人或小組</span>
+                        <span style="color: var(--shin-red);">★ 主角 1</span>
+                    </div>
+                    <div class="fill-row">👤 <b>主角名字：</b>
+                        <input type="text" id="b1_name" class="comic-input save-field" style="width: 195px;" placeholder="例如：小云馨">
+                    </div>
+                    <div class="fill-row">⚡ <b>他的超能力（專長）：</b>
+                        <input type="text" id="b1_skill" class="comic-input save-field" style="width: 140px;" placeholder="例如：繪畫比賽常勝軍">
+                    </div>
+                    <div class="fill-row">✨ <b>趣味比喻：</b>「<input type="text" id="b1_meta" class="comic-input save-field" style="width: 165px;" placeholder="例如：畫筆變魔術">」
+                    </div>
+                    <div class="fill-row" style="margin-bottom:4px;">👀 <b>【果】看到的厲害畫面（動作、表情或作品）：</b>
+                        <textarea id="b1_fruit" class="comic-textarea save-field" rows="2" placeholder="點此輸入看到的厲害表現（例：色彩向外渲染、栩栩如生、獎狀閃耀）"></textarea>
+                    </div>
+                    <div class="fill-row" style="margin-bottom:0;">🔥 <b>【因】原來背後這樣努力（練習過程或習慣）：</b>
+                        <textarea id="b1_cause" class="comic-textarea save-field" rows="2" placeholder="點此輸入私底下的努力（例：五年來熱情不間斷、細心觀察與練習）"></textarea>
+                    </div>
+                </div>
+
+                <!-- 目標二卡片 -->
+                <div class="target-card card-2">
+                    <div class="card-header">
+                        <span>🎯 鎖定目標（二）：個人或小組</span>
+                        <span style="color: var(--shin-blue);">★ 主角 2</span>
+                    </div>
+                    <div class="fill-row">👤 <b>主角名字：</b>
+                        <input type="text" id="b2_name" class="comic-input save-field" style="width: 195px;" placeholder="例如：亦呈、佑諶和雋翊">
+                    </div>
+                    <div class="fill-row">⚡ <b>他的超能力（專長）：</b>
+                        <input type="text" id="b2_skill" class="comic-input save-field" style="width: 140px;" placeholder="例如：排球比賽屢獲佳績">
+                    </div>
+                    <div class="fill-row">✨ <b>趣味比喻：</b>「<input type="text" id="b2_meta" class="comic-input save-field" style="width: 165px;" placeholder="例如：排球畫閃電">」
+                    </div>
+                    <div class="fill-row" style="margin-bottom:4px;">👀 <b>【果】看到的厲害畫面（動作、隊形或表現）：</b>
+                        <textarea id="b2_fruit" class="comic-textarea save-field" rows="2" placeholder="點此輸入看到的厲害表現（例：銅牆鐵壁的攔網、凌厲扣殺、默契十足）"></textarea>
+                    </div>
+                    <div class="fill-row" style="margin-bottom:0;">🔥 <b>【因】原來背後這樣努力（團隊精神或苦練）：</b>
+                        <textarea id="b2_cause" class="comic-textarea save-field" rows="2" placeholder="點此輸入私底下的努力（例：不論晴雨揮灑汗水、跌倒又爬起苦練）"></textarea>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="page-footer">🌻 東勢國小五年乙班・向日葵班讀寫合一任務單 ｜ 第 1 頁（請往下滑繼續挑戰第三關！）</div>
+    </div>
+
+    <!-- ==================== 第 2 頁：實戰寫作與檢核 ==================== -->
+    <div class="a4-page">
+        <div>
+            <!-- 第三關標題 -->
+            <div class="stage-header" style="margin-top: 0;">
+                <span class="stage-tag">STAGE 3</span>
+                <span class="stage-title">🚀 動感光波發射！《特別的向日葵班》實戰仿寫大挑戰</span>
+            </div>
+
+            <div class="dialogue-box" style="margin-top: 2px; margin-bottom: 6px; padding: 6px 12px;">
+                <div class="avatar-badge bo">💧 智者阿呆</div>
+                <div class="dialogue-text">
+                    「呆～直接在下面的底線格打字，系統就會自動幫你在最下面組合成一篇完整作文喔！字體系統已經幫你對齊好格線了！」
+                </div>
+            </div>
+
+            <!-- 六段式引導寫作框 -->
+            <div class="writing-container">
+                
+                <!-- 第一段 -->
+                <div class="para-box">
+                    <span class="para-badge badge-intro">第一段：總說（提問引入向日葵班）</span>
+                    <div class="para-content">
+                          說到東勢國小的向日葵班，你會聯想到什麼樣的畫面呢？是上課時<input type="text" id="p1_scene1" class="comic-input save-field" style="width: 195px;" placeholder="例：傳出的陣陣讀書聲">？還是下課時<input type="text" id="p1_scene2" class="comic-input save-field" style="width: 215px;" placeholder="例：奔跑在操場上的朵朵笑臉">？東勢國小擁有充滿活力的校園，認真學習與快樂遊戲因此成為教室裡輕易可見的風景。不過，在向日葵班裡，其實還有一些特別的風景，正等著人們去探索。
+                    </div>
+                </div>
+
+                <!-- 第二段 -->
+                <div class="para-box">
+                    <span class="para-badge badge-fruit">第二段：分說一【先寫「果」——主角 1 的厲害畫面】</span>
+                    <div class="para-content">
+                          你見過「<input type="text" id="p2_meta" class="comic-input save-field" style="width: 155px;" placeholder="填入目標一的趣味比喻">」嗎？走進<input type="text" id="p2_place" class="comic-input save-field" style="width: 135px;" placeholder="地點，如：向日葵班教室">，便能看見這奇趣畫面：
+                        <textarea id="p2_body" class="ruled-textarea save-field" rows="3" placeholder="請描寫主角 1 展現專長時的動作、色彩、作品或得獎表現……"></textarea>
+                    </div>
+                </div>
+
+                <!-- 第三段 -->
+                <div class="para-box">
+                    <span class="para-badge badge-cause">第三段：分說一【再寫「因」——主角 1 背後的努力】</span>
+                    <div class="para-content">
+                          這位「<input type="text" id="p3_title" class="comic-input save-field" style="width: 145px;" placeholder="給他一個酷炫稱號">」是怎麼一回事呢？原來，
+                        <textarea id="p3_body" class="ruled-textarea save-field" rows="2" placeholder="請寫出他平常是怎麼堅持練習、克服困難或累積實力的……"></textarea>
+                        換句話說，這<input type="text" id="p3_tool" class="comic-input save-field" style="width: 95px;" placeholder="如：雙巧手">成了「<input type="text" id="p3_machine" class="comic-input save-field" style="width: 105px;" placeholder="如：夢想">製造機」，源源不絕的努力創造出最特別的表現。
+                    </div>
+                </div>
+
+                <!-- 第四段 -->
+                <div class="para-box">
+                    <span class="para-badge badge-fruit">第四段：分說二【先寫「果」——主角 2 的厲害畫面】</span>
+                    <div class="para-content">
+                          另外，在教室另一頭的<input type="text" id="p4_place" class="comic-input save-field" style="width: 115px;" placeholder="地點，如：排球場上">，可以觀賞「<input type="text" id="p4_meta" class="comic-input save-field" style="width: 155px;" placeholder="填入目標二的趣味比喻">」的獨特景象。
+                        <textarea id="p4_body" class="ruled-textarea save-field" rows="3" placeholder="請描寫主角 2 展現專長時的精彩畫面、隊形變化或比賽屢獲佳績的光芒……"></textarea>
+                    </div>
+                </div>
+
+                <!-- 第五段 -->
+                <div class="para-box">
+                    <span class="para-badge badge-cause">第五段：分說二【再寫「因」——主角 2 背後的努力】</span>
+                    <div class="para-content">
+                          這<input type="text" id="p5_unit" class="comic-input save-field" style="width: 45px; text-align:center;" placeholder="支/位">神奇的<input type="text" id="p5_title" class="comic-input save-field" style="width: 130px;" placeholder="稱號，如：排球勁旅">又是怎麼形成的呢？原來，由於
+                        <textarea id="p5_body" class="ruled-textarea save-field" rows="2" placeholder="請寫出他們為了目標付出哪些汗水、如何互相扶持與辛苦練習……"></textarea>
+                        就練成了這樣特殊又耀眼的本領。
+                    </div>
+                </div>
+
+                <!-- 第六段 -->
+                <div class="para-box">
+                    <span class="para-badge badge-outro">第六段：總結（首尾呼應＋問句結尾）</span>
+                    <div class="para-content">
+                          向日葵班千變萬化，隨著不同的天賦與努力，就會呈現不同的面貌。在班上，每一個學生都有特別的優點，還有其他閃亮的才華，等著我們深入探索：在那些<input type="text" id="p6_secret" class="comic-input save-field" style="width: 155px;" placeholder="例：特別的笑容">背後，還藏有什麼特別的祕密呢？
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 底部特派員自我檢查表 -->
+        <div>
+            <div class="checklist-bar">
+                <span>🌟 <b>春日部防衛隊・特派員自我檢查：</b></span>
+                <div class="check-items">
+                    <label class="check-item"><input type="checkbox" id="chk1" class="save-field"> 1.「果」和「因」有分開寫清楚</label>
+                    <label class="check-item"><input type="checkbox" id="chk2" class="save-field"> 2. 有設計出超酷的「趣味比喻」</label>
+                    <label class="check-item"><input type="checkbox" id="chk3" class="save-field"> 3. 標點符號與錯別字已檢查</label>
+                </div>
+            </div>
+            <div class="page-footer">🌻 東勢國小五年乙班・向日葵班讀寫合一任務單 ｜ 第 2 頁（恭喜完成任務！）</div>
+        </div>
+    </div>
+
+    <!-- ==================== 螢幕專屬：完整文章即時預覽與複製區 ==================== -->
+    <div class="essay-preview-panel">
+        <div class="preview-header">
+            <div>
+                <span class="stage-tag" style="background: var(--shin-red); color: #fff;">BONUS</span>
+                <b style="font-size: 16px; margin-left: 6px;">📝 完整文章即時預覽區（自動把上面的填空組合成一篇作文！）</b>
+            </div>
+            <button class="tool-btn btn-save" onclick="copyFullEssay()">📋 一鍵複製完整文章</button>
+        </div>
+        <div class="preview-body" id="fullEssayPreview"></div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'sunflower_class_writing_v1';
+
+        // 初始化：載入自動儲存的資料並綁定事件
+        window.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            document.querySelectorAll('.save-field').forEach(el => {
+                el.addEventListener('input', () => {
+                    saveToLocalStorage();
+                    updateEssayPreview();
+                });
+                el.addEventListener('change', () => {
+                    saveToLocalStorage();
+                    updateEssayPreview();
+                });
+            });
+            updateEssayPreview();
+        });
+
+        // 儲存至瀏覽器 LocalStorage
+        function saveToLocalStorage() {
+            const data = {};
+            document.querySelectorAll('.save-field').forEach(el => {
+                data[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
+            });
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            
+            const status = document.getElementById('saveStatus');
+            const now = new Date();
+            const timeStr = now.toTimeString().split(' ')[0];
+            status.textContent = `✔ 已自動儲存 (${timeStr})`;
+        }
+
+        // 從 LocalStorage 讀取
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return;
+            try {
+                const data = JSON.parse(saved);
+                Object.keys(data).forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        if (el.type === 'checkbox') el.checked = data[id];
+                        else el.value = data[id];
+                    }
+                });
+            } catch (e) {
+                console.error('讀取暫存失敗', e);
+            }
+        }
+
+        // 一鍵帶入「云馨 & 排球三劍客」向日葵班範文
+        function loadSunflowerDemo() {
+            if (!confirm('要帶入「小云馨＆排球三劍客」的向日葵班範文嗎？\n（會覆蓋目前格子裡的文字喔！）')) return;
+            
+            const demoData = {
+                b1_name: '小云馨',
+                b1_skill: '繪畫比賽的常勝軍',
+                b1_meta: '畫筆變魔術',
+                b1_fruit: '圖畫紙像施了魔法，五彩顏料渲染出栩栩如生的景象，伴隨一張張閃耀的獎狀。',
+                b1_cause: '國小五年來對藝術的熱情不曾間斷，加上日復一日的細心觀察與練習。',
+                b2_name: '亦呈、佑諶和雋翊',
+                b2_skill: '排球比賽屢獲佳績',
+                b2_meta: '排球畫閃電',
+                b2_fruit: '網前排列整齊陣形，一會兒是銅牆鐵壁的攔網，一會兒是凌厲扣殺，默契十足。',
+                b2_cause: '對勝利的渴望與團隊精神，多年來不論晴雨揮灑汗水，跌倒又爬起辛苦練習。',
+                p1_scene1: '傳出的陣陣讀書聲',
+                p1_scene2: '奔跑在操場上的朵朵笑臉',
+                p2_meta: '畫筆變魔術',
+                p2_place: '向日葵班的教室',
+                p2_body: '在云馨座位上展開的那張圖畫紙，竟然不是單調的空白，而是像施了魔法一樣的繽紛世界。五彩的顏料在紙上向外渲染開來，染出溫暖的紅，鮮紅和上亮黃，堆疊成一幅幅栩栩如生的景象。畫筆在她手上能憑空畫出萬物的靈魂，伴隨眼前美景的是一張張閃耀的獎狀，讓她成為繪畫比賽的常勝軍。',
+                p3_title: '神筆小畫家',
+                p3_body: '云馨心中對藝術的熱情，國小五年來不曾間斷。這種天分加上日復一日的細心觀察與練習，產生驚人的創作能量，並且累積在每一次的參賽經驗中，越積越厚，看起來像一座座穩固的實力高塔。',
+                p3_tool: '雙巧手',
+                p3_machine: '夢想',
+                p4_place: '排球場上',
+                p4_meta: '排球畫閃電',
+                p4_body: '遠眺球場時，會發現亦呈、佑諶和雋翊在網前自動排列成整齊的陣形。隊形忽前忽後，一會兒是銅牆鐵壁的攔網，一會兒是凌厲無比的扣殺。比賽時節，這片球場變成了他們的舞台，三人默契十足地防守接應，整座球場閃著耀眼的自信光芒，也在縣內外比賽中屢獲佳績。',
+                p5_unit: '支',
+                p5_title: '排球勁旅',
+                p5_body: '對勝利的渴望與團隊精神，他們多年來在球場上揮灑汗水，不論晴雨都不曾退縮。在一次次跌倒又爬起的辛苦練習中，無數次交錯的汗水與淚水，一球一拍，',
+                p6_secret: '特別的笑容',
+                chk1: true,
+                chk2: true,
+                chk3: true
+            };
+
+            Object.keys(demoData).forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (el.type === 'checkbox') el.checked = demoData[id];
+                    else el.value = demoData[id];
+                }
+            });
+            saveToLocalStorage();
+            updateEssayPreview();
+        }
+
+        // 即時更新最下方的完整文章預覽
+        function updateEssayPreview() {
+            const v = (id, fallback) => {
+                const val = document.getElementById(id)?.value?.trim();
+                return val ? val : `【${fallback}】`;
+            };
+
+            const p1 = `  說到東勢國小的向日葵班，你會聯想到什麼樣的畫面呢？是上課時${v('p1_scene1', '上課畫面')}？還是下課時${v('p1_scene2', '下課畫面')}？東勢國小擁有充滿活力的校園，認真學習與快樂遊戲因此成為教室裡輕易可見的風景。不過，在向日葵班裡，其實還有一些特別的風景，正等著人們去探索。`;
+            
+            const p2 = `  你見過「${v('p2_meta', '主角1趣味比喻')}」嗎？走進${v('p2_place', '地點')}，便能看見這奇趣畫面：${v('p2_body', '主角1的厲害畫面描寫')}`;
+            
+            const p3 = `  這位「${v('p3_title', '主角1稱號')}」是怎麼一回事呢？原來，${v('p3_body', '主角1背後的努力過程')}換句話說，這${v('p3_tool', '部位或工具')}成了「${v('p3_machine', '某種')}製造機」，源源不絕的努力創造出最特別的表現。`;
+            
+            const p4 = `  另外，在教室另一頭的${v('p4_place', '地點')}，可以觀賞「${v('p4_meta', '主角2趣味比喻')}」的獨特景象。${v('p4_body', '主角2的厲害畫面描寫')}`;
+            
+            const p5 = `  這${v('p5_unit', '支/位')}神奇的${v('p5_title', '主角2稱號')}又是怎麼形成的呢？原來，由於${v('p5_body', '主角2背後的努力過程')}就練成了這樣特殊又耀眼的本領。`;
+            
+            const p6 = `  向日葵班千變萬化，隨著不同的天賦與努力，就會呈現不同的面貌。在班上，每一個學生都有特別的優點，還有其他閃亮的才華，等著我們深入探索：在那些${v('p6_secret', '特別的笑容')}背後，還藏有什麼特別的祕密呢？`;
+
+            document.getElementById('fullEssayPreview').textContent = [
+                '《特別的向日葵班》',
+                p1, p2, p3, p4, p5, p6
+            ].join('\n\n');
+        }
+
+        // 一鍵複製完整文章
+        function copyFullEssay() {
+            const text = document.getElementById('fullEssayPreview').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                alert('🎉 已成功複製《特別的向日葵班》完整文章！\n可以直接貼到 Google 表單或學習存摺系統交作業囉！');
+            });
+        }
+
+        // 匯出 JSON 備份檔
+        function exportJSON() {
+            const data = {};
+            document.querySelectorAll('.save-field').forEach(el => {
+                data[el.id] = (el.type === 'checkbox') ? el.checked : el.value;
+            });
+            const seat = document.getElementById('stu_seat').value || '未填座號';
+            const name = document.getElementById('stu_name').value || '未填姓名';
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `特別的向日葵班_${seat}_${name}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // 匯入 JSON 備份檔
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    Object.keys(data).forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            if (el.type === 'checkbox') el.checked = data[id];
+                            else el.value = data[id];
+                        }
+                    });
+                    saveToLocalStorage();
+                    updateEssayPreview();
+                    alert('📂 存檔讀取成功！');
+                } catch (err) {
+                    alert('檔案格式錯誤，無法讀取喔！');
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        // 清空所有欄位
+        function clearAllFields() {
+            if (!confirm('確定要清空所有已經寫好的內容嗎？')) return;
+            document.querySelectorAll('.save-field').forEach(el => {
+                if (el.type === 'checkbox') el.checked = false;
+                else el.value = '';
+            });
+            localStorage.removeItem(STORAGE_KEY);
+            updateEssayPreview();
+            document.getElementById('saveStatus').textContent = '🗑️ 已清空';
+        }
+    </script>
+</body>
+</html>
