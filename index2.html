@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>雲林縣東勢國小 115學年度六上國語期中評量 - 試卷編輯與列印系統</title>
+  <style>
+    :root {
+      --paper-width: 210mm;
+      --paper-min-height: 297mm;
+      --font-main: "標楷體", "DFKai-SB", "BiauKai", "Kaiti TC", serif;
+      --border-color: #222;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      margin: 0;
+      padding: 75px 0 40px 0;
+      background-color: #4a5568;
+      font-family: var(--font-main);
+      color: #000;
+      line-height: 1.55;
+      font-size: 11.5pt;
+    }
+
+    /* 頂部控制工具列 (列印時自動隱藏) */
+    .toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 62px;
+      background: #1a202c;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      font-family: "Microsoft JhengHei", sans-serif;
+    }
+
+    .toolbar-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .toolbar-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fbd38d;
+      letter-spacing: 0.5px;
+    }
+
+    .toolbar-badge {
+      background: #2b6cb0;
+      color: #fff;
+      font-size: 12px;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      background: #2d3748;
+      color: #e2e8f0;
+      border: 1px solid #4a5568;
+      padding: 7px 13px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn:hover {
+      background: #4a5568;
+      color: #fff;
+    }
+
+    .btn.active {
+      background: #ed8936;
+      color: #fff;
+      border-color: #dd6b20;
+    }
+
+    .btn-print {
+      background: #38a169;
+      color: #fff;
+      border-color: #2f855a;
+      font-size: 14px;
+      padding: 8px 16px;
+    }
+
+    .btn-print:hover {
+      background: #2f855a;
+    }
+
+    /* A4 紙張容器 */
+    .page {
+      width: var(--paper-width);
+      min-height: var(--paper-min-height);
+      background: #fff;
+      margin: 0 auto 24px auto;
+      padding: 12mm 14mm 12mm 14mm;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.45);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* 編輯狀態提示框 */
+    [contenteditable="true"]:hover {
+      outline: 1px dashed #63b3ed;
+      background-color: rgba(235, 248, 255, 0.35);
+    }
+    [contenteditable="true"]:focus {
+      outline: 2px solid #3182ce;
+      background-color: #fffaf0;
+    }
+
+    /* 考卷標題區 */
+    .exam-header {
+      border-bottom: 2px solid #000;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+
+    .exam-title {
+      font-size: 16pt;
+      font-weight: bold;
+      text-align: center;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .student-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12pt;
+      font-weight: bold;
+    }
+
+    .score-box {
+      border: 1.5px solid #000;
+      padding: 2px 14px;
+      font-size: 11pt;
+      display: inline-block;
+    }
+
+    /* 大題標題 */
+    .section-title {
+      font-size: 12.5pt;
+      font-weight: bold;
+      margin: 8px 0 6px 0;
+      background: #f0f0f0;
+      padding: 3px 8px;
+      border-left: 4px solid #000;
+    }
+
+    /* 報紙排版外框 */
+    .newspaper-box {
+      border: 2.5px double #000;
+      padding: 8px 10px;
+      background: #;
+    }
+
+    .newspaper-masthead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 2px solid #000;
+      padding-bottom: 6px;
+      margin-bottom: 8px;
+    }
+
+    .masthead-meta {
+      font-size: 9.5pt;
+      line-height: 1.35;
+      width: 26%;
+    }
+
+    .masthead-center {
+      text-align: center;
+      width: 48%;
+    }
+
+    .masthead-right {
+      width: 26%;
+      border: 1px solid #000;
+      padding: 4px 6px;
+      font-size: 9pt;
+      line-height: 1.3;
+      background: #f7f7f7;
+    }
+
+    .news-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .news-card {
+      border: 1px solid #333;
+      padding: 6px 8px;
+      font-size: 10.8pt;
+      line-height: 1.55;
+      text-align: justify;
+    }
+
+    .news-card.full-width {
+      grid-column: span 2;
+    }
+
+    .news-card-title {
+      font-weight: bold;
+      font-size: 11.5pt;
+      background: #e8e8e8;
+      padding: 2px 6px;
+      margin-bottom: 4px;
+      border-bottom: 1px solid #555;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* 挖空題號樣式 */
+    .blank-item {
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .blank-num {
+      display: inline-block;
+      background: #000;
+      color: #fff;
+      font-size: 9pt;
+      padding: 0 4px;
+      border-radius: 3px;
+      margin-right: 1px;
+      font-family: Arial, sans-serif;
+      vertical-align: text-bottom;
+    }
+
+    /* 選擇題清單 */
+    .question-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .question-item {
+      margin-bottom: 7px;
+      text-align: justify;
+      padding-left: 2.2em;
+      text-indent: -2.2em;
+    }
+
+    .options-row {
+      display: block;
+      text-indent: 0;
+      margin-top: 2px;
+      font-size: 11pt;
+    }
+
+    /* 閱讀測驗框 */
+    .reading-box {
+      border: 1.5px solid #000;
+      padding: 8px 12px;
+      margin-bottom: 8px;
+      background: #fafafa;
+      font-size: 10.8pt;
+      line-height: 1.55;
+      text-align: justify;
+    }
+
+    .reading-title {
+      font-size: 12.5pt;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .reading-box p {
+      margin: 0 0 5px 0;
+      text-indent: 2em;
+    }
+
+    /* 題組五：書信框與表格 */
+    .idiom-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 6px 0;
+      font-size: 11pt;
+    }
+
+    .idiom-table td, .idiom-table th {
+      border: 1px solid #000;
+      padding: 4px 6px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .letter-box {
+      border: 1.5px solid #333;
+      padding: 8px 12px;
+      background: #fff;
+      font-size: 10.8pt;
+      line-height: 1.6;
+      text-align: justify;
+    }
+
+    .letter-box p {
+      margin: 0 0 5px 0;
+      text-indent: 2em;
+    }
+
+    .ticket-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 6px 0;
+      font-size: 10.5pt;
+    }
+
+    .ticket-table th, .ticket-table td {
+      border: 1px solid #000;
+      padding: 5px 8px;
+      vertical-align: middle;
+    }
+
+    .ticket-table th {
+      background: #e8e8e8;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    /* 答案卷表格 */
+    .ans-grid-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 10px;
+    }
+
+    .ans-grid-table th, .ans-grid-table td {
+      border: 1px solid #000;
+      text-align: center;
+      padding: 4px;
+    }
+
+    .ans-grid-table th {
+      background: #ececec;
+      font-size: 10pt;
+      font-family: Arial, sans-serif;
+      height: 22px;
+    }
+
+    .ans-grid-table td {
+      height: 40px;
+      font-size: 13pt;
+      font-weight: bold;
+      width: 10%;
+    }
+
+    .ans-choice-table td {
+      height: 32px;
+      width: auto;
+    }
+
+    .writing-area {
+      border: 1.5px solid #000;
+      min-height: 88px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      line-height: 2;
+      background: linear-gradient(transparent 95%, #ccc 95%);
+      background-size: 100% 28px;
+    }
+
+    /* 頁尾頁碼 */
+    .page-footer {
+      text-align: center;
+      font-size: 10pt;
+      border-top: 1px solid #888;
+      padding-top: 4px;
+      margin-top: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* 教師解答顯示控制 */
+    .ans-key {
+      display: none;
+      color: #d90429;
+      font-weight: bold;
+    }
+
+    body.show-answers .ans-key {
+      display: inline;
+    }
+
+    /* 檢視模式切換 */
+    body.mode-questions .answer-sheet-page {
+      display: none !important;
+    }
+
+    body.mode-answers .question-sheet-page {
+      display: none !important;
+    }
+
+    /* 列印專用 CSS */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+
+      body {
+        background: #fff;
+        padding: 0;
+        margin: 0;
+      }
+
+      .toolbar {
+        display: none !important;
+      }
+
+      .page {
+        margin: 0;
+        box-shadow: none;
+        page-break-after: always;
+        break-after: page;
+        width: 210mm;
+        height: 297mm;
+      }
+
+      .page:last-child {
+        page-break-after: auto;
+        break-after: auto;
+      }
+
+      [contenteditable="true"]:hover,
+      [contenteditable="true"]:focus {
+        outline: none !important;
+        background: transparent !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部控制工具列 (不會被印出) -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <span class="toolbar-title">🌻 東勢國小國語科試卷編輯器 (六上康軒版)</span>
+      <span class="toolbar-badge">點擊紙張內任何文字即可直接修改</span>
+    </div>
+    <div class="toolbar-actions">
+      <button class="btn active" id="btnAll" onclick="setViewMode('all')">📄 全部顯示 (5頁)</button>
+      <button class="btn" id="btnQuestions" onclick="setViewMode('questions')">📝 僅題目卷 (4頁)</button>
+      <button class="btn" id="btnAnswers" onclick="setViewMode('answers')">✍️ 僅答案卷 (1頁)</button>
+      <button class="btn" id="btnToggleAns" onclick="toggleAnswers()">🔑 顯示/隱藏解答</button>
+      <button class="btn" onclick="redrawCanvases(true)">🎨 切換插圖風格</button>
+      <button class="btn btn-print" onclick="window.print()">🖨️ 直接列印 / 存成 PDF</button>
+    </div>
+  </div>
+
+  <!-- ==================== 第 1 頁：題目卷 (第一大題) ==================== -->
+  <div class="page question-sheet-page" contenteditable="true">
+    <div>
+      <div class="exam-header">
+        <div class="exam-title">雲林縣東勢國民小學 115 學年度上學期期中定期評量 國語領域考卷</div>
+        <div class="student-info">
+          <span>六年 ___ 班 座號：_____ 姓名：_____________</span>
+          <span>家長簽名：___________</span>
+          <span class="score-box">得分：    </span>
+        </div>
+      </div>
+
+      <div class="section-title">一、請將《東小好報》文章內的注音或國字，依照號碼填入正確答案在答案卷中：每格 1 分，共 25 分</div>
+
+      <div class="newspaper-box">
+        <!-- 報頭區 -->
+        <div class="newspaper-masthead">
+          <div class="masthead-meta">
+            <strong>民國 115 年創刊｜第 00001 號</strong><br>
+            Dongshi Daily News<br>
+            中華民國 115 年 10 月／星期二<br>
+            發行所：東勢國小新聞編輯社
+          </div>
+          <div class="masthead-center">
+            <canvas id="canvasMasthead" width="310" height="62" style="max-width:100%;"></canvas>
+          </div>
+          <div class="masthead-right">
+            <strong>📰 本期焦點快訊：</strong><br>
+            ▶ 校慶大隊接力決賽大預測 (2版)<br>
+            ▶ 東勢五彩胡蘿蔔汁試喝會 (3版)<br>
+            ▶ 畢業旅行熱門景點大票選 (4版)
+          </div>
+        </div>
+
+        <!-- 六課課文摘要報紙專欄 -->
+        <div class="news-grid">
+          <div class="news-card">
+            <div class="news-card-title">
+              <span>【體育焦點】放下得失，跑出團隊榮耀</span>
+              <span>《跑道》</span>
+            </div>
+            六年級四百公尺接力是運動會的壓 <span class="blank-item"><span class="blank-num">1</span>【軸<span class="ans-key">:ㄓㄡˊ</span>】</span> 項目。政彬因老師將他拿手的第四棒換給班長名揚，感到十分委 <span class="blank-item"><span class="blank-num">2</span>【ㄑㄩ<span class="ans-key">:屈</span>】</span>。隔天名揚請他幫忙 <span class="blank-item"><span class="blank-num">3</span>【ㄅㄢ<span class="ans-key">:搬</span>】</span> 運器材時，早已心存芥 <span class="blank-item"><span class="blank-num">4</span>【ㄉㄧˋ<span class="ans-key">:蒂</span>】</span> 的他無法壓 <span class="blank-item"><span class="blank-num">5</span>【抑<span class="ans-key">:ㄧˋ</span>】</span> 不滿而大聲拒絕，場面十分 <span class="blank-item"><span class="blank-num">6</span>【ㄍㄢ<span class="ans-key">:尷</span>】</span> 尬。沒想到名揚在跳高時受傷，把冠軍 <span class="blank-item"><span class="blank-num">7</span>【ㄍㄨㄥˇ<span class="ans-key">:拱</span>】</span> 手讓人。看見名揚帶傷堅持參賽、隊友互相打氣，政彬既激動又慚愧，決定為班級榮譽努力。槍響後大家奮力衝刺，最後名揚的臉因用力而 <span class="blank-item"><span class="blank-num">8</span>【ㄋㄧㄡˇ<span class="ans-key">:扭</span>】</span> 曲並瞬間超前奪冠，政彬也 <span class="blank-item"><span class="blank-num">9</span>【ㄇㄥˇ<span class="ans-key">:猛</span>】</span> 然衝上前擁抱他，體會到團結的力量。
+          </div>
+
+          <div class="news-card">
+            <div class="news-card-title">
+              <span>【品格專欄】修身治家，惜福且未雨綢繆</span>
+              <span>《朱子治家格言選》</span>
+            </div>
+            清代教育家朱柏廬提醒我們修身治家的道理：「一 <span class="blank-item"><span class="blank-num">10</span>【ㄓㄡ<span class="ans-key">:粥</span>】</span> 一飯，當思來處不易；半絲半 <span class="blank-item"><span class="blank-num">11</span>【ㄌㄩˇ<span class="ans-key">:縷</span>】</span>，恆念物力維艱。」教導我們珍惜得來不易的物資；面對生活則應有憂患意識，「宜未雨而綢 <span class="blank-item"><span class="blank-num">12</span>【ㄇㄡˊ<span class="ans-key">:繆</span>】</span>，毋臨渴而 <span class="blank-item"><span class="blank-num">13</span>【掘<span class="ans-key">:ㄐㄩㄝˊ</span>】</span> 井」；而在日常器物與飲食上，哪怕是裝水與酒的瓦 <span class="blank-item"><span class="blank-num">14</span>【缶<span class="ans-key">:ㄈㄡˇ</span>】</span> 或田園裡的普通蔬菜，只要質樸潔淨、簡單節約，也能勝過金玉與山珍海味的珍 <span class="blank-item"><span class="blank-num">15</span>【ㄒㄧㄡ<span class="ans-key">:饈</span>】</span>。此外，「施惠勿念，受恩莫忘；凡事當留餘地，得意不宜再往」更是處世的智慧。
+          </div>
+
+          <div class="news-card">
+            <div class="news-card-title">
+              <span>【人物論壇】多做多得，堅持耕耘超越自我</span>
+              <span>《談遇見更好的自己》</span>
+            </div>
+            「觀光教父」嚴長壽先生曾提出「垃圾桶哲學」，願意接收別人不願意做的 <span class="blank-item"><span class="blank-num">16</span>【ㄙㄨㄛˇ<span class="ans-key">:瑣</span>】</span> 事，在每一次磨練中激發潛能；相反的，宋朝神童方仲永雖有天賦，父親卻要他四處寫詩 <span class="blank-item"><span class="blank-num">17</span>【ㄓㄨㄢˋ<span class="ans-key">:賺</span>】</span> 錢而放棄學習，最終才能與普通人無異，令人十分 <span class="blank-item"><span class="blank-num">18</span>【ㄨㄢˋ<span class="ans-key">:惋</span>】</span> 惜。他欠缺的不是才華，而是自我 <span class="blank-item"><span class="blank-num">19</span>【砥<span class="ans-key">:ㄉㄧˇ</span>】</span> 礪與持續成長的機會。我們應找出優勢、一步一腳印，因為耕 <span class="blank-item"><span class="blank-num">20</span>【耘<span class="ans-key">:ㄩㄣˊ</span>】</span> 與收穫之間隔著「堅持」，唯有在困頓中接受鍛鍊，才能讓自己堅強茁壯！
+          </div>
+
+          <div class="news-card">
+            <div class="news-card-title">
+              <span>【寶島采風】歲月與恩情交織的夜市小吃</span>
+              <span>《臺灣美食詩選》</span>
+            </div>
+            方群在詩中生動描繪了臺灣小吃的歷史與美味：基隆廟口著名的「鼎邊 <span class="blank-item"><span class="blank-num">21</span>【趖<span class="ans-key">:ㄙㄨㄛ</span>】</span>」，廚師將雪白的在來米漿沿著高溫鍋邊淋下，讓它一面烤一面蒸熟，在懷舊廟口數盡潮起潮落的 <span class="blank-item"><span class="blank-num">22</span>【ㄍㄨㄚ<span class="ans-key">:颳</span>】</span> 風下雨；而相傳源於彰化北斗水災後的「肉圓」，則是先人將地瓜 <span class="blank-item"><span class="blank-num">23</span>【ㄕㄞˋ<span class="ans-key">:晒</span>】</span> 乾磨粉製皮，包覆著救命的恩情，後來改良加入竹筍切丁與後腿肉 <span class="blank-item"><span class="blank-num">24</span>【ㄧㄢ<span class="ans-key">:醃</span>】</span> 製攪拌，無論清蒸或油炸都晶瑩透亮，成為流連寶島的美食 <span class="blank-item"><span class="blank-num">25</span>【ㄒㄧㄤˇ<span class="ans-key">:饗</span>】</span> 宴。
+          </div>
+
+          <div class="news-card full-width" style="display:grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="border-right: 1px dashed #666; padding-right: 8px;">
+              <div class="news-card-title">
+                <span>【溫馨手作】天然果香喚起童年記憶</span>
+                <span>《最好的味覺禮物》</span>
+              </div>
+              作者擔心化學色素麻痺孩子的味覺，便與好友一起削有機金鑽鳳梨打成果汁，透明杯子上方被雪白泡沫覆蓋著。當果汁機刀刃轉動時，作者使用了 <strong>★</strong> 的寫作架構，瞬間嗅到童年水果的味道：想起小時候媽媽用果汁機把軟芭樂打得「粉身碎骨」，以及熬煮酸李子果醬時加入黃砂糖，讓她試吃味道並建立起小小的自信。親手做的天然果汁，就是給孩子最好的味覺禮物。
+            </div>
+            <div>
+              <div class="news-card-title">
+                <span>【國際視野】粉圓與奶茶的跨界奇蹟</span>
+                <span>《珍珠奶茶》</span>
+              </div>
+              風靡全球的「臺灣之光」珍珠奶茶，茶與奶的結合相傳始於唐朝文成公主嫁給西藏松贊干布，傳授當地人烹茶技術；一九八〇年代臺灣人將地瓜粉或樹薯粉做成的粉圓加入奶茶中。美味關鍵在於粉圓講究彈勁、不可黏稠，與新鮮香濃的奶茶聯袂演出。如今更跨界融合到披薩、拉麵與冰品中，讓世界見識到臺灣飲食文化源源不絕的創新力量！
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>雲林縣東勢國小 115 學年度第一學期 六年級國語科期中評量</span>
+      <span>試卷共 4 面，第 1 面</span>
+    </div>
+  </div>
+
+  <!-- ==================== 第 2 頁：題目卷 (第二、三大題) ==================== -->
+  <div class="page question-sheet-page" contenteditable="true">
+    <div>
+      <div class="section-title">二、根據第一大題的文章內容與課文脈絡，選出最適當的答案：每題 2 分，共 10 分</div>
+      <ul class="question-list">
+        <li class="question-item">
+          1. ( <span class="ans-key">①</span> ) 在《跑道》一課中，「政彬站在起跑點，看著五班的選手充滿自信的表情，手中的接力棒頓覺沉重起來……」請問作者是透過哪一種方式來傳達政彬緊張、沉重的情緒？
+          <span class="options-row">① 透過物品 ② 動作表達 ③ 內心獨白 ④ 自然景物</span>
+        </li>
+        <li class="question-item">
+          2. ( <span class="ans-key">②</span> ) 依據《朱子治家格言選》，「器具質而潔，瓦缶勝金玉；飲食約而精，園蔬勝珍饈。」這段格言想傳達的核心精神與下列何者最接近？
+          <span class="options-row">① 陶器比金玉昂貴，蔬菜比肉類美味 ② 提倡生活應該講求質樸實用、簡單節約<br>③ 鼓勵大家多吃有機蔬菜以維持健康 ④ 事先做好準備，才不會臨時手忙腳亂</span>
+        </li>
+        <li class="question-item">
+          3. ( <span class="ans-key">③</span> ) 在《談遇見更好的自己》一課中，作者同時舉出「嚴長壽」與「方仲永」兩個事例作為論據，請問這兩個例子在議論文中的作用分別是什麼？
+          <span class="options-row">① 兩者皆為正例，強調天賦的重要    ② 兩者皆為反例，批評不努力的後果<br>③ 嚴長壽為正例，方仲永為反例，正反對比更具說服力 ④ 嚴長壽為反例，方仲永為正例，說明小時候聰明未必好</span>
+        </li>
+        <li class="question-item">
+          4. ( <span class="ans-key">②</span> ) 第一大題文中 <strong>★</strong> 的部分，《最好的味覺禮物》一課中，作者從現在「和朋友打鳳梨汁」，回到過去「童年時媽媽打芭樂汁與熬李子果醬」，最後再回到現在「看著孩子喝果汁的歡喜」，使用的是哪一種寫作架構？
+          <span class="options-row">① 順敘法 ② 今昔今 ③ 昔今昔 ④ 先總論後分論</span>
+        </li>
+        <li class="question-item">
+          5. ( <span class="ans-key">④</span> ) 關於《珍珠奶茶》一文，作者介紹「粉圓是將地瓜粉或樹薯粉加水攪拌，再搓揉成粒狀，篩去多餘粉末，放入滾水煮熟，待冷卻後再拌入黑糖漿。」這是運用了哪一種說明方法？
+          <span class="options-row">① 舉例說明 ② 數字說明 ③ 引用說明 ④ 分解說明</span>
+        </li>
+      </ul>
+
+      <div class="section-title" style="margin-top: 12px;">三、選擇題：每題 2 分，共 18 分</div>
+      <ul class="question-list">
+        <li class="question-item">
+          1. ( <span class="ans-key">④</span> ) 下列各組「 」中的字，哪一組的讀音前後相同？
+          <span class="options-row">① 鬆「懈」／「解」釋 ② 「調」換棒次／風「調」雨順 ③ 「削」鳳梨皮／刀「削」麵 ④ 心存芥「蒂」／根深「蒂」固</span>
+        </li>
+        <li class="question-item">
+          2. ( <span class="ans-key">③</span> ) 「那間餐廳重新裝璜後，擴展了空間，主廚精心烹調的佳肴不含人工添加物，讓饕客們垂延三尺，真是流連寶島的美食響宴。」請問這個句子裡共有幾個錯字？
+          <span class="options-row">① 1 個 ② 2 個 ③ 3 個 ④ 4 個</span>
+        </li>
+        <li class="question-item">
+          3. ( <span class="ans-key">②</span> ) 閱讀古文時，我們可以運用「部首」來推測字義。「善欲人見，不是真善；惡恐人知，便是大惡。」句中的「恐」字與下列哪一個字的部首相同？
+          <span class="options-row">① 鞏 ② 恆 ③ 築 ④ 凡</span>
+        </li>
+        <li class="question-item">
+          4. ( <span class="ans-key">③</span> ) 下列「 」中的語詞，哪一組的意思前後<strong>相反</strong>？
+          <span class="options-row">① 經過一上午的練習，他依然精力「充沛」／這場及時雨為水庫帶來「豐沛」的水量<br>② 菜販在市場裡「賣力」的叫賣／每位選手都「盡力」向前衝刺<br>③ 聽到要吃苦瓜，弟弟立刻「退避三舍」／大家對這家新開幕的甜點店「趨之若鶩」<br>④ 看到滿桌的點心，妹妹高興得「雀躍」不已／得知獲勝的消息，全班「欣喜」若狂</span>
+        </li>
+        <li class="question-item">
+          5. ( <span class="ans-key">②</span> ) 下列哪一個文句<strong>沒有</strong>多餘的贅字（語病）？
+          <span class="options-row">① 因為哥哥平時總是經常練習長跑，所以體力非常充沛。<br>② 每當外婆熬煮南瓜濃湯時，廚房裡總是飄散著濃郁的香氣。<br>③ 透過這次的班級布置比賽，使我們全班學會了團結合作的重要性。<br>④ 他在心裡暗自默默的決定，一定要在下次比賽中雪恥。</span>
+        </li>
+        <li class="question-item">
+          6. ( <span class="ans-key">①</span> ) 下列句子中，有關「水到渠成」的用法何者最恰當？
+          <span class="options-row">① 只要我們平時做好萬全準備並團結邁進，屆時事情自然會「水到渠成」，順利完成。<br>② 颱風過後山區大雨不斷，溪水暴漲，很快就「水到渠成」淹沒了農田。<br>③ 他做事情總是三心二意、半途而廢，難怪最後會「水到渠成」。<br>④ 這碗鼎邊趖的湯頭鮮甜無比，讓人喝了覺得「水到渠成」，回味無窮。</span>
+        </li>
+        <li class="question-item">
+          7. ( <span class="ans-key">④</span> ) 課本【學習地圖一】介紹了「格言」與「諺語」的差別。下列哪一句屬於民間集體創作流傳、詞語淺白且沒有特定作者的「諺語」？
+          <span class="options-row">① 我思故我在。 ② 滿招損，謙受益。 ③ 千里之行，始於足下。 ④ 一寸光陰一寸金。</span>
+        </li>
+        <li class="question-item">
+          8. ( <span class="ans-key">④</span> ) 「冰涼苦甘的爽口滋味，『啵囉啵囉』冒著晶亮滾燙的小泡，那透亮的光澤帶著米香陣陣傳來。」（改寫自〈野菜，部落不可缺的味〉）請問這段文字中，<strong>沒有</strong>使用到下列哪一種感官描寫？
+          <span class="options-row">① 視覺 ② 聽覺 ③ 嗅覺 ④ 肢體撫摸的觸覺</span>
+        </li>
+        <li class="question-item">
+          9. ( <span class="ans-key">②</span> ) 下列哪一個句子的修辭手法，與「粉圓徜徉在茶湯中，吸入嘴裡，輕柔撫觸舌尖」相同？
+          <span class="options-row">① 政彬就像獵豹般向前衝刺，很快就繞過彎道。<br>② 大白菜在濃郁的醬汁中泡澡，眾人都等待他出浴的那天。<br>③ 塊狀的芭樂轉瞬間「粉身碎骨」，成為一杯杯好喝的果汁。<br>④ 俗話說：「民以食為天。」飲食是人類生存最重要的事。</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="page-footer">
+      <span>雲林縣東勢國小 115 學年度第一學期 六年級國語科期中評量</span>
+      <span>試卷共 4 面，第 2 面</span>
+    </div>
+  </div>
+
+  <!-- ==================== 第 3 頁：題目卷 (第四大題、第五大題之一) ==================== -->
+  <div class="page question-sheet-page" contenteditable="true">
+    <div>
+      <div style="text-align:right; font-weight:bold; font-size:11pt; margin-bottom:4px;">
+        班級：六年 ___ 班 座號：_____ 姓名：_____________
+      </div>
+
+      <div class="section-title">四、閱讀測驗：每題 2 分，共 12 分</div>
+      <div class="reading-box">
+        <div class="reading-title">〈在逆境中熬出一碗回甘的湯〉</div>
+        <p>許多人在品嘗美食時，總喜歡追求第一口就驚豔的濃烈滋味，例如加了大量人工糖漿與香精的飲品，一入口便甜得發膩；然而，真正懂得品味飲食的人都知道，一鍋好湯往往需要長時間的文火慢熬，而最令人難忘的滋味，常常是歷經苦澀後的「回甘」。</p>
+        <p>雲林縣東勢鄉以盛產胡蘿蔔聞名。胡蘿蔔在播種後，必須經歷秋冬強勁的東北季風吹拂。農夫們常說，正是因為地處風頭水尾，冷冽的強風讓胡蘿蔔為了生存，努力將養分往地下根部輸送、緊緊抓住土地，這樣種出來的胡蘿蔔，肉質才會特別脆嫩，熬煮出來的湯頭也才會有最天然、最深邃的甘甜。如果把它種在溫室裡，給予過多的水分與保護，反而長不出那股獨特的甜味。</p>
+        <p>其實，人的成長過程不也是如此嗎？古人說：「耳中常聞逆耳之言，心中常有拂心之事，才是進修德行的砥石。」我們在學習或參加比賽的過程中，難免會遇到挫折、批評，或是事與願違的困境。有些人一遇到困難就怨天尤人，甚至像方仲永一樣放棄了磨練自己的機會；但也有人將這些逆境視為磨刀石，把每一次失敗當作調整步伐的養分。</p>
+        <p>以前我們總以為「成功」就是站在頒獎臺上領取金牌的那一刻，或是端上餐桌那道華麗的珍饈美饌。但當我們靜下心來體會，才會發現：原來在操場上跌倒又爬起、與隊友汗流浹背練習的過程，以及在廚房裡耐著高溫、一次次調整火候與調味的等待，才是生命中最珍貴的禮物。不要害怕生命中的「苦味」與「逆風」，唯有願意在逆境中沉住氣、一步一腳印耕耘的人，才能為自己的人生，熬出一碗最溫潤、最回甘的好湯。</p>
+      </div>
+
+      <ul class="question-list">
+        <li class="question-item">
+          ( <span class="ans-key">②</span> )(1) 作者在文章第二段提到東勢鄉的胡蘿蔔之所以特別脆嫩甘甜，主要的原因是什麼？
+          <span class="options-row">① 農夫使用了最昂貴的肥料與溫室栽種 ② 在秋冬冷冽的強風逆境中，胡蘿蔔努力將養分往根部輸送<br>③ 當地雨水非常充沛，不需辛苦照顧  ④ 廚師在熬湯時加入了大量的黃砂糖與人工甘味劑</span>
+        </li>
+        <li class="question-item">
+          ( <span class="ans-key">③</span> )(2) 文中引用《菜根譚》：「耳中常聞逆耳之言，心中常有拂心之事，才是進修德行的砥石。」句中的「砥石」比喻什麼？
+          <span class="options-row">① 阻礙我們前進的絆腳石 ② 昂貴稀有的金銀玉石 ③ 幫助我們磨練品德與能力的逆境 ④ 建造房屋的磚石</span>
+        </li>
+        <li class="question-item">
+          ( <span class="ans-key">③</span> )(3) 根據本文，下列哪一種面對挫折的態度，<strong>不符合</strong>作者的想法？
+          <span class="options-row">① 把別人的建議與批評當作磨練自己的機會 ② 將失敗視為調整步伐、持續成長的養分<br>③ 認為只有拿到第一名的結果才重要，練習的過程毫無意義 ④ 像逆風中的胡蘿蔔一樣，在困境中依然堅持扎根</span>
+        </li>
+        <li class="question-item">
+          ( <span class="ans-key">①</span> )(4) 作者在文末提到「為自己的人生，熬出一碗最溫潤、最回甘的好湯」，這句話的涵義與下列哪一課的主旨最相近？
+          <span class="options-row">① 〈談遇見更好的自己〉：在困頓中接受鍛鍊，堅持耕耘，就能堅強茁壯<br>② 〈臺灣美食詩選〉：介紹臺灣各地夜市小吃的歷史典故與製作方法<br>③ 〈珍珠奶茶〉：透過跨界融合的創意，將臺灣傳統飲品推廣到全世界<br>④ 〈最好的味覺禮物〉：比較芭樂汁與李子果醬在製作步驟上的不同</span>
+        </li>
+        <li class="question-item">
+          ( <span class="ans-key">②</span> )(5) 讀完這篇文章後，你認為作者在寫作手法上是如何安排結構的？
+          <span class="options-row">① 先敘述童年熬湯的回憶，最後說明胡蘿蔔的營養價值<br>② 從「飲食熬湯與胡蘿蔔生長」的具體事例，延伸到「人生面對逆境與成長」的抽象道理<br>③ 全文採用童詩的分行形式，充滿天馬行空的想像<br>④ 先提出反面例子批評現代人愛喝含糖飲料，最後教導讀者如何熬煮蔬菜湯</span>
+        </li>
+        <li class="question-item">
+          ( <span class="ans-key">②</span> )(6) 下列哪一句格言或諺語，最能用來呼應這篇文章第三段的核心精神？
+          <span class="options-row">① 施惠勿念，受恩莫忘。 ② 良藥苦口利於病，忠言逆耳利於行。 ③ 飲食約而精，園蔬勝珍饈。 ④ 一寸光陰一寸金。</span>
+        </li>
+      </ul>
+
+      <div class="section-title" style="margin-top: 8px;">五、題組題：共 35 分</div>
+      <div style="font-weight:bold; margin-bottom:4px;">(一) 報導幫幫忙：共 8 分</div>
+      <div style="font-size:10.5pt; margin-bottom:6px;">
+        東勢國小舉辦校慶運動會暨園遊會，《東小好報》的小記者寫了一篇關於六年級大隊接力與準備活動的報導，但中間有一句不管怎麼改都不是很滿意，請同學們在<strong>答案卷</strong>上接著寫下故事，並從<strong>「氣喘吁吁」、「咬緊牙關」、「同心協力」、「大放異彩」</strong>中至少選擇一個成語造句！
+      </div>
+
+      <div class="newspaper-box" style="padding: 6px 10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1.5px solid #000; padding-bottom:4px; margin-bottom:6px;">
+          <div>
+            <span style="font-size:9pt;">民國 115 年創刊｜第 00002 號</span><br>
+            <strong style="font-size:13pt;">東小好報 比輸贏更有意義的事——最閃亮的大隊接力！</strong>
+          </div>
+          <canvas id="canvasRelay" width="130" height="48"></canvas>
+        </div>
+        <div style="font-size:10.5pt; line-height:1.55; text-align:justify;">
+          【記者東小小／雲林東勢報導】雲林縣東勢國小辦理校慶暨運動會，當天最讓大家期待的莫過於六年級的大隊接力決賽與園遊會。為此，各班在一個月前就開始暖身準備、安排棒次與練習接棒。比賽槍聲一響，選手們邁開大步向前衝刺，各班距離逐漸拉開。然而在等待接力棒傳到第十六棒手上的那瞬間，意外突然發生，<strong>① <u>                      （請將接續的故事寫在答案卷上，至少 20 字）          </u></strong>。此時，跑道上出現讓人感動的畫面，受傷的同學絲毫不氣餒，懷著激動的心情向前衝刺，而班上其他同學則在草地上陪跑，全場師生更響起了如雷的掌聲與歡呼聲！
+        </div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>雲林縣東勢國小 115 學年度第一學期 六年級國語科期中評量</span>
+      <span>試卷共 4 面，第 3 面</span>
+    </div>
+  </div>
+
+  <!-- ==================== 第 4 頁：題目卷 (第五大題之二、三) ==================== -->
+  <div class="page question-sheet-page" contenteditable="true">
+    <div>
+      <div style="font-weight:bold; margin-bottom:4px;">
+        (二) 寫信小幫手：成語改錯字每題 1 分，共 7 分；成語填空每題 2 分，共 14 分，總共 21 分
+      </div>
+      <div style="font-size:10.5pt; margin-bottom:4px;">
+        校慶運動會與美食園遊會結束後，六年乙班的政彬因為感受到特別的經驗，寫了一封信給全班同學，但有些詞語他才剛學習，不小心寫錯了字。請你幫助他完成這封信：<strong>先將 A～G 詞語中的錯字改正，寫出正確的字在答案卷上，再使用代號（A～G）將詞語填入信中適當的位置。</strong>
+      </div>
+
+      <table class="idiom-table">
+        <tr>
+          <td>A. 勝卷在握 <span class="ans-key">(券)</span></td>
+          <td>B. 垂延三尺 <span class="ans-key">(涎)</span></td>
+          <td>C. 防犯未然 <span class="ans-key">(患)</span></td>
+          <td>D. 勢均力笛 <span class="ans-key">(敵)</span></td>
+          <td>E. 得意望形 <span class="ans-key">(忘)</span></td>
+          <td>F. 幸災樂貨 <span class="ans-key">(禍)</span></td>
+          <td>G. 精益求睛 <span class="ans-key">(精)</span></td>
+        </tr>
+      </table>
+
+      <div class="letter-box">
+        <div style="font-weight:bold; margin-bottom:3px;">親愛的老師以及各位同學們好：</div>
+        <p>這次的校慶運動會與美食園遊會結束後，我的內心充滿感動，因此寫了這封信想對大家說聲謝謝。</p>
+        <p>還記得前陣子看到別班練習時掉棒失誤，我心裡竟然有一絲竊喜，現在想起來真是慚愧，正如古人所說，看到別人遇到困難，我們絕不應該 <strong>①【 <span class="ans-key">F</span> 】</strong>；而當我們自己表現領先時，更要謹記「凡事當留餘地」，千萬不可 <strong>②【 <span class="ans-key">E</span> 】</strong>，以免樂極生悲。</p>
+        <p>為了讓園遊會的攤位順利運作，總務股長帶領大家提早規劃，事先備妥所有備用食材與零錢，真正做到了未雨綢繆、<strong>③【 <span class="ans-key">C</span> 】</strong>。而在研發「東勢五彩胡蘿蔔鳳梨汁」與「黑糖珍珠鮮奶」時，大家更是發揮了嚴長壽先生多做多得的精神，一次次試喝、調整比例，秉持著 <strong>④【 <span class="ans-key">G</span> 】</strong> 的態度，終於調配出色香味俱全、令全校師生 <strong>⑤【 <span class="ans-key">B</span> 】</strong> 的美味飲品！</p>
+        <p>最讓我難忘的是下午的大隊接力決賽。原本大家都以為我們班 <strong>⑥【 <span class="ans-key">A</span> 】</strong>，一定能輕鬆奪冠，沒想到比賽中途各班實力相當，演變成一場 <strong>⑦【 <span class="ans-key">D</span> 】</strong>、緊張萬分的拉鋸戰。當我握著接力棒在跑道上奔跑時，聽見場邊大家聲嘶力竭的加油聲，我才真正明白：不為了輸贏，只為了全班一條心、將運動家精神貫徹在運動場上，原來也能這麼刺激又滿足，謝謝大家為我帶來的寶貴經驗！</p>
+        <div style="display:flex; justify-content:space-between; margin-top:4px; font-weight:bold;">
+          <span>敬祝 學業進步</span>
+          <span>六年乙班學生 政彬 敬上</span>
+        </div>
+      </div>
+
+      <div style="font-weight:bold; margin: 10px 0 4px 0;">
+        (三) 園遊會買票與採購大挑戰：每題 3 分，共 6 分
+      </div>
+      <div style="font-size:10.5pt; margin-bottom:4px;">
+        六年乙班在園遊會推出了「向日葵健康手作坊」餐券，販售在地胡蘿蔔鳳梨汁與臺灣珍珠奶茶。請你根據下方的「餐券折扣說明表」，幫助同學用最划算的方法買到餐點：
+      </div>
+
+      <table class="ticket-table">
+        <thead>
+          <tr>
+            <th style="width:18%;">餐券種類</th>
+            <th style="width:28%;">適用對象</th>
+            <th style="width:14%;">現場折扣</th>
+            <th style="width:18%;">預售期間優惠<sup>註3</sup></th>
+            <th style="width:22%;">主打餐點原價</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="text-align:center; font-weight:bold;">全票餐券</td>
+            <td>一般民眾</td>
+            <td style="text-align:center;">原價</td>
+            <td rowspan="3" style="text-align:center; font-weight:bold; background:#fffaf0;">
+              預售期間購買<br>可再享 <strong>8 折</strong><br>加上自備環保杯<br>每杯再折 5 元
+            </td>
+            <td rowspan="3" style="text-align:center;">
+              <canvas id="canvasDrinks" width="110" height="55"></canvas><br>
+              <strong>均一價每張 100 元</strong>
+            </td>
+          </tr>
+          <tr>
+            <td style="text-align:center; font-weight:bold;">愛心優惠券<sup>註1</sup></td>
+            <td>
+              1. 65 歲以上年長者<br>
+              2. 在學學生<br>
+              3. 身心障礙人士及必要陪伴者一名
+            </td>
+            <td style="text-align:center; font-weight:bold;">5 折<br>(半價)</td>
+          </tr>
+          <tr>
+            <td style="text-align:center; font-weight:bold;">團體餐券<sup>註2</sup></td>
+            <td>20 人（張）以上</td>
+            <td style="text-align:center; font-weight:bold;">7 折</td>
+          </tr>
+          <tr>
+            <td colspan="5" style="font-size:9.5pt; line-height:1.45; background:#f9f9f9;">
+              <strong>註 1：</strong>※ 65 歲以上年長者入場驗票時，請出示身分證明文件。 ※ <strong>小學生憑學校「學籍名牌」</strong>、國中（含）以上憑學生證（身高 115 公分以下孩童，且不佔位者可免費進場試飲）。 ※ 領有身心障礙證明（手冊）正本與其<strong>必要陪伴者 1 人皆可半價（5折）購票</strong>，現場請出示手冊。<br>
+              <strong>註 2：</strong>餐券至少 20 張以上可享團體票 7 折優惠。 <strong>註 3：</strong>享有第一重現場優惠民眾，如於預售期間購買可同時享有第二重優惠。
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <ul class="question-list" style="margin-top:6px;">
+        <li class="question-item">
+          ( <span class="ans-key">③</span> )(1) 就讀東勢國小的東東和小葵約好一起去園遊會買餐券，根據上方「折扣說明表」，下列敘述何者<strong>正確</strong>？
+          <span class="options-row">① 東東和小葵只要攜帶「學生證」，便可用 5 折的價錢購買優惠券<br>② 東東的爸爸在修理農具時手肘不慎擦傷，可以請醫師開證明，購買 5 折愛心優惠券<br>③ 東東和小葵如果忘記帶學籍名牌，約全班 25 位同學一起買團體餐券（7折）會比買全票划算<br>④ 東東和小葵買預售票只有 8 折優惠，所以當天再憑學籍名牌現場購票比較划算</span>
+        </li>
+        <li class="question-item">
+          ( <span class="ans-key">①</span> )(2) 就讀六年級的小雨（有戴學籍名牌），爸爸決定帶全家一起去園遊會。<strong>爸爸</strong>帶著<strong>媽媽</strong>、<strong>小雨</strong>還有一個<strong>兩歲（身高 85 公分）的弟弟</strong>、領有身心障礙手冊的<strong>叔叔</strong>，以及 70 歲的<strong>爺爺</strong>和<strong>奶奶</strong>。根據上述資訊，小雨一家現場應該如何買票最划算？
+          <span class="options-row">① 5 張優惠票、1 張全票 ② 2 張全票、4 張優惠票 ③ 7 張優惠票 ④ 購買 20 張團體票</span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="page-footer">
+      <span>恭喜你寫完了，真是太棒了！請記得檢查答案卷喔！</span>
+      <span>試卷共 4 面，第 4 面</span>
+    </div>
+  </div>
+
+  <!-- ==================== 第 5 頁：答案卷 (獨立 1 頁) ==================== -->
+  <div class="page answer-sheet-page" contenteditable="true">
+    <div>
+      <div class="exam-header">
+        <div class="exam-title">雲林縣東勢國民小學 115 學年度上學期期中定期評量 國語領域【答案卷】</div>
+        <div class="student-info">
+          <span>六年 ___ 班 座號：_____ 姓名：_____________</span>
+          <span>家長簽名：___________</span>
+          <span class="score-box">總分：    </span>
+        </div>
+      </div>
+
+      <div class="section-title">一、請將《東小好報》文章內的注音或國字，依照號碼填入正確答案：【每格 1 分，共 25 分】</div>
+      <table class="ans-grid-table">
+        <tr>
+          <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th>
+        </tr>
+        <tr>
+          <td><span class="ans-key">ㄓㄡˊ</span></td>
+          <td><span class="ans-key">屈</span></td>
+          <td><span class="ans-key">搬</span></td>
+          <td><span class="ans-key">蒂</span></td>
+          <td><span class="ans-key">ㄧˋ</span></td>
+          <td><span class="ans-key">尷</span></td>
+          <td><span class="ans-key">拱</span></td>
+          <td><span class="ans-key">扭</span></td>
+          <td><span class="ans-key">猛</span></td>
+          <td><span class="ans-key">粥</span></td>
+        </tr>
+        <tr>
+          <th>11</th><th>12</th><th>13</th><th>14</th><th>15</th><th>16</th><th>17</th><th>18</th><th>19</th><th>20</th>
+        </tr>
+        <tr>
+          <td><span class="ans-key">縷</span></td>
+          <td><span class="ans-key">繆</span></td>
+          <td><span class="ans-key">ㄐㄩㄝˊ</span></td>
+          <td><span class="ans-key">ㄈㄡˇ</span></td>
+          <td><span class="ans-key">饈</span></td>
+          <td><span class="ans-key">瑣</span></td>
+          <td><span class="ans-key">賺</span></td>
+          <td><span class="ans-key">惋</span></td>
+          <td><span class="ans-key">ㄉㄧˇ</span></td>
+          <td><span class="ans-key">ㄩㄣˊ</span></td>
+        </tr>
+        <tr>
+          <th>21</th><th>22</th><th>23</th><th>24</th><th>25</th>
+          <td colspan="5" rowspan="2" style="background:#f9f9f9; font-size:10pt; font-weight:normal; color:#444;">
+            💡 作答提醒：請注意國字筆畫清楚，注音符號聲調標示正確！
+          </td>
+        </tr>
+        <tr>
+          <td><span class="ans-key">ㄙㄨㄛ</span></td>
+          <td><span class="ans-key">颳</span></td>
+          <td><span class="ans-key">晒</span></td>
+          <td><span class="ans-key">醃</span></td>
+          <td><span class="ans-key">饗</span></td>
+        </tr>
+      </table>
+
+      <div style="display:grid; grid-template-columns: 36% 62%; justify-content:space-between;">
+        <div>
+          <div class="section-title">二、課文內容選擇題：【每題 2 分，共 10 分】</div>
+          <table class="ans-grid-table ans-choice-table">
+            <tr><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+            <tr>
+              <td><span class="ans-key">①</span></td>
+              <td><span class="ans-key">②</span></td>
+              <td><span class="ans-key">③</span></td>
+              <td><span class="ans-key">②</span></td>
+              <td><span class="ans-key">④</span></td>
+            </tr>
+          </table>
+        </div>
+
+        <div>
+          <div class="section-title">三、選擇題：【每題 2 分，共 18 分】</div>
+          <table class="ans-grid-table ans-choice-table">
+            <tr><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th></tr>
+            <tr>
+              <td><span class="ans-key">④</span></td>
+              <td><span class="ans-key">③</span></td>
+              <td><span class="ans-key">②</span></td>
+              <td><span class="ans-key">③</span></td>
+              <td><span class="ans-key">②</span></td>
+              <td><span class="ans-key">①</span></td>
+              <td><span class="ans-key">④</span></td>
+              <td><span class="ans-key">④</span></td>
+              <td><span class="ans-key">②</span></td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div class="section-title">四、閱讀測驗〈在逆境中熬出一碗回甘的湯〉：【每題 2 分，共 12 分】</div>
+      <table class="ans-grid-table ans-choice-table">
+        <tr><th>(1)</th><th>(2)</th><th>(3)</th><th>(4)</th><th>(5)</th><th>(6)</th></tr>
+        <tr>
+          <td><span class="ans-key">②</span></td>
+          <td><span class="ans-key">③</span></td>
+          <td><span class="ans-key">③</span></td>
+          <td><span class="ans-key">①</span></td>
+          <td><span class="ans-key">②</span></td>
+          <td><span class="ans-key">②</span></td>
+        </tr>
+      </table>
+
+      <div class="section-title">五、題組題：【共 35 分】</div>
+      <div style="font-weight:bold; font-size:11pt; margin-bottom:4px;">
+        (一) 報導幫幫忙：共 8 分
+        <span style="font-weight:normal; font-size:10pt;">（◇至少 20 字，不含標點符號。【未達字數扣 2 分，未使用指定成語扣 2 分，與報導主題不相關扣 3 分】）</span>
+      </div>
+      <div style="font-size:10.5pt; margin-bottom:4px;">
+        1. 請接著寫下故事，並從「<strong>氣喘吁吁、咬緊牙關、同心協力、大放異彩</strong>」中至少選擇一個成語造句：
+      </div>
+      <div class="writing-area">
+        <span class="ans-key">【參考範例】接棒的同學重心不穩跌倒在跑道上，膝蓋擦破了皮，但他卻沒有放棄，立刻咬緊牙關站起來繼續往前跑，全班也同心協力為他大聲吶喊加油！（64字）</span>
+      </div>
+
+      <div style="font-weight:bold; font-size:11pt; margin-bottom:4px;">
+        (二) 寫信小幫手：成語改錯字每題 1 分，共 7 分；成語填空每題 2 分，共 14 分，總共 21 分
+      </div>
+      <div style="font-size:10.5pt; margin-bottom:3px;">1. 先將成語 A～G 的錯字改正，寫出正確的國字：【每題 1 分，共 7 分】</div>
+      <table class="ans-grid-table ans-choice-table">
+        <tr><th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th></tr>
+        <tr>
+          <td><span class="ans-key">券</span></td>
+          <td><span class="ans-key">涎</span></td>
+          <td><span class="ans-key">患</span></td>
+          <td><span class="ans-key">敵</span></td>
+          <td><span class="ans-key">忘</span></td>
+          <td><span class="ans-key">禍</span></td>
+          <td><span class="ans-key">精</span></td>
+        </tr>
+      </table>
+
+      <div style="font-size:10.5pt; margin-bottom:3px;">2. 使用代號 A～G 將成語填入適當的位置：【每題 2 分，共 14 分】</div>
+      <table class="ans-grid-table ans-choice-table">
+        <tr><th>①</th><th>②</th><th>③</th><th>④</th><th>⑤</th><th>⑥</th><th>⑦</th></tr>
+        <tr>
+          <td><span class="ans-key">F</span></td>
+          <td><span class="ans-key">E</span></td>
+          <td><span class="ans-key">C</span></td>
+          <td><span class="ans-key">G</span></td>
+          <td><span class="ans-key">B</span></td>
+          <td><span class="ans-key">A</span></td>
+          <td><span class="ans-key">D</span></td>
+        </tr>
+      </table>
+
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-top:8px;">
+        <div style="width:48%;">
+          <div style="font-weight:bold; font-size:11pt; margin-bottom:4px;">(三) 園遊會採購大挑戰：【每題 3 分，共 6 分】</div>
+          <table class="ans-grid-table ans-choice-table" style="margin-bottom:0;">
+            <tr><th>(1)</th><th>(2)</th></tr>
+            <tr>
+              <td><span class="ans-key">③</span></td>
+              <td><span class="ans-key">①</span></td>
+            </tr>
+          </table>
+        </div>
+        <div style="width:48%; border:1.5px dashed #444; padding:8px 12px; text-align:center; font-weight:bold; background:#fafafa;">
+          🎉 恭喜你完成啦～<br>記得再檢查一次考卷，看看有沒有填錯格子唷！
+        </div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <span>雲林縣東勢國小 115 學年度第一學期 六年級國語科期中評量</span>
+      <span>答案卷共 1 面，第 1 面</span>
+    </div>
+  </div>
+
+  <script>
+    let colorMode = 0;
+
+    // 切換檢視/列印範圍
+    function setViewMode(mode) {
+      document.body.classList.remove('mode-questions', 'mode-answers');
+      document.getElementById('btnAll').classList.remove('active');
+      document.getElementById('btnQuestions').classList.remove('active');
+      document.getElementById('btnAnswers').classList.remove('active');
+
+      if (mode === 'questions') {
+        document.body.classList.add('mode-questions');
+        document.getElementById('btnQuestions').classList.add('active');
+      } else if (mode === 'answers') {
+        document.body.classList.add('mode-answers');
+        document.getElementById('btnAnswers').classList.add('active');
+      } else {
+        document.getElementById('btnAll').classList.add('active');
+      }
+    }
+
+    // 切換教師解答顯示
+    function toggleAnswers() {
+      document.body.classList.toggle('show-answers');
+      const btn = document.getElementById('btnToggleAns');
+      btn.classList.toggle('active');
+    }
+
+    // 使用 HTML5 Canvas 繪製報頭、接力賽剪影、胡蘿蔔汁與珍奶插圖
+    function redrawCanvases(toggleStyle = false) {
+      if (toggleStyle) colorMode = (colorMode + 1) % 2;
+
+      // 1. 繪製《東小好報》報頭 Canvas
+      const c1 = document.getElementById('canvasMasthead');
+      if (c1) {
+        const ctx = c1.getContext('2d');
+        ctx.clearRect(0, 0, c1.width, c1.height);
+
+        // 背景框
+        ctx.fillStyle = colorMode === 0 ? '#f8f9fa' : '#fffaf0';
+        ctx.fillRect(2, 2, c1.width - 4, c1.height - 4);
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(2, 2, c1.width - 4, c1.height - 4);
+
+        // 左側向日葵/太陽徽章
+        ctx.save();
+        ctx.translate(36, 31);
+        ctx.fillStyle = colorMode === 0 ? '#222' : '#d97706';
+        for (let i = 0; i < 12; i++) {
+          ctx.rotate(Math.PI / 6);
+          ctx.beginPath();
+          ctx.ellipse(15, 0, 6, 3, 0, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.beginPath();
+        ctx.arc(0, 0, 10, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 10px serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('東小', 0, 0);
+        ctx.restore();
+
+        // 報頭大字
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 30px "標楷體", "DFKai-SB", serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('東 小 好 報', 175, 36);
+
+        // 副標題
+        ctx.font = 'bold 10px sans-serif';
+        ctx.fillText('★ 雲林縣東勢國小 語文素養特刊 ★', 175, 53);
+      }
+
+      // 2. 繪製大隊接力交棒剪影 Canvas (模仿原卷第4頁視覺)
+      const c2 = document.getElementById('canvasRelay');
+      if (c2) {
+        const ctx = c2.getContext('2d');
+        ctx.clearRect(0, 0, c2.width, c2.height);
+        ctx.fillStyle = colorMode === 0 ? '#111' : '#1e3a8a';
+        ctx.strokeStyle = ctx.fillStyle;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+
+        // 跑道底線
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(5, 44);
+        ctx.lineTo(125, 44);
+        ctx.stroke();
+
+        // 後方交棒選手 (右)
+        ctx.beginPath();
+        ctx.arc(88, 12, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(86, 17); ctx.lineTo(80, 29); // 軀幹
+        ctx.moveTo(84, 20); ctx.lineTo(68, 22); // 伸手遞棒
+        ctx.moveTo(84, 20); ctx.lineTo(96, 25); // 後擺手
+        ctx.moveTo(80, 29); ctx.lineTo(70, 41); // 前跨腿
+        ctx.moveTo(80, 29); ctx.lineTo(92, 36); ctx.lineTo(100, 42); // 後蹬腿
+        ctx.stroke();
+
+        // 接力棒
+        ctx.save();
+        ctx.strokeStyle = colorMode === 0 ? '#000' : '#dc2626';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(70, 23);
+        ctx.lineTo(58, 16);
+        ctx.stroke();
+        ctx.restore();
+
+        // 前方接棒選手 (左)
+        ctx.beginPath();
+        ctx.arc(38, 11, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.lineWidth = 3.5;
+        ctx.beginPath();
+        ctx.moveTo(37, 16); ctx.lineTo(31, 28); // 軀幹
+        ctx.moveTo(36, 19); ctx.lineTo(55, 20); // 向後伸手接棒
+        ctx.moveTo(36, 19); ctx.lineTo(22, 16); // 前擺手
+        ctx.moveTo(31, 28); ctx.lineTo(18, 36); ctx.lineTo(14, 42); // 前奔腿
+        ctx.moveTo(31, 28); ctx.lineTo(44, 41); // 後支撐腿
+        ctx.stroke();
+      }
+
+      // 3. 繪製東勢胡蘿蔔與珍珠奶茶插圖 Canvas
+      const c3 = document.getElementById('canvasDrinks');
+      if (c3) {
+        const ctx = c3.getContext('2d');
+        ctx.clearRect(0, 0, c3.width, c3.height);
+
+        // 珍珠奶茶杯
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1.5;
+        ctx.fillStyle = colorMode === 0 ? '#e5e5e5' : '#fde68a';
+        ctx.beginPath();
+        ctx.moveTo(25, 14);
+        ctx.lineTo(51, 14);
+        ctx.lineTo(47, 50);
+        ctx.lineTo(29, 50);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // 粗吸管
+        ctx.beginPath();
+        ctx.moveTo(38, 46);
+        ctx.lineTo(43, 4);
+        ctx.lineWidth = 3.5;
+        ctx.stroke();
+
+        // 黑糖珍珠顆粒
+        ctx.fillStyle = '#000';
+        const pearls = [[32,45],[37,46],[43,45],[34,40],[40,41],[44,40]];
+        pearls.forEach(([x, y]) => {
+          ctx.beginPath();
+          ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // 東勢胡蘿蔔
+        ctx.save();
+        ctx.translate(78, 30);
+        ctx.rotate(0.35);
+        ctx.fillStyle = colorMode === 0 ? '#999' : '#f97316';
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(-8, -12);
+        ctx.lineTo(8, -12);
+        ctx.lineTo(0, 18);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        // 胡蘿蔔葉
+        ctx.beginPath();
+        ctx.moveTo(0, -12); ctx.lineTo(-6, -21);
+        ctx.moveTo(0, -12); ctx.lineTo(0, -23);
+        ctx.moveTo(0, -12); ctx.lineTo(6, -21);
+        ctx.stroke();
+        ctx.restore();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => redrawCanvases(false));
+  </script>
+</body>
+</html>
