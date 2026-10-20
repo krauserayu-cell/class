@@ -1,0 +1,1981 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>五上數學：第3單元 平面圖形（50題互動題庫＋手寫計算白板）</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    .grid-canvas-bg {
+      background-color: #ffffff;
+      background-image: 
+        linear-gradient(to right, #e2e8f0 1px, transparent 1px),
+        linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .scratchpad-canvas {
+      touch-action: none;
+      cursor: crosshair;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      .print-break {
+        page-break-inside: avoid;
+      }
+      body {
+        background-color: #ffffff;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- 頂部導覽列 -->
+  <header class="bg-amber-500 text-white shadow-md sticky top-0 z-40 no-print">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">🌻</span>
+        <div>
+          <h1 class="text-xl md:text-2xl font-black tracking-wide">五上數學：第 3 單元 平面圖形</h1>
+          <p class="text-xs md:text-sm text-amber-100 font-medium">50題課本習作題庫 · 隨機10題練習 · 提示引導 · 手寫計算白板</p>
+        </div>
+      </div>
+
+      <!-- 模式切換按鈕 -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="switchTab('quiz')" id="tab-btn-quiz" class="px-3.5 py-2 rounded-lg font-bold text-sm bg-white text-amber-600 shadow-sm transition">
+          ✏️ 學生自主練習
+        </button>
+        <button onclick="switchTab('review')" id="tab-btn-review" class="px-3.5 py-2 rounded-lg font-bold text-sm bg-amber-600 text-white hover:bg-amber-700 transition">
+          👨‍🏫 教師檢視與批改
+        </button>
+        <button onclick="switchTab('bank')" id="tab-btn-bank" class="px-3.5 py-2 rounded-lg font-bold text-sm bg-amber-600 text-white hover:bg-amber-700 transition">
+          🛠️ 題庫管理與編輯 (<span id="bank-count-badge">50</span>)
+        </button>
+        <button onclick="downloadStandaloneHTML()" class="px-3.5 py-2 rounded-lg font-bold text-sm bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm transition">
+          💾 下載網頁檔 (.html)
+        </button>
+        <button onclick="window.print()" class="px-3.5 py-2 rounded-lg font-bold text-sm bg-slate-700 text-white hover:bg-slate-800 shadow-sm transition">
+          🖨️ 列印 / 存PDF
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主內容區 -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
+
+    <!-- ==================== 頁籤 1：學生自主練習區 ==================== -->
+    <section id="view-quiz" class="space-y-6">
+      <!-- 控制面板與學生資訊 -->
+      <div class="bg-white rounded-2xl shadow-sm border border-amber-200 p-4 md:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-3">
+            <label class="text-sm font-bold text-slate-700">班級座號姓名：</label>
+            <input type="text" id="student-name" placeholder="例如：五年乙班 01號 王小明" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400" />
+            
+            <label class="text-sm font-bold text-slate-700 ml-2">出題範圍：</label>
+            <select id="unit-filter" onchange="startNewQuiz()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-amber-400">
+              <option value="all">全部範圍（3-1 ~ 3-4 隨機抽 10 題）</option>
+              <option value="3-1">3-1 三角形的邊長關係</option>
+              <option value="3-2">3-2 三角形的內角和</option>
+              <option value="3-3">3-3 四邊形的性質</option>
+              <option value="3-4">3-4 認識多邊形與統整</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-lg text-sm font-bold text-amber-800">
+              目前得分：<span id="quiz-score" class="text-lg text-amber-600">0</span> / 100 分
+              （已作答 <span id="quiz-answered">0</span>/10）
+            </div>
+            <button onclick="startNewQuiz()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-lg text-sm shadow transition flex items-center gap-1 no-print">
+              🎲 重新隨機抽 10 題
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 10題題目列表容器 -->
+      <div id="quiz-questions-container" class="space-y-6"></div>
+    </section>
+
+    <!-- ==================== 頁籤 2：教師檢視與批改專區 ==================== -->
+    <section id="view-review" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-indigo-200 p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-xl font-black text-indigo-900">👨‍🏫 教師檢視學生手寫算式與批改專區</h2>
+            <p class="text-sm text-slate-600">老師可在此檢視學生每一題的作答結果與手寫計算過程，並可直接用紅筆在畫布上圈選批註或給予評語。</p>
+          </div>
+          <div class="flex gap-2 no-print">
+            <button onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg text-sm shadow">
+              🖨️ 列印批改報告 / 存成 PDF
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+          <div>
+            <div class="text-xs text-indigo-600 font-bold">作答進度</div>
+            <div id="rev-stat-answered" class="text-xl font-black text-slate-800">0 / 10 題</div>
+          </div>
+          <div>
+            <div class="text-xs text-indigo-600 font-bold">選擇題得分</div>
+            <div id="rev-stat-score" class="text-xl font-black text-emerald-600">0 分</div>
+          </div>
+          <div>
+            <div class="text-xs text-indigo-600 font-bold">已寫計算過程</div>
+            <div id="rev-stat-written" class="text-xl font-black text-amber-600">0 / 10 題</div>
+          </div>
+          <div>
+            <div class="text-xs text-indigo-600 font-bold">教師已評閱</div>
+            <div id="rev-stat-graded" class="text-xl font-black text-indigo-600">0 / 10 題</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="review-cards-container" class="space-y-5"></div>
+    </section>
+
+    <!-- ==================== 頁籤 3：題庫管理與線上編輯 ==================== -->
+    <section id="view-bank" class="hidden space-y-6 no-print">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-xl font-black text-slate-800">🛠️ 50 題平面圖形題庫管理與線上編輯</h2>
+            <p class="text-sm text-slate-600">您可以直接修改任何題目的文字、選項、答案、提示與三步驟解題引導，也能新增題目。修改後點選右上角「💾 下載網頁檔」即可永久保存您的客製化版本！</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="openAddQuestionModal()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-lg text-sm shadow">
+              ➕ 新增題目
+            </button>
+            <button onclick="resetDefaultBank()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg text-sm">
+              🔄 還原預設 50 題
+            </button>
+          </div>
+        </div>
+
+        <!-- 篩選列 -->
+        <div class="flex flex-wrap gap-2 mb-4">
+          <input type="text" id="bank-search" oninput="renderBankList()" placeholder="搜尋題目關鍵字..." class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[200px]" />
+          <select id="bank-cat-filter" onchange="renderBankList()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm bg-slate-50">
+            <option value="all">所有小節 (50)</option>
+            <option value="3-1">3-1 三角形的邊長關係</option>
+            <option value="3-2">3-2 三角形的內角和</option>
+            <option value="3-3">3-3 四邊形的性質</option>
+            <option value="3-4">3-4 認識多邊形與統整</option>
+          </select>
+        </div>
+
+        <div id="bank-list-container" class="space-y-3 max-h-[650px] overflow-y-auto pr-1"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 編輯/新增題目 Modal -->
+  <div id="edit-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h3 id="modal-title" class="text-lg font-black text-slate-800">編輯題目</h3>
+        <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+      </div>
+      <div class="space-y-3 text-sm">
+        <input type="hidden" id="edit-q-id" />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">單元小節</label>
+            <select id="edit-q-cat" class="w-full border rounded-lg px-3 py-2">
+              <option value="3-1">3-1 三角形的邊長關係</option>
+              <option value="3-2">3-2 三角形的內角和</option>
+              <option value="3-3">3-3 四邊形的性質</option>
+              <option value="3-4">3-4 認識多邊形與統整</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">正確答案選項 (0=A, 1=B, 2=C, 3=D)</label>
+            <select id="edit-q-ans" class="w-full border rounded-lg px-3 py-2">
+              <option value="0">選項 (A)</option>
+              <option value="1">選項 (B)</option>
+              <option value="2">選項 (C)</option>
+              <option value="3">選項 (D)</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">題目敘述</label>
+          <textarea id="edit-q-text" rows="2" class="w-full border rounded-lg px-3 py-2"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">選項 (A)</label>
+            <input type="text" id="edit-q-opt0" class="w-full border rounded-lg px-3 py-1.5" />
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">選項 (B)</label>
+            <input type="text" id="edit-q-opt1" class="w-full border rounded-lg px-3 py-1.5" />
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">選項 (C)</label>
+            <input type="text" id="edit-q-opt2" class="w-full border rounded-lg px-3 py-1.5" />
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">選項 (D)</label>
+            <input type="text" id="edit-q-opt3" class="w-full border rounded-lg px-3 py-1.5" />
+          </div>
+        </div>
+        <div>
+          <label class="font-bold text-amber-700 block mb-1">💡 學習小叮嚀（提示）</label>
+          <input type="text" id="edit-q-hint" class="w-full border border-amber-300 rounded-lg px-3 py-1.5 bg-amber-50" />
+        </div>
+        <div class="space-y-2">
+          <label class="font-bold text-emerald-700 block">🧭 解題引導三步驟（每行一步驟）</label>
+          <input type="text" id="edit-q-step1" placeholder="步驟 1..." class="w-full border border-emerald-300 rounded-lg px-3 py-1.5 bg-emerald-50" />
+          <input type="text" id="edit-q-step2" placeholder="步驟 2..." class="w-full border border-emerald-300 rounded-lg px-3 py-1.5 bg-emerald-50" />
+          <input type="text" id="edit-q-step3" placeholder="步驟 3..." class="w-full border border-emerald-300 rounded-lg px-3 py-1.5 bg-emerald-50" />
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-3 border-t">
+        <button onclick="closeEditModal()" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-700 font-bold text-sm">取消</button>
+        <button onclick="saveEditedQuestion()" class="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm shadow">儲存修改</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==================== 完整 50 題課本與習作題庫 ====================
+    const DEFAULT_QUESTIONS = [
+      // ---------------- 3-1 三角形的邊長關係 (13題) ----------------
+      {
+        id: 1, cat: '3-1',
+        q: '【課本P.32】美美要從籃球場走到公園，走藍色的斜線直走，還是走紅色的轉角路線（先經過停車場再到公園）距離比較短？為什麼？',
+        options: ['藍色路線較短，因為兩點間的直線距離最短', '紅色路線較短，因為走斑馬線比較快', '兩條路線一樣長', '無法比較'],
+        ans: 0,
+        hint: '想想看，把路線看成三角形，走兩個頂點之間的直線比較近，還是繞去第三個頂點比較近？',
+        steps: [
+          '步驟1：觀察地圖，籃球場、停車場、公園三個地點剛好圍成一個直角三角形。',
+          '步驟2：藍色路線直接連接「籃球場—公園」；紅色路線則是走另外兩條邊的和。',
+          '步驟3：因為兩點間的直線距離最短（三角形任意兩邊和大於第三邊），所以藍色路線比較短。'
+        ],
+        draw: { type: 'map_route', labels: ['停車場', '籃球場', '公園', '60m', '80m', '100m'] }
+      },
+      {
+        id: 2, cat: '3-1',
+        q: '【課本P.32】皮皮想用三根鐵絲圍成一個等腰三角形，他先拿了兩根長 5 公分的鐵絲，第三根選哪一種長度「不能」圍成三角形？',
+        options: ['5 公分', '7 公分', '9 公分', '10 公分'],
+        ans: 3,
+        hint: '把較短的兩條邊加起來，看看有沒有比最長的第三邊還要長！',
+        steps: [
+          '步驟1：已知其中兩根鐵絲都是 5 公分，兩邊合起來的長度是 5 + 5 = 10 公分。',
+          '步驟2：要圍成三角形，較短兩邊的和必須「大於」第三邊。',
+          '步驟3：當第三根也是 10 公分時，5 + 5 = 10（一樣長會疊成一直線），無法圍成三角形。'
+        ],
+        draw: { type: 'sticks', lengths: [5, 5, 10], canForm: false }
+      },
+      {
+        id: 3, cat: '3-1',
+        q: '【習作P.20】下列哪一組線條的長度組合，可以圍成一個三角形？',
+        options: ['6 cm、6 cm、18 cm', '6 cm、12 cm、18 cm', '15 cm、12 cm、18 cm', '5 cm、7 cm、17 cm'],
+        ans: 2,
+        hint: '把每一組裡面比較短的兩個數字加起來，再跟最大的數字比比看！',
+        steps: [
+          '步驟1：檢查(A) 6+6=12 < 18（不能）；檢查(B) 6+12=18 = 18（不能）。',
+          '步驟2：檢查(C) 較短兩邊是 15 cm 和 12 cm，合起來 15 + 12 = 27 cm。',
+          '步驟3：27 cm > 最長邊 18 cm，所以 15 cm、12 cm、18 cm 可以圍成三角形！'
+        ],
+        draw: { type: 'tri_sides', sides: ['15cm', '12cm', '18cm'] }
+      },
+      {
+        id: 4, cat: '3-1',
+        q: '【課本P.33】用 7 公分、10 公分和 12 公分的鐵絲圍成一個三角形，下列哪一個算式「不符合」這個三角形的邊長關係？',
+        options: ['12 + 7 > 10', '12 + 10 > 7', '10 + 7 > 12', '12 + 7 < 10'],
+        ans: 3,
+        hint: '三角形中，任意選擇兩條邊長的和，都會大於第三邊。',
+        steps: [
+          '步驟1：在三角形中，任意兩邊長的和一定大於第三邊。',
+          '步驟2：實際計算 12 + 7 = 19，而 19 比 10 大（12 + 7 > 10）。',
+          '步驟3：因此「12 + 7 < 10」是錯誤的算式。'
+        ],
+        draw: { type: 'tri_sides', sides: ['7cm', '10cm', '12cm'] }
+      },
+      {
+        id: 5, cat: '3-1',
+        q: '【課本P.33練習】下列哪一組長度「可以」圍成一個三角形？',
+        options: ['9 公分、18 公分、9 公分', '11 公分、15 公分、4 公分', '35 公分、29 公分、8 公分', '7 公分、7 公分、17 公分'],
+        ans: 2,
+        hint: '小心順序！先圈出每一組的最長邊，再把另外兩條較短的邊加起來比大小。',
+        steps: [
+          '步驟1：(A) 最長18，9+9=18（不能）；(B) 最長15，11+4=15（不能）。',
+          '步驟2：(C) 最長邊是 35 公分，另外兩邊是 29 公分和 8 公分。',
+          '步驟3：29 + 8 = 37 公分，37 > 35，較短兩邊和大於最長邊，可以圍成三角形！'
+        ],
+        draw: { type: 'tri_sides', sides: ['29cm', '8cm', '35cm'] }
+      },
+      {
+        id: 6, cat: '3-1',
+        q: '【習作P.21】下列四組長度中，哪一組「不可以」圍成三角形？',
+        options: ['15 公分、15 公分、15 公分', '5 公分、12 公分、13 公分', '8 公分、8 公分、16 公分', '18 公分、18 公分、18 公分'],
+        ans: 2,
+        hint: '正三角形三邊一樣長一定可以圍成；請檢查哪一組較短兩邊加起來沒有大於最長邊。',
+        steps: [
+          '步驟1：(A)和(D)都是三邊等長的正三角形，一定可以圍成。',
+          '步驟2：(B) 5 + 12 = 17 > 13，可以圍成。',
+          '步驟3：(C) 較短兩邊 8 + 8 = 16，剛好等於最長邊 16，無法圍成三角形。'
+        ],
+        draw: { type: 'sticks', lengths: [8, 8, 16], canForm: false }
+      },
+      {
+        id: 7, cat: '3-1',
+        q: '【課本P.35例5】美美用三根不同長度的木條圍成三角形，她已經拿了 6 公分、9 公分的木條，且「第三根木條最長」。她可以選哪一根？',
+        options: ['8 公分', '10 公分', '15 公分', '20 公分'],
+        ans: 1,
+        hint: '第三根木條最長，所以要比 9 公分長；又要能圍成三角形，所以要比 6+9 短！',
+        steps: [
+          '步驟1：因為第三根木條最長，所以長度必須大於 9 公分。',
+          '步驟2：較短兩邊的和是 6 + 9 = 15 公分，所以第三根木條必須小於 15 公分。',
+          '步驟3：介於 9 公分和 15 公分之間的選項只有 10 公分！'
+        ],
+        draw: { type: 'tri_unknown_side', s1: '6cm', s2: '9cm', s3: '? (最長)' }
+      },
+      {
+        id: 8, cat: '3-1',
+        q: '【課本P.35練習】多多想用三根不同長度的竹籤圍成三角形，已經拿了 12 公分和 8 公分的竹籤，其中「12 公分最長」，下列哪一根可以當第三根？',
+        options: ['2 cm', '3 cm', '4 cm', '5 cm'],
+        ans: 3,
+        hint: '12 公分已經是最長邊囉！所以「8公分＋第三根」必須比 12 公分還要長。',
+        steps: [
+          '步驟1：最長邊是 12 cm，所以較短的兩邊是 8 cm 和第三根竹籤。',
+          '步驟2：要圍成三角形，必須符合：8 + 第三根 > 12。',
+          '步驟3：因為 8 + 4 = 12（還不夠長），所以第三根必須比 4 cm 長，選項中 5 cm 符合（8+5=13>12）！'
+        ],
+        draw: { type: 'tri_unknown_side', s1: '8cm', s2: '? cm', s3: '12cm (最長)' }
+      },
+      {
+        id: 9, cat: '3-1',
+        q: '【習作P.21】妮妮用三根不同長度的吸管圍成三角形，她已經拿了 5 公分和 8 公分的吸管，且「第三根吸管最長」。第三根吸管有幾種可能的整數公分長度？',
+        options: ['3 種（9、10、11 公分）', '4 種（9、10、11、12 公分）', '5 種（9、10、11、12、13 公分）', '6 種（9~14 公分）'],
+        ans: 1,
+        hint: '第三根吸管要比 8 公分長，而且要比 (5+8) 公分短喔！',
+        steps: [
+          '步驟1：第三根吸管最長，所以要比 8 公分長。',
+          '步驟2：較短兩邊和為 5 + 8 = 13 公分，所以第三根吸管要比 13 公分短。',
+          '步驟3：比 8 大且比 13 小的整數有：9、10、11、12 公分，共 4 種可能。'
+        ],
+        draw: { type: 'tri_unknown_side', s1: '5cm', s2: '8cm', s3: '9~12cm' }
+      },
+      {
+        id: 10, cat: '3-1',
+        q: '【習作P.21】如圖，三角形 ABC 與三角形 DBC 共用底邊 BC。請問「AB＋AC 的長」和「BD＋DC 的長」，都會比 BC 長嗎？',
+        options: ['都會比 BC 長', '只有 AB＋AC 比 BC 長', '只有 BD＋DC 比 BC 長', '都比 BC 短'],
+        ans: 0,
+        hint: '分別觀察三角形 ABC 和三角形 DBC，利用「三角形任意兩邊和大於第三邊」來判斷。',
+        steps: [
+          '步驟1：在三角形 ABC 中，AB 和 AC 是兩邊，所以 AB + AC > BC。',
+          '步驟2：在三角形 DBC 中，BD 和 DC 是兩邊，所以 BD + DC > BC。',
+          '步驟3：因此兩組邊長加起來都會比 BC 長！'
+        ],
+        draw: { type: 'overlap_tri' }
+      },
+      {
+        id: 11, cat: '3-1',
+        q: '【習作P.28統整】有一個等腰三角形的兩邊長分別為 4 公分、10 公分，請問這個等腰三角形的第三邊長是幾公分？',
+        options: ['4 公分', '10 公分', '4 公分或 10 公分都可以', '12 公分'],
+        ans: 1,
+        hint: '等腰三角形有兩邊一樣長，先試試看「4、4、10」能不能圍成三角形？',
+        steps: [
+          '步驟1：因為是等腰三角形，第三邊只可能是 4 公分或 10 公分。',
+          '步驟2：如果第三邊是 4 公分，三邊為 4、4、10，但 4 + 4 = 8 < 10，無法圍成三角形！',
+          '步驟3：如果第三邊是 10 公分，三邊為 4、10、10，4 + 10 = 14 > 10，可以圍成！所以是 10 公分。'
+        ],
+        draw: { type: 'isosceles_sides', s1: '10cm', s2: '10cm', base: '4cm' }
+      },
+      {
+        id: 12, cat: '3-1',
+        q: '【課本P.48練習園地】多多有 2 根竹籤，分別長 11 公分和 7 公分，加入下面哪一根竹籤「不能」圍成三角形？',
+        options: ['5 公分', '8 公分', '13 公分', '18 公分'],
+        ans: 3,
+        hint: '檢查哪一個數字放進去後，較短兩邊加起來沒有大於最長邊。',
+        steps: [
+          '步驟1：已知兩根竹籤長 11 公分和 7 公分，兩邊合起來是 11 + 7 = 18 公分。',
+          '步驟2：若加入 18 公分的竹籤，較短兩邊和 11 + 7 = 18，剛好等於最長邊 18 公分。',
+          '步驟3：兩邊和等於第三邊時無法圍成三角形，故選 18 公分。'
+        ],
+        draw: { type: 'sticks', lengths: [7, 11, 18], canForm: false }
+      },
+      {
+        id: 13, cat: '3-1',
+        q: '【習作P.49綜合】美美想用 10 公分的竹籤和另外兩根竹籤圍成一個三角形，另外兩根竹籤可能是下列哪一組？',
+        options: ['11 公分、23 公分', '17 公分、10 公分', '5 公分、5 公分', '8 公分、20 公分'],
+        ans: 1,
+        hint: '把 10 公分放進每一組，找出較短兩邊和大於最長邊的那一組。',
+        steps: [
+          '步驟1：(A) 10、11、23 -> 10 + 11 = 21 < 23（不能）。',
+          '步驟2：(B) 10、17、10 -> 較短兩邊 10 + 10 = 20 > 最長邊 17（可以圍成！）。',
+          '步驟3：(C) 5+5=10（不能）；(D) 10+8=18 < 20（不能）。故選 (B)。'
+        ],
+        draw: { type: 'isosceles_sides', s1: '10cm', s2: '10cm', base: '17cm' }
+      },
+
+      // ---------------- 3-2 三角形的內角和 (15題) ----------------
+      {
+        id: 14, cat: '3-2',
+        q: '【課本P.36、習作P.22】把三角形 ABC 的 3 個角（104°、29°、47°）撕下來拼在一起，頂點對齊頂點、邊靠著邊，會拼成什麼角？是幾度？',
+        options: ['直角，90 度', '平角，180 度', '周角，360 度', '鈍角，150 度'],
+        ans: 1,
+        hint: '將 104° + 29° + 47° 加起來看看，並回想成一直線的角叫作什麼角。',
+        steps: [
+          '步驟1：計算三個角的角度和：104° + 29° + 47° = 180°。',
+          '步驟2：180 度的角是一條平平的直線，稱為「平角」。',
+          '步驟3：所以任何三角形的 3 個內角撕下來拼在一起，都會拼成 180 度的平角。'
+        ],
+        draw: { type: 'tear_angles', angles: [29, 104, 47] }
+      },
+      {
+        id: 15, cat: '3-2',
+        q: '【課本P.36例2】我們常用的兩種三角板（一個是 90°、60°、30°，另一個是 90°、45°、45°），它們各自的 3 個角合起來都是幾度？',
+        options: ['甲比較大，乙比較小', '都是 180 度', '都是 360 度', '都是 90 度'],
+        ans: 1,
+        hint: '不論三角形的形狀大小如何，3 個角的角度和都是固定的喔！',
+        steps: [
+          '步驟1：計算甲三角板：90° + 60° + 30° = 180°。',
+          '步驟2：計算乙三角板：90° + 45° + 45° = 180°。',
+          '步驟3：所有三角形的 3 個內角和都是 180 度。'
+        ],
+        draw: { type: 'tri_angles', a: '90°', b: '60°', c: '30°' }
+      },
+      {
+        id: 16, cat: '3-2',
+        q: '【課本P.37例3】在三角形 ABC 中，已知 ∠A = 63°，∠B = 57°，請問 ∠C 是幾度？',
+        options: ['50 度', '60 度', '70 度', '80 度'],
+        ans: 1,
+        hint: '三角形 3 個角的和是 180 度，用 180° 減去已知的兩個角就可以囉！',
+        steps: [
+          '步驟1：三角形內角和是 180°，先把已知的兩個角加起來：63° + 57° = 120°。',
+          '步驟2：再用 180° 減去兩角的和：180° - 120° = 60°。',
+          '步驟3：得到 ∠C = 60 度。'
+        ],
+        draw: { type: 'tri_angles', a: '63°', b: '57°', c: '∠C=?' }
+      },
+      {
+        id: 17, cat: '3-2',
+        q: '【習作P.22】觀察三角形，已知其中兩個角分別是 76° 和 54°，請問第三個角 ∠ㄅ 是幾度？',
+        options: ['40 度', '50 度', '60 度', '70 度'],
+        ans: 1,
+        hint: '利用 180° - 76° - 54° 來計算。',
+        steps: [
+          '步驟1：先算已知兩角的和：76° + 54° = 130°。',
+          '步驟2：三角形內角和是 180°，所以 ∠ㄅ = 180° - 130° = 50°。',
+          '步驟3：答案是 50 度。'
+        ],
+        draw: { type: 'tri_angles', a: '∠ㄅ=?', b: '76°', c: '54°' }
+      },
+      {
+        id: 18, cat: '3-2',
+        q: '【習作P.22】在一個直角三角形中，除了直角以外，其中一個角是 37°，請問另一個角 ∠ㄅ 是幾度？',
+        options: ['43 度', '53 度', '63 度', '143 度'],
+        ans: 1,
+        hint: '看到直角記號「∟」，代表那個角是 90 度喔！',
+        steps: [
+          '步驟1：直角三角形中有一個直角 = 90°。',
+          '步驟2：用三角形內角和 180° 減去 90° 和 37°：180° - 90° - 37° = 53°。',
+          '步驟3：所以 ∠ㄅ 是 53 度。'
+        ],
+        draw: { type: 'right_tri', a: '90°', b: '37°', c: '∠ㄅ=?' }
+      },
+      {
+        id: 19, cat: '3-2',
+        q: '【課本P.38例4】在三角形 DEF 中，線段 DG 把 ∠D 分成 50° 和 70° 兩個角，且已知 ∠E = 35°，請問 ∠F 是幾度？',
+        options: ['25 度', '35 度', '40 度', '55 度'],
+        ans: 0,
+        hint: '先算出大三角形 DEF 完整的 ∠D 是幾度（50°＋70°），再用大三角形內角和 180° 來算 ∠F！',
+        steps: [
+          '步驟1：在大三角形 DEF 中，∠D = 50° + 70° = 120°。',
+          '步驟2：大三角形的三個角是 ∠D(120°)、∠E(35°) 和 ∠F。',
+          '步驟3：∠F = 180° - 120° - 35° = 25°。'
+        ],
+        draw: { type: 'split_tri', d1: '50°', d2: '70°', e: '35°', f: '∠F=?' }
+      },
+      {
+        id: 20, cat: '3-2',
+        q: '【課本P.38練習】一個大三角形頂角被分成 ∠ㄆ 和 50°，左下角的角是 45°，右下角的角是 65°，請問 ∠ㄆ 是幾度？',
+        options: ['15 度', '20 度', '25 度', '30 度'],
+        ans: 1,
+        hint: '大三角形的三個角加起來是 180°，也就是 (∠ㄆ + 50°) + 45° + 65° = 180°。',
+        steps: [
+          '步驟1：把大三角形已知的角度全部加起來：50° + 45° + 65° = 160°。',
+          '步驟2：大三角形內角和是 180°，剩下的就是 ∠ㄆ。',
+          '步驟3：∠ㄆ = 180° - 160° = 20°。'
+        ],
+        draw: { type: 'split_tri', d1: '∠ㄆ', d2: '50°', e: '45°', f: '65°' }
+      },
+      {
+        id: 21, cat: '3-2',
+        q: '【習作P.23】在直角三角形 ACD 中，∠A 是直角(90°)，B 在 AC 邊上，使得 ∠ADB = 30°、∠BDC = 15°，請問 ∠C 是幾度？',
+        options: ['35 度', '45 度', '55 度', '60 度'],
+        ans: 1,
+        hint: '看最大的直角三角形 ACD，∠A 是 90°，整個 ∠D 是 30° + 15° = 45°。',
+        steps: [
+          '步驟1：觀察大三角形 ACD，其中 ∠A = 90°。',
+          '步驟2：∠ADC 是由 30° 和 15° 合起來的，所以 ∠ADC = 30° + 15° = 45°。',
+          '步驟3：∠C = 180° - 90° - 45° = 45°。'
+        ],
+        draw: { type: 'split_tri', d1: '30°', d2: '15°', e: '∠A=90°', f: '∠C=?' }
+      },
+      {
+        id: 22, cat: '3-2',
+        q: '【課本P.38例5】關於三角形內角的敘述，下列哪一個是正確的？',
+        options: ['一個三角形裡可以有 2 個直角', '一個三角形裡可以有 2 個鈍角', '一個三角形裡最多只能有 1 個直角或 1 個鈍角', '鈍角三角形裡有 3 個鈍角'],
+        ans: 2,
+        hint: '直角是 90°，鈍角比 90° 大。如果有 2 個直角或 2 個鈍角，加起來會發生什麼事？',
+        steps: [
+          '步驟1：如果三角形有 2 個直角，90° + 90° = 180°，再加上第 3 個角就會超過 180°，不可能！',
+          '步驟2：鈍角大於 90°，2 個鈍角合起來已經超過 180°，也不可能圍成三角形！',
+          '步驟3：因此一個三角形裡，最多只能有 1 個直角或 1 個鈍角。'
+        ],
+        draw: { type: 'two_right_angles' }
+      },
+      {
+        id: 23, cat: '3-2',
+        q: '【課本P.39例6】正三角形的 3 條邊一樣長、3 個角一樣大。請問正三角形的每一個內角都是幾度？',
+        options: ['45 度', '60 度', '90 度', '180 度'],
+        ans: 1,
+        hint: '把三角形的內角和 180° 平分給 3 個一樣大的角！',
+        steps: [
+          '步驟1：三角形 3 個角的角度和是 180 度。',
+          '步驟2：正三角形的 3 個角一樣大，所以用除法平分：180° ÷ 3 = 60°。',
+          '步驟3：正三角形的每一個角都是 60 度。'
+        ],
+        draw: { type: 'tri_angles', a: '60°', b: '60°', c: '60°' }
+      },
+      {
+        id: 24, cat: '3-2',
+        q: '【習作P.23】如圖，F、G、H 在同一條直線上，三角形 EGH 是正三角形，且 ∠FEG = 30°，請問 ∠F 是幾度？',
+        options: ['20 度', '30 度', '45 度', '60 度'],
+        ans: 1,
+        hint: '正三角形 EGH 的每個角都是 60°，所以大三角形 EFH 中，∠H = 60°，∠FEH = 30° + 60° = 90°！',
+        steps: [
+          '步驟1：因為三角形 EGH 是正三角形，所以 ∠H = 60°，∠GEH = 60°。',
+          '步驟2：看大三角形 EFH，頂角 ∠FEH = 30° + 60° = 90°，右邊的角 ∠H = 60°。',
+          '步驟3：所以 ∠F = 180° - 90° - 60° = 30°。'
+        ],
+        draw: { type: 'split_tri', d1: '30°', d2: '60°(正△)', e: '∠F=?', f: '60°' }
+      },
+      {
+        id: 25, cat: '3-2',
+        q: '【課本P.39例7】三角形 DEF 是一個等腰三角形，已知頂角 ∠D 是 50 度，請問它的一個底角是幾度？',
+        options: ['50 度', '65 度', '80 度', '130 度'],
+        ans: 1,
+        hint: '等腰三角形的兩個底角一樣大！先用 180° 減掉頂角，再除以 2。',
+        steps: [
+          '步驟1：三角形內角和 180°，先減去頂角 50°：180° - 50° = 130°（這是兩個底角的和）。',
+          '步驟2：因為等腰三角形的兩個底角相等，所以將 130° 平分：130° ÷ 2 = 65°。',
+          '步驟3：一個底角是 65 度。'
+        ],
+        draw: { type: 'tri_angles', a: '50°', b: '底角=?', c: '底角=?' }
+      },
+      {
+        id: 26, cat: '3-2',
+        q: '【習作P.23】等腰三角形 IJK 中，IJ = IK，已知其中一個底角 ∠J = 72°，請問頂角 ∠I 是幾度？',
+        options: ['36 度', '54 度', '72 度', '108 度'],
+        ans: 0,
+        hint: '因為 IJ = IK，所以兩個底角 ∠J 和 ∠K 都是 72° 喔！',
+        steps: [
+          '步驟1：等腰三角形兩底角相等，因為 ∠J = 72°，所以另一個底角 ∠K 也是 72°。',
+          '步驟2：兩個底角合起來是 72° + 72° = 144°。',
+          '步驟3：頂角 ∠I = 180° - 144° = 36°。'
+        ],
+        draw: { type: 'tri_angles', a: '∠I=?', b: '72°', c: '72°' }
+      },
+      {
+        id: 27, cat: '3-2',
+        q: '【課本P.39素養評量】美美將長方形紙張對摺後，沿虛線剪下一個直角三角形（摺線長 3cm、底邊 4cm、斜邊 5cm、頂角一側為 53°）。將剪下的三角形展開後，底邊長與頂角各是多少？',
+        options: ['底邊 4 cm，頂角 53°', '底邊 8 cm，頂角 106°', '底邊 8 cm，頂角 74°', '底邊 10 cm，頂角 106°'],
+        ans: 1,
+        hint: '對摺剪開後，左右兩邊是完全對稱的兩個直角三角形拼在一起！',
+        steps: [
+          '步驟1：展開後的三角形是由兩個全等的直角三角形拼成的等腰三角形。',
+          '步驟2：底邊是由兩段 4 cm 拼成：4 + 4 = 8 cm（兩腰都是 5 cm）。',
+          '步驟3：頂角是由兩個 53° 拼成：53° + 53° = 106°。'
+        ],
+        draw: { type: 'fold_tri' }
+      },
+      {
+        id: 28, cat: '3-2',
+        q: '【課本P.48練習園地】鈍角等腰三角形 ABC 中，AB = 10 cm，BC = 18 cm，且底角 ∠C = 25°，請問 AC 的長和頂角 ∠A 各是多少？',
+        options: ['AC = 10 cm，∠A = 130°', 'AC = 18 cm，∠A = 130°', 'AC = 10 cm，∠A = 155°', 'AC = 18 cm，∠A = 25°'],
+        ans: 0,
+        hint: '∠A 是鈍角（頂角），所以兩腰是 AB 和 AC；兩個底角 ∠B 和 ∠C 都是 25°！',
+        steps: [
+          '步驟1：觀察圖形與角度，∠A 是鈍角頂角，所以兩條相等的腰是 AB 和 AC，故 AC = AB = 10 cm。',
+          '步驟2：兩個底角相等，∠B = ∠C = 25°。',
+          '步驟3：頂角 ∠A = 180° - 25° - 25° = 130°。'
+        ],
+        draw: { type: 'obtuse_iso' }
+      },
+
+      // ---------------- 3-3 四邊形的性質 (12題) ----------------
+      {
+        id: 29, cat: '3-3',
+        q: '【課本P.40例1】連接四邊形 ABCD 的對角線 BD，可以把四邊形分成 2 個三角形。因此四邊形 4 個角的角度和是幾度？',
+        options: ['180 度', '270 度', '360 度', '540 度'],
+        ans: 2,
+        hint: '1 個三角形的內角和是 180 度，2 個三角形合起來是幾度呢？',
+        steps: [
+          '步驟1：沿著對角線可以把任何四邊形分成 2 個三角形。',
+          '步驟2：每個三角形的內角和是 180°。',
+          '步驟3：所以四邊形 4 個角的角度和 = 180° × 2 = 360°（剪下來也可以拼成一個周角 360°）。'
+        ],
+        draw: { type: 'quad_diag' }
+      },
+      {
+        id: 30, cat: '3-3',
+        q: '【課本P.41例2】一個四邊形中，已知其中三個角分別是 70°、95°、75°，請問第四個角是幾度？',
+        options: ['100 度', '110 度', '120 度', '130 度'],
+        ans: 2,
+        hint: '四邊形 4 個角的角度和是 360 度，用 360° 減去已知的三個角！',
+        steps: [
+          '步驟1：先將已知的三個角加起來：70° + 95° + 75° = 240°。',
+          '步驟2：四邊形內角和是 360°，所以第四個角 = 360° - 240° = 120°。',
+          '步驟3：答案是 120 度。'
+        ],
+        draw: { type: 'quad_angles', a: '70°', b: '95°', c: '75°', d: '?°' }
+      },
+      {
+        id: 31, cat: '3-3',
+        q: '【課本P.41例3】在一個梯形中，右上角是直角（90°），左上角是 120°，右下角是 85°，請問左下角的 ∠1 是幾度？',
+        options: ['55 度', '65 度', '75 度', '85 度'],
+        ans: 1,
+        hint: '別忘了直角記號代表 90°！用 360° 減掉 90°、120° 和 85°。',
+        steps: [
+          '步驟1：找出已知的三個角：90°（直角）、120°、85°。',
+          '步驟2：三個角合起來是 90° + 120° + 85° = 295°。',
+          '步驟3：∠1 = 360° - 295° = 65°。'
+        ],
+        draw: { type: 'quad_angles', a: '120°', b: '90°', c: '85°', d: '∠1=?' }
+      },
+      {
+        id: 32, cat: '3-3',
+        q: '【課本P.41例3②】在正三角形圖卡上剪一刀，分成一個小三角形和一個四邊形 EFGH。已知四邊形中 ∠E = 110°，請問 ∠H 是幾度？',
+        options: ['110 度', '120 度', '130 度', '140 度'],
+        ans: 2,
+        hint: '原本是正三角形，所以底下的兩個角 ∠F 和 ∠G 都是 60 度喔！',
+        steps: [
+          '步驟1：因為原本是正三角形，所以四邊形底部的兩個角 ∠F = 60°、∠G = 60°。',
+          '步驟2：在四邊形 EFGH 中，已知 ∠E = 110°、∠F = 60°、∠G = 60°。',
+          '步驟3：∠H = 360° - 110° - 60° - 60° = 130°。'
+        ],
+        draw: { type: 'cut_equilateral' }
+      },
+      {
+        id: 33, cat: '3-3',
+        q: '【習作P.24】觀察四邊形，已知其中三個角分別是直角(90°)、133°、67°，請問第四個角 ∠ㄇ 是幾度？',
+        options: ['60 度', '70 度', '80 度', '90 度'],
+        ans: 1,
+        hint: '四邊形內角和是 360°，先算 90° + 133° + 67°。',
+        steps: [
+          '步驟1：把已知的三個角加起來：90° + 133° + 67° = 290°。',
+          '步驟2：用四邊形內角和 360° 減去 290°：360° - 290° = 70°。',
+          '步驟3：所以 ∠ㄇ 是 70 度。'
+        ],
+        draw: { type: 'quad_angles', a: '133°', b: '∠ㄇ=?', c: '67°', d: '90°' }
+      },
+      {
+        id: 34, cat: '3-3',
+        q: '【習作P.25】四邊形 ABCD 中，∠A = 62°，∠B = 105°，∠C = 78°，請問 ∠D 是幾度？',
+        options: ['105 度', '115 度', '125 度', '135 度'],
+        ans: 1,
+        hint: '用 360° - (62° + 105° + 78°) 來計算。',
+        steps: [
+          '步驟1：計算已知三角的和：62° + 105° + 78° = 245°。',
+          '步驟2：四邊形內角和為 360°，所以 ∠D = 360° - 245° = 115°。',
+          '步驟3：答案為 115 度。'
+        ],
+        draw: { type: 'quad_angles', a: '62°', b: '105°', c: '78°', d: '∠D=?' }
+      },
+      {
+        id: 35, cat: '3-3',
+        q: '【習作P.25】一個四邊形中的其中兩個角分別是 52 度、74 度，剩下的「兩個角角度一樣大」。請問剩下的其中一個角是幾度？',
+        options: ['107 度', '117 度', '127 度', '234 度'],
+        ans: 1,
+        hint: '先用 360° 減掉 52° 和 74°，算出剩下兩個角的總和，再除以 2！',
+        steps: [
+          '步驟1：先算已知兩角的和：52° + 74° = 126°。',
+          '步驟2：剩下兩個角的和 = 360° - 126° = 234°。',
+          '步驟3：因為剩下兩個角一樣大，所以其中一個角 = 234° ÷ 2 = 117°。'
+        ],
+        draw: { type: 'quad_angles', a: '52°', b: '74°', c: '?°', d: '?°' }
+      },
+      {
+        id: 36, cat: '3-3',
+        q: '【課本P.42~43】將平行四邊形沿著對角線剪開，可以分成 2 個全等的三角形。由此可以發現平行四邊形的邊和角有什麼性質？',
+        options: ['四條邊都一樣長，四個角都一樣大', '兩雙對邊分別一樣長，兩雙對角分別一樣大', '只有一雙對邊一樣長', '相鄰的兩個角一定一樣大'],
+        ans: 1,
+        hint: '觀察平行四邊形面對面的邊（對邊）和面對面的角（對角）。',
+        steps: [
+          '步驟1：平行四邊形沿對角線剪開後，兩個三角形完全疊合（全等）。',
+          '步驟2：對應的邊就是平行四邊形的「兩雙對邊」，所以兩雙對邊分別一樣長。',
+          '步驟3：對應的角就是平行四邊形的「兩雙對角」，所以兩雙對角分別一樣大。'
+        ],
+        draw: { type: 'parallelogram_prop', ad: '9cm', cd: '7cm', a: '84°', b: '96°' }
+      },
+      {
+        id: 37, cat: '3-3',
+        q: '【課本P.43練習】在平行四邊形 ABCD 中，已知 AD = 9 cm、CD = 7 cm，且 ∠A = 84°、∠B = 96°，請問 ∠C 和 BC 邊各是多少？',
+        options: ['∠C = 96°，BC = 7 cm', '∠C = 84°，BC = 9 cm', '∠C = 84°，BC = 7 cm', '∠C = 96°，BC = 9 cm'],
+        ans: 1,
+        hint: '在平行四邊形 ABCD 中，∠A 的對角是 ∠C，AD 邊的對邊是 BC 邊！',
+        steps: [
+          '步驟1：平行四邊形的對角一樣大，∠C 的對角是 ∠A(84°)，所以 ∠C = 84°。',
+          '步驟2：平行四邊形的對邊一樣長，BC 的對邊是 AD(9 cm)，所以 BC = 9 cm。',
+          '步驟3：故 ∠C = 84°，BC = 9 cm。'
+        ],
+        draw: { type: 'parallelogram_prop', ad: '9cm', cd: '7cm', a: '84°', b: '96°' }
+      },
+      {
+        id: 38, cat: '3-3',
+        q: '【習作P.25③】平行四邊形 EFGH 中，已知 ∠E = 108°，請問它的鄰角 ∠H 是幾度？',
+        options: ['62 度', '72 度', '82 度', '108 度'],
+        ans: 1,
+        hint: '平行四邊形對角相等（∠E=∠G=108°，∠F=∠H），且四個角合起來是 360°！',
+        steps: [
+          '步驟1：因為對角相等，所以 ∠G = ∠E = 108°，兩個角合起來是 108° + 108° = 216°。',
+          '步驟2：剩下兩個對角 ∠F 和 ∠H 的和 = 360° - 216° = 144°。',
+          '步驟3：因為 ∠F = ∠H，所以 ∠H = 144° ÷ 2 = 72°（或直接用 180° - 108° = 72°）。'
+        ],
+        draw: { type: 'parallelogram_prop', ad: 'EF', cd: 'EH', a: '∠E=108°', b: '∠H=?' }
+      },
+      {
+        id: 39, cat: '3-3',
+        q: '【習作P.25④】木工師傅將一塊平行四邊形木板（左下角 35°、左上角 145°）右下角裁下一塊三角形 IJK。已知三角形 IJK 中 ∠K = 75°，請問 ∠J 是幾度？',
+        options: ['60 度', '70 度', '75 度', '105 度'],
+        ans: 1,
+        hint: '平行四邊形的對角一樣大！左下角是 35°，所以原本右下角的 ∠I 也是 35°！',
+        steps: [
+          '步驟1：平行四邊形的兩雙對角分別一樣大，左下角是 35°，所以右下角的對角 ∠I 也是 35°。',
+          '步驟2：在裁下的三角形 IJK 中，已知 ∠I = 35°，∠K = 75°。',
+          '步驟3：利用三角形內角和 180°，算出 ∠J = 180° - 35° - 75° = 70°。'
+        ],
+        draw: { type: 'woodworker_para' }
+      },
+      {
+        id: 40, cat: '3-3',
+        q: '【習作P.28統整】下列哪一組角度可以組成一個四邊形？',
+        options: ['50°、60°、70°、80°', '65°、75°、105°、115°', '100°、110°、120°、130°', '90°、90°、90°、100°'],
+        ans: 1,
+        hint: '把四個角度加起來，看看哪一組剛好等於 360°！',
+        steps: [
+          '步驟1：四邊形的 4 個內角和必須剛好是 360°。',
+          '步驟2：(A) 50+60+70+80 = 260°；(C) 100+110+120+130 = 460°；(D) 370°。',
+          '步驟3：(B) 65° + 75° + 105° + 115° = 360°，剛好可以組成一個四邊形！'
+        ],
+        draw: { type: 'quad_angles', a: '65°', b: '75°', c: '105°', d: '115°' }
+      },
+
+      // ---------------- 3-4 認識多邊形與單元統整 (10題) ----------------
+      {
+        id: 41, cat: '3-4',
+        q: '【課本P.45、習作P.26】什麼樣的圖形叫作「多邊形」？下列哪一個圖形屬於多邊形？',
+        options: ['缺一角的圓形（扇形）', '彎彎的月亮形', '由 7 條直線邊圍成的七邊形', '橢圓形'],
+        ans: 2,
+        hint: '多邊形必須是由 3 條以上（含 3 條）的「直線邊」所圍成的平面圖形喔！',
+        steps: [
+          '步驟1：多邊形的定義：由 3 條以上（含 3 條）直線邊所圍成的封閉平面圖形。',
+          '步驟2：扇形、月亮形、橢圓形都有彎曲的邊（曲線），所以不是多邊形。',
+          '步驟3：由 7 條直線邊圍成的七邊形是多邊形。'
+        ],
+        draw: { type: 'polygon_check' }
+      },
+      {
+        id: 42, cat: '3-4',
+        q: '【習作P.27】一個「十邊形」有幾條邊、幾個角、幾個頂點？',
+        options: ['10 條邊、8 個角、8 個頂點', '10 條邊、10 個角、10 個頂點', '10 條邊、12 個角、12 個頂點', '5 條邊、10 個角、10 個頂點'],
+        ans: 1,
+        hint: '幾邊形就會有幾條邊、幾個角和幾個頂點！',
+        steps: [
+          '步驟1：多邊形的邊數、角數和頂點數都一樣多。',
+          '步驟2：三角形有 3 邊 3 角 3 頂點；四邊形有 4 邊 4 角 4 頂點。',
+          '步驟3：所以十邊形有 10 條邊、10 個角、10 個頂點。'
+        ],
+        draw: { type: 'reg_polygon', sides: 10, label: '十邊形' }
+      },
+      {
+        id: 43, cat: '3-4',
+        q: '【課本P.46、習作P.27】一個平面圖形有 12 個頂點，12 條邊且每條邊都一樣長，12 個角且每個角都一樣大，這個圖形叫作什麼？',
+        options: ['十二邊形', '正十邊形', '正十二邊形', '正六邊形'],
+        ans: 2,
+        hint: '同時符合「每條邊都一樣長」而且「每個角都一樣大」的多邊形，要加上一個「正」字！',
+        steps: [
+          '步驟1：有 12 條邊、12 個角、12 個頂點的圖形是十二邊形。',
+          '步驟2：因為它的「每條邊都一樣長」且「每個角都一樣大」，符合正多邊形的定義。',
+          '步驟3：所以這個圖形叫作「正十二邊形」（例如英國的 1 英鎊硬幣）。'
+        ],
+        draw: { type: 'reg_polygon', sides: 12, label: '正十二邊形' }
+      },
+      {
+        id: 44, cat: '3-4',
+        q: '【課本P.46~47】下列哪一種四邊形是「正四邊形」？',
+        options: ['長方形（4 個角一樣大，但鄰邊不一樣長）', '菱形（4 條邊一樣長，但鄰角不一樣大）', '正方形（4 條邊一樣長，且 4 個角都是 90°）', '平行四邊形'],
+        ans: 2,
+        hint: '正多邊形必須「每條邊一樣長」而且「每個角一樣大」，兩個條件缺一不可！',
+        steps: [
+          '步驟1：檢查長方形：雖然 4 個角都是 90°，但長和寬不一樣長，不是正四邊形。',
+          '步驟2：檢查菱形：雖然 4 條邊一樣長，但 4 個角不一定一樣大，不是正四邊形。',
+          '步驟3：只有「正方形」4 條邊一樣長且 4 個角一樣大，所以正方形就是正四邊形！'
+        ],
+        draw: { type: 'compare_quads' }
+      },
+      {
+        id: 45, cat: '3-4',
+        q: '【課本P.49練習園地】美美從一張大直角三角形圖卡中，剪下一塊小直角三角形 DEF（其中 ∠F 是直角 90°，∠D = 37°）。請問剩下四邊形中的鈍角 ∠ㄅ（與 ∠DEF 拼成平角）是幾度？',
+        options: ['53 度', '117 度', '127 度', '143 度'],
+        ans: 2,
+        hint: '先在直角三角形 DEF 中算出 ∠DEF 是幾度，再用平角 180° 減去 ∠DEF（或用四邊形內角和 360° 算）！',
+        steps: [
+          '步驟1：在小直角三角形 DEF 中，∠F = 90°，∠D = 37°，所以 ∠DEF = 180° - 90° - 37° = 53°。',
+          '步驟2：因為 ∠DEF 和 ∠ㄅ 合起來是一條直線（平角 180°）。',
+          '步驟3：所以 ∠ㄅ = 180° - 53° = 127°。'
+        ],
+        draw: { type: 'cut_right_tri' }
+      },
+      {
+        id: 46, cat: '3-4',
+        q: '【習作P.29④】如圖，在一個大直角三角形（頂角為直角 90°）中畫一條線，分出右邊一個小三角形（其中兩個角都是 40°），請問左邊四邊形中的 ∠ㄈ 是幾度？',
+        options: ['80 度', '90 度', '100 度', '110 度'],
+        ans: 0,
+        hint: '先看右邊的小三角形，兩個角是 40° 和 40°，算出第三個鈍角是幾度，再用平角 180° 減掉它！',
+        steps: [
+          '步驟1：在右邊的小三角形中，已知兩個角都是 40°，所以第三個角 = 180° - 40° - 40° = 100°。',
+          '步驟2：這個 100° 的角和旁邊的 ∠ㄈ 剛好在同一直線上，合起來是平角 180°。',
+          '步驟3：所以 ∠ㄈ = 180° - 100° = 80°。'
+        ],
+        draw: { type: 'workbook_p29_3' }
+      },
+      {
+        id: 47, cat: '3-4',
+        q: '【習作P.29④】將一張長方形紙條斜摺一角，形成如圖的形狀，已知其中一個角是 75°（且對邊平行使同側內角和為 180°），請問對應的鈍角 ∠ㄈ 是幾度？',
+        options: ['95 度', '105 度', '115 度', '125 度'],
+        ans: 1,
+        hint: '左邊上下兩個角都是直角 90°，四邊形內角和是 360°！',
+        steps: [
+          '步驟1：觀察這個直角梯形（四邊形），左邊兩個角都是直角 90°，右下角是 75°。',
+          '步驟2：利用四邊形內角和 360°，先算已知三角的和：90° + 90° + 75° = 255°。',
+          '步驟3：右上角的 ∠ㄈ = 360° - 255° = 105°。'
+        ],
+        draw: { type: 'quad_angles', a: '90°', b: '∠ㄈ=?', c: '75°', d: '90°' }
+      },
+      {
+        id: 48, cat: '3-4',
+        q: '【習作P.29⑤】將一張四邊形圖卡「只剪下其中一個角」（刀子沒有經過頂點），剪開後的這兩張圖卡分別是什麼圖形？',
+        options: ['三角形 和 三角形', '三角形 和 四邊形', '三角形 和 五邊形', '四邊形 和 四邊形'],
+        ans: 2,
+        hint: '剪掉一個角會少 1 個頂點，但剪開的那一刀會產生 2 個新頂點喔！畫畫看數數看有幾條邊。',
+        steps: [
+          '步驟1：剪下來的那個小角，有 3 條邊，所以是一個「三角形」。',
+          '步驟2：原本的四邊形有 4 條邊，剪去一角後多出一條切口邊，變成 4 + 1 = 5 條邊。',
+          '步驟3：所以會分成一個「三角形」和一個「五邊形」！'
+        ],
+        draw: { type: 'cut_quad_corner' }
+      },
+      {
+        id: 49, cat: '3-4',
+        q: '【習作P.50綜合】如圖，三角形 DEF 是正三角形，E、F、G 在同一直線上，連接 DG，已知 ∠FDG = 15°，請問 ∠G（∠ㄅ）是幾度？',
+        options: ['35 度', '45 度', '55 度', '60 度'],
+        ans: 1,
+        hint: '正三角形 DEF 的每個角都是 60°！看大三角形 DEG，∠E = 60°，頂角 ∠EDG = 60° + 15° = 75°。',
+        steps: [
+          '步驟1：因為三角形 DEF 是正三角形，所以 ∠E = 60°，∠EDF = 60°。',
+          '步驟2：觀察大三角形 DEG，它的頂角 ∠EDG = 60° + 15° = 75°，左下的角 ∠E = 60°。',
+          '步驟3：所以 ∠G（∠ㄅ）= 180° - 75° - 60° = 45°。'
+        ],
+        draw: { type: 'workbook_p50_8' }
+      },
+      {
+        id: 50, cat: '3-4',
+        q: '【課本P.49練習園地】觀察一個箏形（鳶形）四邊形，已知頂角是 40°，左右兩個對稱的角都是 120°，請問底下的角 ∠ㄅ 是幾度？',
+        options: ['60 度', '70 度', '80 度', '90 度'],
+        ans: 2,
+        hint: '箏形也是四邊形，4 個角的角度和是 360 度！',
+        steps: [
+          '步驟1：箏形有 4 條邊、4 個角，屬於四邊形，內角和為 360°。',
+          '步驟2：將已知的三個角加起來：40° + 120° + 120° = 280°。',
+          '步驟3：底下的角 ∠ㄅ = 360° - 280° = 80°。'
+        ],
+        draw: { type: 'kite_shape' }
+      }
+    ];
+
+    // ==================== 全域狀態管理 ====================
+    let questionBank = JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+    let currentQuiz = []; // 當前抽出的 10 題
+    let userAnswers = {}; // { idx: selectedOptionIndex }
+    let scratchpadData = {}; // { idx: { strokes: [], currentColor: '#1d4ed8', currentSize: 3, isEraser: false, height: 180, typedMath: '', teacherTag: '', teacherComment: '' } }
+
+    // 初始化
+    window.addEventListener('DOMContentLoaded', () => {
+      updateBankCountBadge();
+      startNewQuiz();
+      renderBankList();
+    });
+
+    function updateBankCountBadge() {
+      const badge = document.getElementById('bank-count-badge');
+      if (badge) badge.textContent = questionBank.length;
+    }
+
+    // 切換分頁
+    function switchTab(tab) {
+      const views = ['quiz', 'review', 'bank'];
+      views.forEach(v => {
+        const el = document.getElementById('view-' + v);
+        const btn = document.getElementById('tab-btn-' + v);
+        if (v === tab) {
+          el.classList.remove('hidden');
+          btn.className = 'px-3.5 py-2 rounded-lg font-bold text-sm bg-white text-amber-600 shadow-sm transition';
+        } else {
+          el.classList.add('hidden');
+          btn.className = 'px-3.5 py-2 rounded-lg font-bold text-sm bg-amber-600 text-white hover:bg-amber-700 transition';
+        }
+      });
+      if (tab === 'quiz') {
+        // 重新繪製所有題目與手寫畫布
+        setTimeout(() => {
+          currentQuiz.forEach((q, idx) => {
+            const c = document.getElementById('q-canvas-' + idx);
+            if (c) drawQuestionCanvas(c, q, userAnswers[idx] !== undefined);
+            redrawScratchpad(idx);
+          });
+        }, 30);
+      } else if (tab === 'review') {
+        renderTeacherReview();
+      } else if (tab === 'bank') {
+        renderBankList();
+      }
+    }
+
+    // ==================== 隨機抽 10 題與渲染測驗 ====================
+    function startNewQuiz() {
+      const unitFilter = document.getElementById('unit-filter').value;
+      let pool = unitFilter === 'all'
+        ? [...questionBank]
+        : questionBank.filter(q => q.cat === unitFilter);
+
+      // 洗牌
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+
+      currentQuiz = pool.slice(0, 10);
+      userAnswers = {};
+      scratchpadData = {};
+      updateScoreDisplay();
+      renderQuizCards();
+    }
+
+    function initScratchpadState(idx) {
+      if (!scratchpadData[idx]) {
+        scratchpadData[idx] = {
+          strokes: [],
+          currentColor: '#1d4ed8',
+          currentSize: 3,
+          isEraser: false,
+          height: 180,
+          typedMath: '',
+          teacherTag: '',
+          teacherComment: ''
+        };
+      }
+      return scratchpadData[idx];
+    }
+
+    function renderQuizCards() {
+      const container = document.getElementById('quiz-questions-container');
+      container.innerHTML = '';
+
+      currentQuiz.forEach((q, idx) => {
+        const padState = initScratchpadState(idx);
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden print-break';
+        card.innerHTML = `
+          <!-- 題目頂部標題列 -->
+          <div class="bg-slate-50 border-b border-slate-200 px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="bg-amber-500 text-white font-black px-3 py-1 rounded-lg text-sm">第 ${idx + 1} 題</span>
+              <span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded text-xs">單元 ${q.cat}</span>
+              <span id="q-status-badge-${idx}" class="text-xs font-bold text-slate-400">尚未作答</span>
+            </div>
+            <div class="flex items-center gap-2 no-print">
+              <button onclick="toggleHint(${idx})" class="px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-xs transition flex items-center gap-1">
+                💡 看提示
+              </button>
+              <button onclick="toggleSteps(${idx})" class="px-3 py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-xs transition flex items-center gap-1">
+                🧭 解題引導
+              </button>
+            </div>
+          </div>
+
+          <!-- 題目內容與幾何圖形區 -->
+          <div class="p-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+            <!-- 左側：題目文字與選項 -->
+            <div class="lg:col-span-7 space-y-4">
+              <p class="text-base md:text-lg font-bold text-slate-800 leading-relaxed">${q.q}</p>
+              
+              <!-- 選項按鈕 -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="options-box-${idx}">
+                ${q.options.map((opt, oIdx) => `
+                  <button onclick="selectAnswer(${idx}, ${oIdx})" id="opt-btn-${idx}-${oIdx}"
+                    class="text-left px-4 py-3 rounded-xl border-2 border-slate-200 hover:border-amber-400 hover:bg-amber-50/40 font-medium text-sm transition flex items-start gap-2">
+                    <span class="font-black text-amber-600">(${['A','B','C','D'][oIdx]})</span>
+                    <span class="flex-1">${opt}</span>
+                  </button>
+                `).join('')}
+              </div>
+
+              <!-- 隱藏提示區 -->
+              <div id="hint-box-${idx}" class="hidden bg-amber-50 border-l-4 border-amber-400 p-3.5 rounded-r-xl text-sm text-amber-900">
+                <div class="font-black mb-1">💡 學習小叮嚀：</div>
+                <div>${q.hint}</div>
+              </div>
+
+              <!-- 隱藏三步驟解題引導區 -->
+              <div id="steps-box-${idx}" class="hidden bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-xl text-sm text-emerald-950 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="font-black text-emerald-800">🧭 逐步解題引導：</span>
+                  <button onclick="revealNextStep(${idx})" id="next-step-btn-${idx}" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-2.5 py-1 rounded shadow-sm">
+                    顯示下一步 ➔
+                  </button>
+                </div>
+                <div id="step-item-${idx}-0" class="p-2 bg-white/80 rounded border border-emerald-200 font-medium">${q.steps[0] || ''}</div>
+                <div id="step-item-${idx}-1" class="hidden p-2 bg-white/80 rounded border border-emerald-200 font-medium">${q.steps[1] || ''}</div>
+                <div id="step-item-${idx}-2" class="hidden p-2 bg-white/80 rounded border border-emerald-200 font-medium">${q.steps[2] || ''}</div>
+              </div>
+            </div>
+
+            <!-- 右側：HTML5 Canvas 幾何圖示 -->
+            <div class="lg:col-span-5 flex flex-col items-center justify-center bg-slate-50 rounded-xl p-3 border border-slate-200">
+              <canvas id="q-canvas-${idx}" width="340" height="210" class="max-w-full h-auto bg-white rounded-lg shadow-inner border border-slate-100"></canvas>
+              <span class="text-xs text-slate-400 mt-1.5">▲ 題目幾何輔助圖示（依題意自動繪製）</span>
+            </div>
+          </div>
+
+          <!-- 底部：學生手寫計算過程白板 -->
+          <div class="border-t border-slate-200 bg-slate-50/70 p-4 space-y-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-black text-slate-700">✍️ 手寫計算過程與想法記錄區</span>
+                <span class="text-xs text-slate-500 hidden sm:inline">（請寫出算式或推理過程，讓老師了解你的解題方法）</span>
+              </div>
+              <!-- 畫筆工具列 -->
+              <div class="flex flex-wrap items-center gap-1.5 no-print">
+                <button onclick="setPenTool(${idx}, '#1d4ed8', 3, false)" id="pen-blue-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-blue-600 text-white shadow-sm">🔵 藍筆</button>
+                <button onclick="setPenTool(${idx}, '#1e293b', 3, false)" id="pen-black-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-slate-200 text-slate-700">⚫ 黑筆</button>
+                <button onclick="setPenTool(${idx}, '#dc2626', 3, false)" id="pen-red-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-slate-200 text-slate-700">🔴 紅筆</button>
+                <button onclick="setPenTool(${idx}, '#ffffff', 18, true)" id="pen-eraser-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-slate-200 text-slate-700">🧽 橡皮擦</button>
+                <button onclick="undoScratchpad(${idx})" class="px-2.5 py-1 rounded text-xs font-bold bg-white border border-slate-300 text-slate-700 hover:bg-slate-100">↩️ 復原</button>
+                <button onclick="clearScratchpad(${idx})" class="px-2.5 py-1 rounded text-xs font-bold bg-white border border-rose-300 text-rose-600 hover:bg-rose-50">🗑️ 清空</button>
+                <button onclick="expandScratchpad(${idx})" class="px-2.5 py-1 rounded text-xs font-bold bg-white border border-slate-300 text-slate-700 hover:bg-slate-100">↕️ 加高畫布</button>
+              </div>
+            </div>
+
+            <!-- 手寫 Canvas -->
+            <div class="border-2 border-dashed border-slate-300 rounded-xl overflow-hidden bg-white shadow-inner">
+              <canvas id="pad-canvas-${idx}" width="920" height="${padState.height}" class="w-full block grid-canvas-bg scratchpad-canvas"></canvas>
+            </div>
+
+            <!-- 鍵盤算式補充輸入框 -->
+            <div class="flex items-center gap-2 pt-1">
+              <span class="text-xs font-bold text-slate-500 whitespace-nowrap">⌨️ 鍵盤算式補充：</span>
+              <input type="text" id="typed-math-${idx}" value="${padState.typedMath}"
+                oninput="updateTypedMath(${idx}, this.value)"
+                placeholder="若不方便手寫，也可在此打字輸入算式（例如：180 - 63 - 57 = 60）..."
+                class="flex-1 text-xs border border-slate-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+
+        // 繪製題目幾何圖與綁定手寫白板
+        const qCanvas = document.getElementById('q-canvas-' + idx);
+        drawQuestionCanvas(qCanvas, q, false);
+        setupScratchpadEvents(idx);
+      });
+    }
+
+    // ==================== 作答與提示引導互動 ====================
+    function selectAnswer(qIdx, optIdx) {
+      userAnswers[qIdx] = optIdx;
+      const q = currentQuiz[qIdx];
+      const isCorrect = (optIdx === q.ans);
+
+      // 更新選項按鈕外觀
+      q.options.forEach((_, idx) => {
+        const btn = document.getElementById(`opt-btn-${qIdx}-${idx}`);
+        if (!btn) return;
+        if (idx === q.ans) {
+          btn.className = 'text-left px-4 py-3 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 font-bold text-sm transition flex items-start gap-2';
+        } else if (idx === optIdx && !isCorrect) {
+          btn.className = 'text-left px-4 py-3 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-900 font-bold text-sm transition flex items-start gap-2';
+        } else {
+          btn.className = 'text-left px-4 py-3 rounded-xl border-2 border-slate-200 opacity-60 font-medium text-sm transition flex items-start gap-2';
+        }
+      });
+
+      // 更新狀態標籤
+      const badge = document.getElementById(`q-status-badge-${qIdx}`);
+      if (badge) {
+        if (isCorrect) {
+          badge.className = 'text-xs font-black text-emerald-600 bg-emerald-100 px-2.5 py-0.5 rounded';
+          badge.textContent = '✅ 答對了！(+10分)';
+        } else {
+          badge.className = 'text-xs font-black text-rose-600 bg-rose-100 px-2.5 py-0.5 rounded';
+          badge.textContent = `❌ 答錯了（正確為 ${['A','B','C','D'][q.ans]}），請看下方引導`;
+          // 答錯時自動展開提示與解題引導
+          document.getElementById(`hint-box-${qIdx}`).classList.remove('hidden');
+          document.getElementById(`steps-box-${qIdx}`).classList.remove('hidden');
+        }
+      }
+
+      // 更新幾何圖（可顯示解答輔助）
+      const qCanvas = document.getElementById('q-canvas-' + qIdx);
+      if (qCanvas) drawQuestionCanvas(qCanvas, q, true);
+
+      updateScoreDisplay();
+    }
+
+    function updateScoreDisplay() {
+      let answered = 0;
+      let correct = 0;
+      currentQuiz.forEach((q, idx) => {
+        if (userAnswers[idx] !== undefined) {
+          answered++;
+          if (userAnswers[idx] === q.ans) correct++;
+        }
+      });
+      document.getElementById('quiz-score').textContent = correct * 10;
+      document.getElementById('quiz-answered').textContent = answered;
+    }
+
+    function toggleHint(idx) {
+      const box = document.getElementById('hint-box-' + idx);
+      box.classList.toggle('hidden');
+    }
+
+    function toggleSteps(idx) {
+      const box = document.getElementById('steps-box-' + idx);
+      box.classList.toggle('hidden');
+    }
+
+    function revealNextStep(idx) {
+      const s1 = document.getElementById(`step-item-${idx}-1`);
+      const s2 = document.getElementById(`step-item-${idx}-2`);
+      const btn = document.getElementById(`next-step-btn-${idx}`);
+      if (s1 && s1.classList.contains('hidden')) {
+        s1.classList.remove('hidden');
+      } else if (s2 && s2.classList.contains('hidden')) {
+        s2.classList.remove('hidden');
+        if (btn) btn.textContent = '已顯示全部步驟 ✓';
+      }
+    }
+
+    // ==================== 手寫計算白板引擎 ====================
+    function setupScratchpadEvents(idx) {
+      const canvas = document.getElementById('pad-canvas-' + idx);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const padState = initScratchpadState(idx);
+
+      redrawScratchpad(idx);
+
+      let isDrawing = false;
+      let currentStroke = null;
+
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        if (e.touches && e.touches.length > 0) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        }
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+        };
+      }
+
+      function startDraw(e) {
+        if (e.cancelable) e.preventDefault();
+        isDrawing = true;
+        const pos = getPos(e);
+        currentStroke = {
+          color: padState.currentColor,
+          size: padState.currentSize,
+          isEraser: padState.isEraser,
+          points: [pos]
+        };
+        padState.strokes.push(currentStroke);
+        drawSingleSegment(ctx, currentStroke, 0);
+      }
+
+      function moveDraw(e) {
+        if (!isDrawing || !currentStroke) return;
+        if (e.cancelable) e.preventDefault();
+        const pos = getPos(e);
+        currentStroke.points.push(pos);
+        drawSingleSegment(ctx, currentStroke, currentStroke.points.length - 1);
+      }
+
+      function endDraw() {
+        if (!isDrawing) return;
+        isDrawing = false;
+        currentStroke = null;
+      }
+
+      canvas.addEventListener('pointerdown', startDraw);
+      canvas.addEventListener('pointermove', moveDraw);
+      canvas.addEventListener('pointerup', endDraw);
+      canvas.addEventListener('pointerleave', endDraw);
+    }
+
+    function drawSingleSegment(ctx, stroke, ptIdx) {
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = stroke.size;
+      if (stroke.isEraser) {
+        ctx.globalCompositeOperation = 'destination-out';
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = stroke.color;
+      }
+
+      const pts = stroke.points;
+      ctx.beginPath();
+      if (ptIdx === 0) {
+        ctx.arc(pts[0].x, pts[0].y, stroke.size / 2, 0, Math.PI * 2);
+        ctx.fillStyle = stroke.isEraser ? 'rgba(0,0,0,1)' : stroke.color;
+        ctx.fill();
+      } else {
+        ctx.moveTo(pts[ptIdx - 1].x, pts[ptIdx - 1].y);
+        ctx.lineTo(pts[ptIdx].x, pts[ptIdx].y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function redrawScratchpad(idx) {
+      const canvas = document.getElementById('pad-canvas-' + idx);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const padState = initScratchpadState(idx);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      padState.strokes.forEach(stroke => {
+        for (let i = 0; i < stroke.points.length; i++) {
+          drawSingleSegment(ctx, stroke, i);
+        }
+      });
+    }
+
+    function setPenTool(idx, color, size, isEraser) {
+      const padState = initScratchpadState(idx);
+      padState.currentColor = color;
+      padState.currentSize = size;
+      padState.isEraser = isEraser;
+
+      const btns = [
+        { id: `pen-blue-${idx}`, active: !isEraser && color === '#1d4ed8', cls: 'bg-blue-600 text-white' },
+        { id: `pen-black-${idx}`, active: !isEraser && color === '#1e293b', cls: 'bg-slate-800 text-white' },
+        { id: `pen-red-${idx}`, active: !isEraser && color === '#dc2626', cls: 'bg-red-600 text-white' },
+        { id: `pen-eraser-${idx}`, active: isEraser, cls: 'bg-amber-600 text-white' }
+      ];
+      btns.forEach(b => {
+        const el = document.getElementById(b.id);
+        if (!el) return;
+        el.className = b.active
+          ? `px-2.5 py-1 rounded text-xs font-bold shadow-sm ${b.cls}`
+          : 'px-2.5 py-1 rounded text-xs font-bold bg-slate-200 text-slate-700';
+      });
+    }
+
+    function undoScratchpad(idx) {
+      const padState = initScratchpadState(idx);
+      if (padState.strokes.length > 0) {
+        padState.strokes.pop();
+        redrawScratchpad(idx);
+      }
+    }
+
+    function clearScratchpad(idx) {
+      const padState = initScratchpadState(idx);
+      padState.strokes = [];
+      redrawScratchpad(idx);
+    }
+
+    function expandScratchpad(idx) {
+      const padState = initScratchpadState(idx);
+      padState.height += 120;
+      const canvas = document.getElementById('pad-canvas-' + idx);
+      if (canvas) {
+        canvas.height = padState.height;
+        redrawScratchpad(idx);
+      }
+    }
+
+    function updateTypedMath(idx, val) {
+      const padState = initScratchpadState(idx);
+      padState.typedMath = val;
+    }
+
+    // ==================== 教師檢視與批改專區 ====================
+    function renderTeacherReview() {
+      const container = document.getElementById('review-cards-container');
+      container.innerHTML = '';
+
+      let answeredCount = 0;
+      let correctCount = 0;
+      let writtenCount = 0;
+      let gradedCount = 0;
+      const total = currentQuiz.length;
+
+      currentQuiz.forEach((q, idx) => {
+        const padState = initScratchpadState(idx);
+        const uAns = userAnswers[idx];
+        const isAnswered = uAns !== undefined;
+        const isCorrect = uAns === q.ans;
+        const hasWritten = padState.strokes.length > 0 || (padState.typedMath && padState.typedMath.trim() !== '');
+        const hasGraded = (padState.teacherTag && padState.teacherTag !== '') || (padState.teacherComment && padState.teacherComment.trim() !== '');
+
+        if (isAnswered) answeredCount++;
+        if (isCorrect) correctCount++;
+        if (hasWritten) writtenCount++;
+        if (hasGraded) gradedCount++;
+
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4 print-break';
+        card.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
+            <div class="flex items-center gap-2">
+              <span class="bg-indigo-600 text-white font-black px-3 py-1 rounded-lg text-sm">第 ${idx + 1} 題</span>
+              <span class="text-xs font-bold px-2.5 py-1 rounded ${
+                !isAnswered ? 'bg-slate-100 text-slate-600' : isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+              }">
+                ${!isAnswered ? '未作答' : isCorrect ? '✅ 選擇題答對' : `❌ 選擇題答錯（學生選 ${['A','B','C','D'][uAns]}，正解為 ${['A','B','C','D'][q.ans]}）`}
+              </span>
+            </div>
+            <div class="text-xs font-bold text-indigo-700">
+              ${padState.teacherTag ? `教師評定：${padState.teacherTag}` : '尚未評定計算過程'}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            <!-- 左側：題目與標準步驟 -->
+            <div class="lg:col-span-5 space-y-2 text-sm">
+              <div class="font-bold text-slate-800">${q.q}</div>
+              <canvas id="review-geo-canvas-${idx}" width="260" height="160" class="bg-slate-50 rounded border border-slate-200"></canvas>
+              <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200 text-xs space-y-1">
+                <div class="font-black text-emerald-800">標準解題步驟參考：</div>
+                ${q.steps.map(s => `<div>• ${s}</div>`).join('')}
+              </div>
+            </div>
+
+            <!-- 右側：學生手寫計算過程與老師紅筆批改 -->
+            <div class="lg:col-span-7 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-black text-slate-700">📝 學生手寫算式畫布（老師可直接用滑鼠/觸控紅筆在上方圈選批註）：</span>
+                <button onclick="undoTeacherStroke(${idx})" class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded font-bold text-slate-700 no-print">
+                  ↩️ 復原老師紅筆
+                </button>
+              </div>
+              <div class="border-2 border-indigo-200 rounded-xl overflow-hidden bg-white">
+                <canvas id="review-pad-canvas-${idx}" width="920" height="${padState.height}" class="w-full block grid-canvas-bg scratchpad-canvas"></canvas>
+              </div>
+              ${padState.typedMath ? `
+                <div class="bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg text-xs">
+                  <span class="font-bold text-amber-800">⌨️ 學生鍵盤補充算式：</span> ${padState.typedMath}
+                </div>
+              ` : ''}
+
+              <!-- 教師快速評定印章與評語 -->
+              <div class="bg-indigo-50/70 p-3 rounded-xl border border-indigo-100 space-y-2 no-print">
+                <div class="flex flex-wrap gap-1.5">
+                  ${['✅ 算式合理、觀念清楚', '⚠️ 方法正確但計算粗心', '💡 列式不完整需補充', '❓ 觀念有誤請訂正'].map(tag => `
+                    <button onclick="setTeacherTag(${idx}, '${tag}')"
+                      class="px-2.5 py-1 rounded-lg text-xs font-bold border transition ${
+                        padState.teacherTag === tag ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-300 hover:bg-indigo-100'
+                      }">
+                      ${tag}
+                    </button>
+                  `).join('')}
+                </div>
+                <input type="text" value="${padState.teacherComment}"
+                  oninput="setTeacherComment(${idx}, this.value)"
+                  placeholder="輸入教師個別指導評語..."
+                  class="w-full text-xs border border-indigo-200 rounded-lg px-3 py-1.5 bg-white" />
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+
+        // 繪製左側題目幾何圖
+        const geoC = document.getElementById(`review-geo-canvas-${idx}`);
+        if (geoC) {
+          const tempC = document.createElement('canvas');
+          tempC.width = 340;
+          tempC.height = 210;
+          drawQuestionCanvas(tempC, q, true);
+          geoC.getContext('2d').drawImage(tempC, 0, 0, 260, 160);
+        }
+
+        // 繪製右側學生手寫畫布並綁定老師紅筆批註功能
+        setupTeacherReviewPad(idx);
+      });
+
+      const score = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+      document.getElementById('rev-stat-answered').textContent = `${answeredCount} / ${total} 題`;
+      document.getElementById('rev-stat-score').textContent = `${score} 分`;
+      document.getElementById('rev-stat-written').textContent = `${writtenCount} / ${total} 題`;
+      document.getElementById('rev-stat-graded').textContent = `${gradedCount} / ${total} 題`;
+    }
+
+    function setupTeacherReviewPad(idx) {
+      const canvas = document.getElementById(`review-pad-canvas-${idx}`);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const padState = initScratchpadState(idx);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      padState.strokes.forEach(stroke => {
+        for (let i = 0; i < stroke.points.length; i++) {
+          drawSingleSegment(ctx, stroke, i);
+        }
+      });
+
+      let isDrawing = false;
+      let currentStroke = null;
+
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        if (e.touches && e.touches.length > 0) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        }
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+        };
+      }
+
+      canvas.addEventListener('pointerdown', e => {
+        if (e.cancelable) e.preventDefault();
+        isDrawing = true;
+        const pos = getPos(e);
+        currentStroke = { color: '#dc2626', size: 4, isEraser: false, points: [pos] };
+        padState.strokes.push(currentStroke);
+        drawSingleSegment(ctx, currentStroke, 0);
+      });
+
+      canvas.addEventListener('pointermove', e => {
+        if (!isDrawing || !currentStroke) return;
+        if (e.cancelable) e.preventDefault();
+        const pos = getPos(e);
+        currentStroke.points.push(pos);
+        drawSingleSegment(ctx, currentStroke, currentStroke.points.length - 1);
+      });
+
+      const stop = () => {
+        isDrawing = false;
+        currentStroke = null;
+      };
+      canvas.addEventListener('pointerup', stop);
+      canvas.addEventListener('pointerleave', stop);
+    }
+
+    function undoTeacherStroke(idx) {
+      const padState = initScratchpadState(idx);
+      if (padState.strokes.length > 0) {
+        padState.strokes.pop();
+        renderTeacherReview();
+      }
+    }
+
+    function setTeacherTag(idx, tag) {
+      const padState = initScratchpadState(idx);
+      padState.teacherTag = padState.teacherTag === tag ? '' : tag;
+      renderTeacherReview();
+    }
+
+    function setTeacherComment(idx, comment) {
+      const padState = initScratchpadState(idx);
+      padState.teacherComment = comment;
+    }
+
+    // ==================== HTML5 Canvas 幾何圖形動態繪製引擎 ====================
+    function drawQuestionCanvas(canvas, q, showAns) {
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width;
+      const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      ctx.save();
+      ctx.font = 'bold 14px "Noto Sans TC", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const d = q.draw || { type: 'tri_sides', sides: ['a', 'b', 'c'] };
+
+      if (d.type === 'map_route') {
+        // 籃球場到公園路線圖
+        ctx.lineWidth = 4;
+        // 紅色路線
+        ctx.strokeStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.moveTo(80, 155);
+        ctx.lineTo(80, 45);
+        ctx.lineTo(250, 45);
+        ctx.stroke();
+        // 藍色斜線
+        ctx.strokeStyle = '#2563eb';
+        ctx.beginPath();
+        ctx.moveTo(80, 155);
+        ctx.lineTo(250, 45);
+        ctx.stroke();
+
+        ctx.fillStyle = '#1e293b';
+        ctx.fillText('🏠 停車場', 80, 25);
+        ctx.fillText('🏀 籃球場', 265, 25);
+        ctx.fillText('🌳 公園', 80, 180);
+        ctx.fillStyle = '#dc2626';
+        ctx.fillText('紅色路線（轉角）', 155, 65);
+        ctx.fillStyle = '#1d4ed8';
+        ctx.fillText('藍色直線（最短）', 195, 115);
+
+      } else if (d.type === 'sticks') {
+        const [a, b, c] = d.lengths;
+        const scale = 11;
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        // 第一根
+        ctx.strokeStyle = '#3b82f6';
+        ctx.beginPath(); ctx.moveTo(50, 55); ctx.lineTo(50 + a * scale, 55); ctx.stroke();
+        ctx.fillStyle = '#1e40af'; ctx.fillText(a + ' cm', 50 + (a * scale) / 2, 38);
+        // 第二根
+        ctx.strokeStyle = '#10b981';
+        ctx.beginPath(); ctx.moveTo(50, 105); ctx.lineTo(50 + b * scale, 105); ctx.stroke();
+        ctx.fillStyle = '#065f46'; ctx.fillText(b + ' cm', 50 + (b * scale) / 2, 88);
+        // 第三根
+        ctx.strokeStyle = '#f59e0b';
+        ctx.beginPath(); ctx.moveTo(50, 155); ctx.lineTo(50 + c * scale, 155); ctx.stroke();
+        ctx.fillStyle = '#92400e'; ctx.fillText(c + ' cm (最長)', 50 + (c * scale) / 2, 138);
+
+      } else if (d.type === 'tri_sides' || d.type === 'tri_unknown_side' || d.type === 'isosceles_sides') {
+        ctx.strokeStyle = '#0284c7';
+        ctx.fillStyle = '#e0f2fe';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(170, 35);
+        ctx.lineTo(75, 165);
+        ctx.lineTo(265, 165);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#0f172a';
+        const s1 = d.sides ? d.sides[0] : d.s1;
+        const s2 = d.sides ? d.sides[1] : d.s2;
+        const s3 = d.sides ? d.sides[2] : (d.s3 || d.base);
+        ctx.fillText(s1, 100, 95);
+        ctx.fillText(s2, 240, 95);
+        ctx.fillText(s3, 170, 185);
+
+      } else if (d.type === 'overlap_tri') {
+        ctx.lineWidth = 2.5;
+        // 三角形 ABC
+        ctx.strokeStyle = '#1e293b';
+        ctx.beginPath(); ctx.moveTo(135, 35); ctx.lineTo(65, 165); ctx.lineTo(275, 165); ctx.closePath(); ctx.stroke();
+        // 三角形 DBC
+        ctx.strokeStyle = '#0284c7';
+        ctx.beginPath(); ctx.moveTo(225, 60); ctx.lineTo(65, 165); ctx.lineTo(275, 165); ctx.closePath(); ctx.stroke();
+        // 底邊 BC 紅線
+        ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 3.5;
+        ctx.beginPath(); ctx.moveTo(65, 165); ctx.lineTo(275, 165); ctx.stroke();
+
+        ctx.fillStyle = '#0f172a';
+        ctx.fillText('A', 135, 20);
+        ctx.fillText('D', 230, 42);
+        ctx.fillText('B', 48, 168);
+        ctx.fillText('C', 292, 168);
+
+      } else if (d.type === 'tear_angles') {
+        // 平角 180 度示意圖
+        ctx.strokeStyle = '#334155';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(50, 155); ctx.lineTo(290, 155); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(170, 155); ctx.lineTo(100, 65); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(170, 155); ctx.lineTo(235, 75); ctx.stroke();
+        ctx.fillStyle = 'rgba(244, 63, 94, 0.25)';
+        ctx.beginPath(); ctx.moveTo(170, 155); ctx.arc(170, 155, 55, Math.PI, 0, false); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#0f172a';
+        ctx.fillText('29°', 120, 135);
+        ctx.fillText('104°', 170, 110);
+        ctx.fillText('47°', 220, 135);
+        ctx.fillText('拼成平角 = 180°', 170, 182);
+
+      } else if (d.type === 'tri_angles' || d.type === 'right_tri') {
+        ctx.strokeStyle = '#0d9488';
+        ctx.fillStyle = '#f0fdfa';
+        ctx.lineWidth = 3;
+        const p1 = d.type === 'right_tri' ? { x: 85, y: 40 } : { x: 170, y: 35 };
+        const p2 = { x: 85, y: 165 };
+        const p3 = { x: 265, y: 165 };
+        ctx.beginPath();
+        ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+
+        if (d.type === 'right_tri') {
+          ctx.strokeRect(85, 147, 18, 18);
+        }
+        ctx.fillStyle = '#0f172a';
+        ctx.fillText(d.a, p1.x + (d.type === 'right_tri' ? 32 : 0), p1.y + 38);
+        ctx.fillText(d.b, p2.x + 38, p2.y - 20);
+        ctx.fillText(d.c, p3.x - 45, p3.y - 20);
+
+      } else if (d.type === 'split_tri' || d.type === 'workbook_p50_8') {
+        ctx.strokeStyle = '#d97706';
+        ctx.fillStyle = '#fffbeb';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(155, 35); ctx.lineTo(55, 165); ctx.lineTo(285, 165);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        // 分割線
+        ctx.beginPath(); ctx.moveTo(155, 35); ctx.lineTo(185, 165); ctx.stroke();
+        ctx.fillStyle = '#0f172a';
+        if (d.type === 'workbook_p50_8') {
+          ctx.fillText('正△DEF (60°)', 120, 125);
+          ctx.fillText('15°', 178, 72);
+          ctx.fillText('∠ㄅ=?', 240, 148);
+        } else {
+          ctx.fillText(d.d1, 132, 78);
+          ctx.fillText(d.d2, 182, 78);
+          ctx.fillText(d.e, 95, 148);
+          ctx.fillText(d.f, 240, 148);
+        }
+
+      } else if (d.type === 'two_right_angles') {
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#1e293b';
+        ctx.beginPath(); ctx.moveTo(90, 160); ctx.lineTo(250, 160); ctx.stroke();
+        ctx.strokeStyle = '#2563eb';
+        ctx.beginPath(); ctx.moveTo(90, 160); ctx.lineTo(90, 45); ctx.stroke();
+        ctx.strokeRect(90, 142, 18, 18);
+        ctx.strokeStyle = '#dc2626';
+        ctx.beginPath(); ctx.moveTo(250, 160); ctx.lineTo(250, 45); ctx.stroke();
+        ctx.strokeRect(232, 142, 18, 18);
+        ctx.fillStyle = '#0f172a';
+        ctx.fillText('兩個直角(90°+90°=180°)兩線平行無法交會', 170, 188);
+
+      } else if (d.type === 'fold_tri' || d.type === 'obtuse_iso') {
+        ctx.strokeStyle = '#4f46e5';
+        ctx.fillStyle = '#eef2ff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(170, 55); ctx.lineTo(65, 160); ctx.lineTo(275, 160);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.setLineDash([5, 4]);
+        ctx.beginPath(); ctx.moveTo(170, 55); ctx.lineTo(170, 160); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#1e293b';
+        if (d.type === 'fold_tri') {
+          ctx.fillText('5cm', 100, 95);
+          ctx.fillText('5cm', 240, 95);
+          ctx.fillText('53°|53°', 170, 82);
+          ctx.fillText('4cm + 4cm = 8cm', 170, 182);
+        } else {
+          ctx.fillText('AB=10cm', 100, 95);
+          ctx.fillText('AC=?', 240, 95);
+          ctx.fillText('∠C=25°', 235, 145);
+          ctx.fillText('BC=18cm', 170, 182);
+        }
+
+      } else if (d.type === 'quad_diag' || d.type === 'quad_angles' || d.type === 'cut_equilateral') {
+        ctx.strokeStyle = '#0891b2';
+        ctx.fillStyle = '#ecfeff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(95, 50); ctx.lineTo(245, 45); ctx.lineTo(275, 165); ctx.lineTo(65, 165);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#0f172a';
+        if (d.type === 'quad_diag') {
+          ctx.setLineDash([6, 4]);
+          ctx.beginPath(); ctx.moveTo(65, 165); ctx.lineTo(245, 45); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillText('180°', 135, 90);
+          ctx.fillText('180°', 195, 130);
+          ctx.fillText('2 個三角形 = 360°', 170, 188);
+        } else if (d.type === 'cut_equilateral') {
+          ctx.fillText('∠E=110°', 115, 72);
+          ctx.fillText('∠H=?', 225, 68);
+          ctx.fillText('∠F=60°', 100, 148);
+          ctx.fillText('∠G=60°', 240, 148);
+        } else {
+          ctx.fillText(d.a, 115, 70);
+          ctx.fillText(d.b, 225, 68);
+          ctx.fillText(d.c, 240, 148);
+          ctx.fillText(d.d, 100, 148);
+        }
+
+      } else if (d.type === 'parallelogram_prop' || d.type === 'woodworker_para') {
+        ctx.strokeStyle = '#059669';
+        ctx.fillStyle = '#ecfdf5';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(105, 45); ctx.lineTo(275, 45); ctx.lineTo(235, 165); ctx.lineTo(65, 165);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#0f172a';
+        if (d.type === 'woodworker_para') {
+          ctx.strokeStyle = '#dc2626';
+          ctx.beginPath(); ctx.moveTo(195, 165); ctx.lineTo(255, 105); ctx.stroke();
+          ctx.fillText('145°', 125, 68);
+          ctx.fillText('35°', 95, 148);
+          ctx.fillText('∠K=75°', 190, 148);
+          ctx.fillText('∠J=?', 255, 92);
+        } else {
+          ctx.fillText(d.ad, 190, 28);
+          ctx.fillText(d.cd, 280, 108);
+          ctx.fillText(d.a, 130, 68);
+          ctx.fillText(d.b, 100, 148);
+        }
+
+      } else if (d.type === 'reg_polygon' || d.type === 'polygon_check' || d.type === 'compare_quads') {
+        const sides = d.sides || 6;
+        const cx = 170, cy = 100, r = 62;
+        ctx.strokeStyle = '#7c3aed';
+        ctx.fillStyle = '#f5f3ff';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (let i = 0; i < sides; i++) {
+          const ang = (i * 2 * Math.PI) / sides - Math.PI / 2;
+          const x = cx + r * Math.cos(ang);
+          const y = cy + r * Math.sin(ang);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#0f172a';
+        ctx.fillText(d.label || '正多邊形（每邊等長、每角等大）', 170, 185);
+
+      } else if (d.type === 'cut_right_tri' || d.type === 'workbook_p29_3' || d.type === 'cut_quad_corner' || d.type === 'kite_shape') {
+        ctx.strokeStyle = '#0284c7';
+        ctx.fillStyle = '#f0f9ff';
+        ctx.lineWidth = 2.5;
+        if (d.type === 'kite_shape') {
+          ctx.beginPath();
+          ctx.moveTo(170, 25); ctx.lineTo(240, 105); ctx.lineTo(170, 185); ctx.lineTo(100, 105);
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.fillStyle = '#0f172a';
+          ctx.fillText('40°', 170, 52);
+          ctx.fillText('120°', 125, 105);
+          ctx.fillText('120°', 215, 105);
+          ctx.fillText('∠ㄅ=?', 170, 160);
+        } else if (d.type === 'cut_quad_corner') {
+          ctx.beginPath();
+          ctx.moveTo(75, 45); ctx.lineTo(205, 45); ctx.lineTo(265, 95); ctx.lineTo(245, 165); ctx.lineTo(75, 165);
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.setLineDash([5, 4]);
+          ctx.strokeStyle = '#dc2626';
+          ctx.beginPath(); ctx.moveTo(205, 45); ctx.lineTo(265, 45); ctx.lineTo(265, 95); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#0f172a';
+          ctx.fillText('剪下1角 ➔ 三角形＋五邊形', 170, 188);
+        } else {
+          ctx.beginPath();
+          ctx.moveTo(155, 35); ctx.lineTo(55, 165); ctx.lineTo(275, 165);
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(185, 65); ctx.lineTo(200, 165); ctx.stroke();
+          ctx.fillStyle = '#0f172a';
+          ctx.fillText(d.type === 'workbook_p29_3' ? '40° / 40° 求 ∠ㄈ' : '∠D=37°, 直角90° 求 ∠ㄅ', 170, 188);
+        }
+      }
+
+      ctx.restore();
+    }
+
+    // ==================== 題庫管理與線上編輯功能 ====================
+    function renderBankList() {
+      const container = document.getElementById('bank-list-container');
+      if (!container) return;
+      const keyword = (document.getElementById('bank-search')?.value || '').trim().toLowerCase();
+      const catFilter = document.getElementById('bank-cat-filter')?.value || 'all';
+
+      const filtered = questionBank.filter(q => {
+        const matchCat = catFilter === 'all' || q.cat === catFilter;
+        const matchKw = !keyword || q.q.toLowerCase().includes(keyword) || q.hint.toLowerCase().includes(keyword);
+        return matchCat && matchKw;
+      });
+
+      container.innerHTML = filtered.map((q, idx) => `
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/60 hover:bg-white transition flex flex-wrap items-start justify-between gap-3">
+          <div class="space-y-1 flex-1 min-w-[260px]">
+            <div class="flex items-center gap-2">
+              <span class="bg-slate-700 text-white text-xs font-bold px-2 py-0.5 rounded">#${q.id}</span>
+              <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-0.5 rounded">${q.cat}</span>
+              <span class="text-xs text-emerald-700 font-bold">正解：(${['A','B','C','D'][q.ans]}) ${q.options[q.ans]}</span>
+            </div>
+            <div class="font-bold text-sm text-slate-800">${q.q}</div>
+            <div class="text-xs text-slate-500">💡 提示：${q.hint}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openEditModal(${q.id})" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-sm">
+              ✏️ 編輯
+            </button>
+            <button onclick="deleteQuestion(${q.id})" class="px-3 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs">
+              🗑️ 刪除
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openEditModal(id) {
+      const q = questionBank.find(item => item.id === id);
+      if (!q) return;
+      document.getElementById('modal-title').textContent = `編輯題目 #${q.id}`;
+      document.getElementById('edit-q-id').value = q.id;
+      document.getElementById('edit-q-cat').value = q.cat;
+      document.getElementById('edit-q-ans').value = q.ans;
+      document.getElementById('edit-q-text').value = q.q;
+      document.getElementById('edit-q-opt0').value = q.options[0] || '';
+      document.getElementById('edit-q-opt1').value = q.options[1] || '';
+      document.getElementById('edit-q-opt2').value = q.options[2] || '';
+      document.getElementById('edit-q-opt3').value = q.options[3] || '';
+      document.getElementById('edit-q-hint').value = q.hint || '';
+      document.getElementById('edit-q-step1').value = q.steps[0] || '';
+      document.getElementById('edit-q-step2').value = q.steps[1] || '';
+      document.getElementById('edit-q-step3').value = q.steps[2] || '';
+
+      const modal = document.getElementById('edit-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function openAddQuestionModal() {
+      const nextId = questionBank.length > 0 ? Math.max(...questionBank.map(q => q.id)) + 1 : 1;
+      document.getElementById('modal-title').textContent = `新增題目 #${nextId}`;
+      document.getElementById('edit-q-id').value = 'NEW_' + nextId;
+      document.getElementById('edit-q-cat').value = '3-1';
+      document.getElementById('edit-q-ans').value = '0';
+      document.getElementById('edit-q-text').value = '';
+      document.getElementById('edit-q-opt0').value = '';
+      document.getElementById('edit-q-opt1').value = '';
+      document.getElementById('edit-q-opt2').value = '';
+      document.getElementById('edit-q-opt3').value = '';
+      document.getElementById('edit-q-hint').value = '';
+      document.getElementById('edit-q-step1').value = '步驟1：';
+      document.getElementById('edit-q-step2').value = '步驟2：';
+      document.getElementById('edit-q-step3').value = '步驟3：';
+
+      const modal = document.getElementById('edit-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById('edit-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveEditedQuestion() {
+      const rawId = document.getElementById('edit-q-id').value;
+      const cat = document.getElementById('edit-q-cat').value;
+      const ans = parseInt(document.getElementById('edit-q-ans').value, 10);
+      const text = document.getElementById('edit-q-text').value.trim();
+      const options = [
+        document.getElementById('edit-q-opt0').value.trim(),
+        document.getElementById('edit-q-opt1').value.trim(),
+        document.getElementById('edit-q-opt2').value.trim(),
+        document.getElementById('edit-q-opt3').value.trim()
+      ];
+      const hint = document.getElementById('edit-q-hint').value.trim();
+      const steps = [
+        document.getElementById('edit-q-step1').value.trim(),
+        document.getElementById('edit-q-step2').value.trim(),
+        document.getElementById('edit-q-step3').value.trim()
+      ].filter(Boolean);
+
+      if (!text) {
+        alert('請輸入題目敘述！');
+        return;
+      }
+
+      if (rawId.startsWith('NEW_')) {
+        const newId = parseInt(rawId.replace('NEW_', ''), 10);
+        questionBank.unshift({
+          id: newId, cat, q: text, options, ans, hint, steps,
+          draw: { type: 'tri_sides', sides: ['?', '?', '?'] }
+        });
+      } else {
+        const id = parseInt(rawId, 10);
+        const q = questionBank.find(item => item.id === id);
+        if (q) {
+          q.cat = cat;
+          q.q = text;
+          q.options = options;
+          q.ans = ans;
+          q.hint = hint;
+          q.steps = steps;
+        }
+      }
+
+      updateBankCountBadge();
+      renderBankList();
+      closeEditModal();
+    }
+
+    function deleteQuestion(id) {
+      if (!confirm(`確定要刪除第 #${id} 題嗎？`)) return;
+      questionBank = questionBank.filter(q => q.id !== id);
+      updateBankCountBadge();
+      renderBankList();
+    }
+
+    function resetDefaultBank() {
+      if (!confirm('確定要還原為預設的 50 題題庫嗎？您剛才新增或修改的題目將會重設。')) return;
+      questionBank = JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+      updateBankCountBadge();
+      renderBankList();
+      startNewQuiz();
+    }
+
+    // ==================== 安全下載單一 HTML 檔案（避免 </script> 截斷問題） ====================
+    function downloadStandaloneHTML() {
+      const docClone = document.documentElement.cloneNode(true);
+      const htmlContent = '<!DOCTYPE html>\n' + docClone.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const studentName = document.getElementById('student-name')?.value.trim() || '五上數學平面圖形題庫';
+      a.href = url;
+      a.download = `${studentName}_平面圖形50題互動練習.html`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
