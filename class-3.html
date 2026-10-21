@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>五上數學：第3單元 平面圖形（學生自主練習與教師後台）</title>
+  <title>五上數學：第3單元 平面圖形（含圖片後台與手寫白板）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
@@ -45,7 +45,7 @@
         <span class="text-3xl">🌻</span>
         <div>
           <h1 class="text-xl md:text-2xl font-black tracking-wide">五上數學：第 3 單元 平面圖形</h1>
-          <p class="text-xs md:text-sm text-amber-100 font-medium">三角形邊長與內角和 · 四邊形性質 · 多邊形 · 手寫白板自動合成單一PDF</p>
+          <p class="text-xs md:text-sm text-amber-100 font-medium">支援本機/雲端插圖 · 思考引導 · 隨機答案 · 手寫白板自動合成單一PDF</p>
         </div>
       </div>
 
@@ -72,7 +72,7 @@
           👨‍🏫 批改與學生筆跡檢視
         </button>
         <button type="button" onclick="switchAdminTab('bank')" id="admin-tab-bank" class="px-3 py-1.5 rounded-md font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700">
-          🛠️ 題庫管理 (<span id="bank-count-badge">50</span>)
+          🛠️ 題庫與圖片管理 (<span id="bank-count-badge">50</span>)
         </button>
         <button type="button" onclick="switchAdminTab('settings')" id="admin-tab-settings" class="px-3 py-1.5 rounded-md font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700">
           ⚙️ 雲端設定與密碼
@@ -180,13 +180,13 @@
       <div id="review-cards-container" class="space-y-5"></div>
     </section>
 
-    <!-- 頁面 3：題庫管理 -->
+    <!-- 頁面 3：題庫與圖片管理 -->
     <section id="view-bank" class="hidden space-y-6 no-print">
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
         <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div>
-            <h2 class="text-xl font-black text-slate-800">🛠️ 第 3 單元 題庫管理與線上編輯</h2>
-            <p class="text-sm text-slate-600">您可以直接修改題目敘述、選項、概念引導或自訂題目。</p>
+            <h2 class="text-xl font-black text-slate-800">🛠️ 第 3 單元 題庫管理與圖片上傳中心</h2>
+            <p class="text-sm text-slate-600">您可以直接修改題目、選項、正解，或上傳課本截圖／貼上公開圖片網址。</p>
           </div>
           <div class="flex gap-2">
             <button type="button" onclick="openAddQuestionModal()" class="bg-amber-500 hover:bg-amber-600 text-white font-bold px-4 py-2 rounded-lg text-sm shadow">
@@ -242,7 +242,7 @@
 
   </main>
 
-  <!-- 密碼登入 Modal（完全無預設密碼文字提示） -->
+  <!-- 密碼登入 Modal -->
   <div id="login-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b pb-2">
@@ -261,11 +261,11 @@
     </div>
   </div>
 
-  <!-- 題目編輯 Modal -->
+  <!-- 題目編輯 Modal（包含圖片上傳與網址支援） -->
   <div id="edit-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-4">
       <div class="flex items-center justify-between border-b pb-3">
-        <h3 id="modal-title" class="text-lg font-black text-slate-800">編輯題目</h3>
+        <h3 id="modal-title" class="text-lg font-black text-slate-800">編輯題目與附圖</h3>
         <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
       </div>
 
@@ -295,6 +295,22 @@
         <div>
           <label class="font-bold text-slate-700 block mb-1">題目敘述</label>
           <textarea id="edit-q-text" rows="2" class="w-full border rounded-lg px-3 py-2"></textarea>
+        </div>
+
+        <!-- 圖片管理區塊 -->
+        <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-3.5 space-y-2">
+          <label class="font-bold text-indigo-900 block">🖼️ 題目附圖管理（支援上傳截圖或貼上公開圖片網址）</label>
+          <div class="flex flex-wrap items-center gap-2">
+            <input type="file" id="edit-image-file" accept="image/*" onchange="handleImageFileUpload(event)" class="text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-bold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700" />
+            <span class="text-xs text-slate-400">或</span>
+            <input type="text" id="edit-image-url" oninput="handleImageUrlInput(this.value)" placeholder="貼上公開圖片網址..." class="flex-1 min-w-[200px] border border-slate-300 rounded-lg px-3 py-1 text-xs" />
+            <button type="button" onclick="clearAttachedImage()" class="px-2.5 py-1 rounded bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-bold">移除圖片</button>
+          </div>
+
+          <div id="image-preview-box" class="hidden mt-2 p-2 bg-white rounded border border-indigo-100 text-center">
+            <span class="text-xs text-slate-400 block mb-1">圖片預覽：</span>
+            <img id="image-preview-el" src="" alt="預覽圖" class="max-h-36 max-w-full inline-block object-contain rounded" />
+          </div>
         </div>
 
         <div class="grid grid-cols-2 gap-2">
@@ -337,13 +353,13 @@
   </div>
 
   <script id="main-app-script">
-    // ==================== 第 3 單元：平面圖形 完整 50 題題庫 ====================
+    // ==================== 第 3 單元：平面圖形 完整 50 題題庫（答案隨機打散） ====================
     const DEFAULT_QUESTIONS = [
       {
         id: 1, cat: '3-1',
         q: '【課本P.32】美美要從籃球場走到公園，走藍色的斜線直走，還是走紅色的轉角路線（先經過停車場再到公園）距離比較短？為什麼？',
-        options: ['藍色路線較短，因為兩點間的直線距離最短', '紅色路線較短，因為走斑馬線比較快', '兩條路線一樣長', '無法比較'],
-        ans: 0,
+        options: ['紅色路線較短，因為走斑馬線比較快', '藍色路線較短，因為兩點間的直線距離最短', '兩條路線一樣長', '無法比較'],
+        ans: 1, // B
         hint: '想想看，把路線看成三角形，走兩個頂點之間的直線比較近，還是繞去第三個頂點比較近？',
         steps: [
           '步驟1：觀察地圖，籃球場、停車場、公園三個地點剛好圍成一個直角三角形。',
@@ -356,7 +372,7 @@
         id: 2, cat: '3-1',
         q: '【課本P.32】皮皮想用三根鐵絲圍成一個等腰三角形，他先拿了兩根長 5 公分的鐵絲，第三根選哪一種長度「不能」圍成三角形？',
         options: ['5 公分', '7 公分', '9 公分', '10 公分'],
-        ans: 3,
+        ans: 3, // D
         hint: '把較短的兩條邊加起來，看看有沒有比最長的第三邊還要長！',
         steps: [
           '步驟1：已知其中兩根鐵絲都是 5 公分，先計算兩邊的長度合是多少。',
@@ -369,7 +385,7 @@
         id: 3, cat: '3-1',
         q: '【習作P.20】下列哪一組線條的長度組合，可以圍成一個三角形？',
         options: ['6 cm、6 cm、18 cm', '6 cm、12 cm、18 cm', '15 cm、12 cm、18 cm', '5 cm、7 cm、17 cm'],
-        ans: 2,
+        ans: 2, // C
         hint: '把每一組裡面比較短的兩個數字加起來，再跟最大的數字比比看！',
         steps: [
           '步驟1：先挑出各選項中最長的一邊，並將另外兩條較短的邊加起來。',
@@ -381,8 +397,8 @@
       {
         id: 4, cat: '3-1',
         q: '【課本P.33】用 7 公分、10 公分和 12 公分的鐵絲圍成一個三角形，下列哪一個算式「不符合」這個三角形的邊長關係？',
-        options: ['12 + 7 > 10', '12 + 10 > 7', '10 + 7 > 12', '12 + 7 < 10'],
-        ans: 3,
+        options: ['12 + 7 < 10', '12 + 7 > 10', '12 + 10 > 7', '10 + 7 > 12'],
+        ans: 0, // A
         hint: '三角形中，任意選擇兩條邊長的和，都會大於第三邊。',
         steps: [
           '步驟1：三角形任意兩邊長的和大於第三邊，三個邊任取兩邊相加都必須大於剩下那一邊。',
@@ -394,8 +410,8 @@
       {
         id: 5, cat: '3-1',
         q: '【課本P.33練習】下列哪一組長度「可以」圍成一個三角形？',
-        options: ['9 公分、18 公分、9 公分', '11 公分、15 公分、4 公分', '35 公分、29 公分、8 公分', '7 公分、7 公分、17 公分'],
-        ans: 2,
+        options: ['9 公分、18 公分、9 公分', '35 公分、29 公分、8 公分', '11 公分、15 公分、4 公分', '7 公分、7 公分、17 公分'],
+        ans: 1, // B
         hint: '先圈出每一組的最長邊，再把另外兩條較短的邊加起來比大小。',
         steps: [
           '步驟1：注意選項數字排列，先準確找出各選項的「最長邊」。',
@@ -407,8 +423,8 @@
       {
         id: 6, cat: '3-1',
         q: '【習作P.21】下列四組長度中，哪一組「不可以」圍成三角形？',
-        options: ['15 公分、15 公分、15 公分', '5 公分、12 公分、13 公分', '8 公分、8 公分、16 公分', '18 公分、18 公分、18 公分'],
-        ans: 2,
+        options: ['15 公分、15 公分、15 公分', '5 公分、12 公分、13 公分', '18 公分、18 公分、18 公分', '8 公分、8 公分、16 公分'],
+        ans: 3, // D
         hint: '正三角形三邊一樣長一定可以圍成；請檢查哪一組較短兩邊加起來沒有大於最長邊。',
         steps: [
           '步驟1：三邊等長的正三角形任兩邊相加必定大於第三邊，一定可圍成。',
@@ -420,8 +436,8 @@
       {
         id: 7, cat: '3-1',
         q: '【課本P.35例5】美美用三根不同長度的木條圍成三角形，她已經拿了 6 公分、9 公分的木條，且「第三根木條最長」。她可以選哪一根？',
-        options: ['8 公分', '10 公分', '15 公分', '20 公分'],
-        ans: 1,
+        options: ['8 公分', '15 公分', '10 公分', '20 公分'],
+        ans: 2, // C
         hint: '第三根木條最長，所以要比 9 公分長；又要能圍成三角形，所以要比 6+9 短！',
         steps: [
           '步驟1：依題意「第三根最長」，因此第三根必須大於已知最長的 9 公分。',
@@ -433,8 +449,8 @@
       {
         id: 8, cat: '3-1',
         q: '【課本P.35練習】多多想用三根不同長度的竹籤圍成三角形，已經拿了 12 公分和 8 公分的竹籤，其中「12 公分最長」，下列哪一根可以當第三根？',
-        options: ['2 cm', '3 cm', '4 cm', '5 cm'],
-        ans: 3,
+        options: ['5 cm', '2 cm', '3 cm', '4 cm'],
+        ans: 0, // A
         hint: '12 公分已經是最長邊囉！所以「8公分＋第三根」必須比 12 公分還要長。',
         steps: [
           '步驟1：已知最長邊是 12 公分，故 8 公分與第三根竹籤是兩條較短邊。',
@@ -447,7 +463,7 @@
         id: 9, cat: '3-1',
         q: '【習作P.21】妮妮用三根不同長度的吸管圍成三角形，她已經拿了 5 公分和 8 公分的吸管，且「第三根吸管最長」。第三根吸管有幾種可能的整數公分長度？',
         options: ['3 種（9、10、11 公分）', '4 種（9、10、11、12 公分）', '5 種（9、10、11、12、13 公分）', '6 種（9~14 公分）'],
-        ans: 1,
+        ans: 1, // B
         hint: '第三根吸管要比 8 公分長，而且要比 (5+8) 公分短喔！',
         steps: [
           '步驟1：題目規定「第三根最長」，因此第三根長度必須大於 8 公分。',
@@ -459,8 +475,8 @@
       {
         id: 10, cat: '3-1',
         q: '【習作P.21】如圖，三角形 ABC 與三角形 DBC 共用底邊 BC。請問「AB＋AC 的長」和「BD＋DC 的長」，都會比 BC 長嗎？',
-        options: ['都會比 BC 長', '只有 AB＋AC 比 BC 長', '只有 BD＋DC 比 BC 長', '都比 BC 短'],
-        ans: 0,
+        options: ['只有 AB＋AC 比 BC 長', '只有 BD＋DC 比 BC 長', '都會比 BC 長', '都比 BC 短'],
+        ans: 2, // C
         hint: '分別觀察三角形 ABC 和三角形 DBC，利用「三角形任意兩邊和大於第三邊」來判斷。',
         steps: [
           '步驟1：單獨觀察三角形 ABC，線段 AB 與 AC 是其中兩邊，BC 是第三邊。',
@@ -472,8 +488,8 @@
       {
         id: 11, cat: '3-1',
         q: '【習作P.28統整】有一個等腰三角形的兩邊長分別為 4 公分、10 公分，請問這個等腰三角形的第三邊長是幾公分？',
-        options: ['4 公分', '10 公分', '4 公分或 10 公分都可以', '12 公分'],
-        ans: 1,
+        options: ['4 公分', '4 公分或 10 公分都可以', '12 公分', '10 公分'],
+        ans: 3, // D
         hint: '等腰三角形有兩邊一樣長，先試試看「4、4、10」能不能圍成三角形？',
         steps: [
           '步驟1：等腰三角形有兩邊等長，故第三邊必定是 4 公分或 10 公分。',
@@ -485,8 +501,8 @@
       {
         id: 12, cat: '3-1',
         q: '【課本P.48練習園地】多多有 2 根竹籤，分別長 11 公分和 7 公分，加入下面哪一根竹籤「不能」圍成三角形？',
-        options: ['5 公分', '8 公分', '13 公分', '18 公分'],
-        ans: 3,
+        options: ['18 公分', '5 公分', '8 公分', '13 公分'],
+        ans: 0, // A
         hint: '檢查哪一個數字放進去後，較短兩邊加起來沒有大於最長邊。',
         steps: [
           '步驟1：計算已知兩根竹籤相加的長度合 (11 + 7)。',
@@ -499,7 +515,7 @@
         id: 13, cat: '3-1',
         q: '【習作P.49綜合】美美想用 10 公分的竹籤和另外兩根竹籤圍成一個三角形，另外兩根竹籤可能是下列哪一組？',
         options: ['11 公分、23 公分', '17 公分、10 公分', '5 公分、5 公分', '8 公分、20 公分'],
-        ans: 1,
+        ans: 1, // B
         hint: '把 10 公分放進每一組，找出較短兩邊和大於最長邊的那一組。',
         steps: [
           '步驟1：將 10 公分與各選項的兩根竹籤組合成三邊。',
@@ -511,8 +527,8 @@
       {
         id: 14, cat: '3-2',
         q: '【課本P.36、習作P.22】把三角形 ABC 的 3 個角（104°、29°、47°）撕下來拼在一起，頂點對齊頂點、邊靠著邊，會拼成什麼角？是幾度？',
-        options: ['直角，90 度', '平角，180 度', '周角，360 度', '鈍角，150 度'],
-        ans: 1,
+        options: ['直角，90 度', '周角，360 度', '平角，180 度', '鈍角，150 度'],
+        ans: 2, // C
         hint: '將 104° + 29° + 47° 加起來看看，並回想成一直線的角叫作什麼角。',
         steps: [
           '步驟1：計算三個角度的總和（104° + 29° + 47°）。',
@@ -524,8 +540,8 @@
       {
         id: 15, cat: '3-2',
         q: '【課本P.36例2】我們常用的兩種三角板（一個是 90°、60°、30°，另一個是 90°、45°、45°），它們各自的 3 個角合起來都是幾度？',
-        options: ['甲比較大，乙比較小', '都是 180 度', '都是 360 度', '都是 90 度'],
-        ans: 1,
+        options: ['甲比較大，乙比較小', '都是 360 度', '都是 90 度', '都是 180 度'],
+        ans: 3, // D
         hint: '不論三角形的形狀大小如何，3 個角的角度和都是固定的喔！',
         steps: [
           '步驟1：分別將甲三角板的三個角相加，以及將乙三角板的三個角相加。',
@@ -537,8 +553,8 @@
       {
         id: 16, cat: '3-2',
         q: '【課本P.37例3】在三角形 ABC 中，已知 ∠A = 63°，∠B = 57°，請問 ∠C 是幾度？',
-        options: ['50 度', '60 度', '70 度', '80 度'],
-        ans: 1,
+        options: ['60 度', '50 度', '70 度', '80 度'],
+        ans: 0, // A
         hint: '三角形 3 個角的和是 180 度，用 180° 減去已知的兩個角就可以囉！',
         steps: [
           '步驟1：回想任意三角形的三個內角總和是多少度。',
@@ -551,7 +567,7 @@
         id: 17, cat: '3-2',
         q: '【習作P.22】觀察三角形 ABC，已知其中兩個角分別是 ∠B = 76° 和 ∠C = 54°，請問第三個頂角 ∠A（∠ㄅ）是幾度？',
         options: ['40 度', '50 度', '60 度', '70 度'],
-        ans: 1,
+        ans: 1, // B
         hint: '利用 180° - 76° - 54° 來計算。',
         steps: [
           '步驟1：將已知的底角 ∠B 與 ∠C 相加求出兩角和。',
@@ -563,8 +579,8 @@
       {
         id: 18, cat: '3-2',
         q: '【習作P.22】在直角三角形 ABC 中，∠B 是直角(90°)，其中 ∠C = 37°，請問頂角 ∠A（∠ㄅ）是幾度？',
-        options: ['43 度', '53 度', '63 度', '143 度'],
-        ans: 1,
+        options: ['43 度', '63 度', '53 度', '143 度'],
+        ans: 2, // C
         hint: '看到直角記號「∟」，代表那個角是 90 度喔！',
         steps: [
           '步驟1：確認直角記號代表 90 度，得出三角形中已知的兩個角分別為 90° 與 37°。',
@@ -576,8 +592,8 @@
       {
         id: 19, cat: '3-2',
         q: '【課本P.38例4】在三角形 DEF 中，線段 DG 把頂角 ∠D 分成 50° 和 70° 兩個角，且已知 ∠E = 35°，請問 ∠F 是幾度？',
-        options: ['25 度', '35 度', '40 度', '55 度'],
-        ans: 0,
+        options: ['35 度', '40 度', '55 度', '25 度'],
+        ans: 3, // D
         hint: '先算出大三角形 DEF 完整的 ∠D 是幾度（50°＋70°），再用大三角形內角和 180° 來算 ∠F！',
         steps: [
           '步驟1：頂角 ∠D 被分切為兩部分，先將兩部分相加求出大三角形完整的頂角 ∠D。',
@@ -589,8 +605,8 @@
       {
         id: 20, cat: '3-2',
         q: '【課本P.38練習】一個大三角形 ABC 頂角 ∠A 被分成 ∠ㄆ 和 50°，左下角 ∠B 是 45°，右下角 ∠C 是 65°，請問 ∠ㄆ 是幾度？',
-        options: ['15 度', '20 度', '25 度', '30 度'],
-        ans: 1,
+        options: ['20 度', '15 度', '25 度', '30 度'],
+        ans: 0, // A
         hint: '大三角形的三個角加起來是 180°，也就是 (∠ㄆ + 50°) + 45° + 65° = 180°。',
         steps: [
           '步驟1：找出大三角形中所有已知的角度：頂角的一部分 (50°)、底角 ∠B (45°) 與 ∠C (65°)。',
@@ -603,7 +619,7 @@
         id: 21, cat: '3-2',
         q: '【習作P.23】在直角三角形 ACD 中，∠A 是直角(90°)，B 在 AC 邊上，使得 ∠ADB = 30°、∠BDC = 15°，請問 ∠C 是幾度？',
         options: ['35 度', '45 度', '55 度', '60 度'],
-        ans: 1,
+        ans: 1, // B
         hint: '看最大的直角三角形 ACD，∠A 是 90°，整個 ∠D 是 30° + 15° = 45°。',
         steps: [
           '步驟1：將視野放在最大的直角三角形 ACD 上，已知 ∠A 為直角 90°。',
@@ -616,7 +632,7 @@
         id: 22, cat: '3-2',
         q: '【課本P.38例5】關於三角形內角的敘述，下列哪一個是正確的？',
         options: ['一個三角形裡可以有 2 個直角', '一個三角形裡可以有 2 個鈍角', '一個三角形裡最多只能有 1 個直角或 1 個鈍角', '鈍角三角形裡有 3 個鈍角'],
-        ans: 2,
+        ans: 2, // C
         hint: '直角是 90°，鈍角比 90° 大。如果有 2 個直角或 2 個鈍角，加起來會發生什麼事？',
         steps: [
           '步驟1：思考若有兩個直角 (90° + 90° = 180°)，第三個角加上去內角和是否會超過 180°。',
@@ -628,8 +644,8 @@
       {
         id: 23, cat: '3-2',
         q: '【課本P.39例6】正三角形 ABC 的 3 條邊一樣長、3 個角一樣大。請問正三角形的每一個內角都是幾度？',
-        options: ['45 度', '60 度', '90 度', '180 度'],
-        ans: 1,
+        options: ['45 度', '90 度', '180 度', '60 度'],
+        ans: 3, // D
         hint: '把三角形的內角和 180° 平分給 3 個一樣大的角！',
         steps: [
           '步驟1：確認三角形三個內角的角度總和是 180 度。',
@@ -641,8 +657,8 @@
       {
         id: 24, cat: '3-2',
         q: '【習作P.23】如圖，F、G、H 在同一條直線上，三角形 EGH 是正三角形，且 ∠FEG = 30°，請問 ∠F 是幾度？',
-        options: ['20 度', '30 度', '45 度', '60 度'],
-        ans: 1,
+        options: ['30 度', '20 度', '45 度', '60 度'],
+        ans: 0, // A
         hint: '正三角形 EGH 的每個角都是 60°！看大三角形 EFH。',
         steps: [
           '步驟1：因為三角形 EGH 是正三角形，得知其內角 ∠H 與 ∠GEH 均為 60°。',
@@ -655,7 +671,7 @@
         id: 25, cat: '3-2',
         q: '【課本P.39例7】三角形 DEF 是一個等腰三角形（DE = DF），已知頂角 ∠D 是 50 度，請問它的一個底角 ∠E 是幾度？',
         options: ['50 度', '65 度', '80 度', '130 度'],
-        ans: 1,
+        ans: 1, // B
         hint: '等腰三角形的兩個底角一樣大！先用 180° 減掉頂角，再除以 2。',
         steps: [
           '步驟1：等腰三角形的兩底角相等，三個角合為 180°。',
@@ -667,8 +683,8 @@
       {
         id: 26, cat: '3-2',
         q: '【習作P.23】等腰三角形 IJK 中，IJ = IK，已知其中一個底角 ∠J = 72°，請問頂角 ∠I 是幾度？',
-        options: ['36 度', '54 度', '72 度', '108 度'],
-        ans: 0,
+        options: ['54 度', '72 度', '36 度', '108 度'],
+        ans: 2, // C
         hint: '因為 IJ = IK，所以兩個底角 ∠J 和 ∠K 都是 72° 喔！',
         steps: [
           '步驟1：等腰三角形兩腰等長對應的兩底角相等，由此得知底角 ∠K 與 ∠J 度數相同。',
@@ -680,8 +696,8 @@
       {
         id: 27, cat: '3-2',
         q: '【課本P.39素養評量】美美將長方形紙張對摺後，沿虛線剪下一個直角三角形（摺線長 3cm、底邊 4cm、斜邊 5cm、頂角一側為 53°）。將剪下的三角形展開後，底邊長與頂角各是多少？',
-        options: ['底邊 4 cm，頂角 53°', '底邊 8 cm，頂角 106°', '底邊 8 cm，頂角 74°', '底邊 10 cm，頂角 106°'],
-        ans: 1,
+        options: ['底邊 4 cm，頂角 53°', '底邊 8 cm，頂角 74°', '底邊 10 cm，頂角 106°', '底邊 8 cm，頂角 106°'],
+        ans: 3, // D
         hint: '對摺剪開後，左右兩邊是完全對稱的兩個直角三角形拼在一起！',
         steps: [
           '步驟1：對摺展開後，是由兩個相同的直角三角形拼成對稱的等腰三角形。',
@@ -694,7 +710,7 @@
         id: 28, cat: '3-2',
         q: '【課本P.48練習園地】鈍角等腰三角形 ABC 中，AB = 10 cm，BC = 18 cm，且底角 ∠C = 25°，請問 AC 的長和頂角 ∠A 各是多少？',
         options: ['AC = 10 cm，∠A = 130°', 'AC = 18 cm，∠A = 130°', 'AC = 10 cm，∠A = 155°', 'AC = 18 cm，∠A = 25°'],
-        ans: 0,
+        ans: 0, // A
         hint: '∠A 是鈍角（頂角），所以兩腰是 AB 和 AC；兩個底角 ∠B 和 ∠C 都是 25°！',
         steps: [
           '步驟1：觀察圖形，∠A 為頂角，AB 與 AC 為兩條等長的腰，由此得知 AC 長度。',
@@ -706,8 +722,8 @@
       {
         id: 29, cat: '3-3',
         q: '【課本P.40例1】連接四邊形 ABCD 的對角線 BD，可以把四邊形分成 2 個三角形。因此四邊形 4 個角的角度和是幾度？',
-        options: ['180 度', '270 度', '360 度', '540 度'],
-        ans: 2,
+        options: ['180 度', '360 度', '270 度', '540 度'],
+        ans: 1, // B
         hint: '1 個三角形的內角和是 180 度，2 個三角形合起來是幾度呢？',
         steps: [
           '步驟1：連接對角線後，四邊形被劃分為 2 個不重疊的三角形。',
@@ -720,7 +736,7 @@
         id: 30, cat: '3-3',
         q: '【課本P.41例2】一個四邊形 ABCD 中，已知其中三個角分別是 ∠A=70°、∠B=95°、∠C=75°，請問第四個角 ∠D 是幾度？',
         options: ['100 度', '110 度', '120 度', '130 度'],
-        ans: 2,
+        ans: 2, // C
         hint: '四邊形 4 個角的角度和是 360 度，用 360° 減去已知的三個角！',
         steps: [
           '步驟1：回想任意四邊形 4 個內角的角度總和為幾度。',
@@ -732,8 +748,8 @@
       {
         id: 31, cat: '3-3',
         q: '【課本P.41例3】在一個梯形 ABCD 中，右上角 ∠B 是直角（90°），左上角 ∠A 是 120°，右下角 ∠C 是 85°，請問左下角的 ∠D（∠1）是幾度？',
-        options: ['55 度', '65 度', '75 度', '85 度'],
-        ans: 1,
+        options: ['55 度', '75 度', '85 度', '65 度'],
+        ans: 3, // D
         hint: '別忘了直角記號代表 90°！用 360° 減掉 90°、120° 和 85°。',
         steps: [
           '步驟1：確認梯形屬於四邊形，4 個角總合為 360°，並確認直角記號代表 90°。',
@@ -745,8 +761,8 @@
       {
         id: 32, cat: '3-3',
         q: '【課本P.41例3②】在正三角形圖卡上剪一刀，分成一個小三角形和一個四邊形 EFGH。已知四邊形中 ∠E = 110°，請問 ∠H 是幾度？',
-        options: ['110 度', '120 度', '130 度', '140 度'],
-        ans: 2,
+        options: ['130 度', '110 度', '120 度', '140 度'],
+        ans: 0, // A
         hint: '原本是正三角形，所以底下的兩個角 ∠F 和 ∠G 都是 60 度喔！',
         steps: [
           '步驟1：原圖為正三角形，因此四邊形底部的兩個角 ∠F 與 ∠G 均為 60°。',
@@ -759,7 +775,7 @@
         id: 33, cat: '3-3',
         q: '【習作P.24】觀察四邊形 ABCD，已知其中三個角分別是 ∠B=直角(90°)、∠A=133°、∠C=67°，請問第四個角 ∠D（∠ㄇ）是幾度？',
         options: ['60 度', '70 度', '80 度', '90 度'],
-        ans: 1,
+        ans: 1, // B
         hint: '四邊形內角和是 360°，先算 90° + 133° + 67°。',
         steps: [
           '步驟1：確認四邊形內角總和為 360 度，直角為 90 度。',
@@ -771,8 +787,8 @@
       {
         id: 34, cat: '3-3',
         q: '【習作P.25】四邊形 ABCD 中，∠A = 62°，∠B = 105°，∠C = 78°，請問 ∠D 是幾度？',
-        options: ['105 度', '115 度', '125 度', '135 度'],
-        ans: 1,
+        options: ['105 度', '125 度', '115 度', '135 度'],
+        ans: 2, // C
         hint: '用 360° - (62° + 105° + 78°) 來計算。',
         steps: [
           '步驟1：先將已知的 ∠A、∠B、∠C 三個角度加總。',
@@ -784,8 +800,8 @@
       {
         id: 35, cat: '3-3',
         q: '【習作P.25】四邊形 ABCD 中的其中兩個角分別是 ∠A=52°、∠B=74°，剩下的兩個角 ∠C 和 ∠D 角度一樣大。請問 ∠C 是幾度？',
-        options: ['107 度', '117 度', '127 度', '234 度'],
-        ans: 1,
+        options: ['107 度', '127 度', '234 度', '117 度'],
+        ans: 3, // D
         hint: '先用 360° 減掉 52° 和 74°，算出剩下兩個角的總和，再除以 2！',
         steps: [
           '步驟1：先計算已知兩角 (52° + 74°) 的度數總和。',
@@ -797,8 +813,8 @@
       {
         id: 36, cat: '3-3',
         q: '【課本P.42~43】將平行四邊形 ABCD 沿著對角線剪開，可以分成 2 個全等的三角形。由此可以發現平行四邊形的邊和角有什麼性質？',
-        options: ['四條邊都一樣長，四個角都一樣大', '兩雙對邊分別一樣長，兩雙對角分別一樣大', '只有一雙對邊一樣長', '相鄰的兩個角一定一樣大'],
-        ans: 1,
+        options: ['兩雙對邊分別一樣長，兩雙對角分別一樣大', '四條邊都一樣長，四個角都一樣大', '只有一雙對邊一樣長', '相鄰的兩個角一定一樣大'],
+        ans: 0, // A
         hint: '觀察平行四邊形面對面的邊（對邊）和面對面的角（對角）。',
         steps: [
           '步驟1：對角線將平行四邊形切成兩全等三角形，全等代表邊與角能完全重合。',
@@ -811,7 +827,7 @@
         id: 37, cat: '3-3',
         q: '【課本P.43練習】在平行四邊形 ABCD 中，已知 AD = 9 cm、CD = 7 cm，且 ∠A = 84°、∠B = 96°，請問 ∠C 和 BC 邊各是多少？',
         options: ['∠C = 96°，BC = 7 cm', '∠C = 84°，BC = 9 cm', '∠C = 84°，BC = 7 cm', '∠C = 96°，BC = 9 cm'],
-        ans: 1,
+        ans: 1, // B
         hint: '在平行四邊形 ABCD 中，∠A 的對角是 ∠C，AD 邊的對邊是 BC 邊！',
         steps: [
           '步驟1：回想平行四邊形「對角相等」的性質，找出與 ∠C 相對的對角是哪一個角。',
@@ -823,8 +839,8 @@
       {
         id: 38, cat: '3-3',
         q: '【習作P.25③】平行四邊形 EFGH 中，已知 ∠E = 108°，請問它的鄰角 ∠H 是幾度？',
-        options: ['62 度', '72 度', '82 度', '108 度'],
-        ans: 1,
+        options: ['62 度', '82 度', '72 度', '108 度'],
+        ans: 2, // C
         hint: '平行四邊形對角相等（∠E=∠G=108°，∠F=∠H），且四個角合起來是 360°！',
         steps: [
           '步驟1：平行四邊形兩雙對角相等，∠G 與 ∠E 是對角，所以兩者度數相同。',
@@ -836,8 +852,8 @@
       {
         id: 39, cat: '3-3',
         q: '【習作P.25④】木工師傅將一塊平行四邊形木板 ABCD（∠B=35°、∠A=145°）右下角裁下一塊三角形 IJK。已知三角形 IJK 中 ∠K = 75°，請問 ∠J 是幾度？',
-        options: ['60 度', '70 度', '75 度', '105 度'],
-        ans: 1,
+        options: ['60 度', '75 度', '105 度', '70 度'],
+        ans: 3, // D
         hint: '平行四邊形的對角一樣大！左下角是 35°，所以原本右下角的 ∠I 也是 35°！',
         steps: [
           '步驟1：利用平行四邊形對角相等性質，找出左下角 ∠B 對應的右下角 ∠I 是幾度。',
@@ -849,8 +865,8 @@
       {
         id: 40, cat: '3-3',
         q: '【習作P.28統整】下列哪一組角度可以組成一個四邊形？',
-        options: ['50°、60°、70°、80°', '65°、75°、105°、115°', '100°、110°、120°、130°', '90°、90°、90°、100°'],
-        ans: 1,
+        options: ['65°、75°、105°、115°', '50°、60°、70°、80°', '100°、110°、120°、130°', '90°、90°、90°、100°'],
+        ans: 0, // A
         hint: '把四個角度加起來，看看哪一組剛好等於 360°！',
         steps: [
           '步驟1：確認平面四邊形 4 個內角的總度數必須精確等於幾度。',
@@ -862,8 +878,8 @@
       {
         id: 41, cat: '3-4',
         q: '【課本P.45、習作P.26】什麼樣的圖形叫作「多邊形」？下列哪一個圖形屬於多邊形？',
-        options: ['缺一角的圓形（扇形）', '彎彎的月亮形', '由 7 條直線邊圍成的七邊形', '橢圓形'],
-        ans: 2,
+        options: ['缺一角的圓形（扇形）', '由 7 條直線邊圍成的七邊形', '彎彎的月亮形', '橢圓形'],
+        ans: 1, // B
         hint: '多邊形必須是由 3 條以上（含 3 條）的「直線邊」所圍成的平面圖形喔！',
         steps: [
           '步驟1：回想課本對「多邊形」的嚴謹定義：由幾條邊圍成？邊必須是什麼線條？',
@@ -875,8 +891,8 @@
       {
         id: 42, cat: '3-4',
         q: '【習作P.27】一個「十邊形」有幾條邊、幾個角、幾個頂點？',
-        options: ['10 條邊、8 個角、8 個頂點', '10 條邊、10 個角、10 個頂點', '10 條邊、12 個角、12 個頂點', '5 條邊、10 個角、10 個頂點'],
-        ans: 1,
+        options: ['10 條邊、8 個角、8 個頂點', '5 條邊、10 個角、10 個頂點', '10 條邊、10 個角、10 個頂點', '10 條邊、12 個角、12 個頂點'],
+        ans: 2, // C
         hint: '幾邊形就會有幾條邊、幾個角和幾個頂點！',
         steps: [
           '步驟1：以三角形（3邊3角3頂點）與四邊形（4邊4角4頂點）觀察多邊形基本規律。',
@@ -888,8 +904,8 @@
       {
         id: 43, cat: '3-4',
         q: '【課本P.46、習作P.27】一個平面圖形有 12 個頂點，12 條邊且每條邊都一樣長，12 個角且每個角都一樣大，這個圖形叫作什麼？',
-        options: ['十二邊形', '正十邊形', '正十二邊形', '正六邊形'],
-        ans: 2,
+        options: ['十二邊形', '正十邊形', '正六邊形', '正十二邊形'],
+        ans: 3, // D
         hint: '同時符合「每條邊都一樣長」而且「每個角都一樣大」的多邊形，要加上一個「正」字！',
         steps: [
           '步驟1：具有 12 條邊與 12 個頂點的多邊形稱為十二邊形。',
@@ -901,8 +917,8 @@
       {
         id: 44, cat: '3-4',
         q: '【課本P.46~47】下列哪一種四邊形是「正四邊形」？',
-        options: ['長方形（4 個角一樣大，但鄰邊不一樣長）', '菱形（4 條邊一樣長，但鄰角不一樣大）', '正方形（4 條邊一樣長，且 4 個角都是 90°）', '平行四邊形'],
-        ans: 2,
+        options: ['正方形（4 條邊一樣長，且 4 個角都是 90°）', '長方形（4 個角一樣大，但鄰邊不一樣長）', '菱形（4 條邊一樣長，但鄰角不一樣大）', '平行四邊形'],
+        ans: 0, // A
         hint: '正多邊形必須「每條邊一樣長」而且「每個角一樣大」，兩個條件缺一不可！',
         steps: [
           '步驟1：確認正多邊形必須同時滿足「所有邊等長」與「所有內角等大」兩大條件。',
@@ -914,8 +930,8 @@
       {
         id: 45, cat: '3-4',
         q: '【課本P.49練習園地】如圖，美美將一張大直角三角形圖卡沿紅線剪開，分出上方的小直角三角形 DEF（其中 ∠E = 90°，頂角 ∠D = 37°）。請問剪開後下方四邊形中的鈍角 ∠ㄅ 是幾度？',
-        options: ['53 度', '117 度', '127 度', '143 度'],
-        ans: 2,
+        options: ['53 度', '127 度', '117 度', '143 度'],
+        ans: 1, // B
         hint: '先觀察小直角三角形 DEF 算出 ∠DFE 是幾度，它和底下的 ∠ㄅ 剛好在同一直線上拼成平角 180°！',
         steps: [
           '步驟1：觀察上方小直角三角形 DEF，利用內角和 180°（扣除 90° 與 37°）計算出 ∠DFE。',
@@ -927,8 +943,8 @@
       {
         id: 46, cat: '3-4',
         q: '【習作P.29④】如圖，在一個大直角三角形 ABC（頂角 ∠A 為直角 90°）中畫一條線分出三角形 ACD（其中 ∠C=40°、∠ADC=40°），請問左邊四邊形中的 ∠ㄈ 是幾度？',
-        options: ['80 度', '90 度', '100 度', '110 度'],
-        ans: 0,
+        options: ['90 度', '100 度', '80 度', '110 度'],
+        ans: 2, // C
         hint: '先看右邊的小三角形，兩個角是 40° 和 40°，算出第三個鈍角是幾度，再用平角 180° 減掉它！',
         steps: [
           '步驟1：先觀察右側的三角形 ACD，已知兩角為 40° 與 40°，利用內角和 180° 計算出鈍角 ∠CAD。',
@@ -940,8 +956,8 @@
       {
         id: 47, cat: '3-4',
         q: '【習作P.29④】將一張長方形紙條斜摺一角形成四邊形 ABCD，已知 ∠A=90°、∠B=90°、∠C=75°，請問對應的鈍角 ∠D（∠ㄈ）是幾度？',
-        options: ['95 度', '105 度', '115 度', '125 度'],
-        ans: 1,
+        options: ['95 度', '115 度', '125 度', '105 度'],
+        ans: 3, // D
         hint: '左邊上下兩個角都是直角 90°，四邊形內角和是 360°！',
         steps: [
           '步驟1：確認長方形紙條兩邊互相平行，左側上下兩角均為直角 90°。',
@@ -953,8 +969,8 @@
       {
         id: 48, cat: '3-4',
         q: '【習作P.29⑤】將一張四邊形 ABCD 圖卡「只剪下其中一個角」（刀子沒有經過頂點），剪開後的這兩張圖卡分別是什麼圖形？',
-        options: ['三角形 和 三角形', '三角形 和 四邊形', '三角形 和 五邊形', '四邊形 和 四邊形'],
-        ans: 2,
+        options: ['三角形 和 五邊形', '三角形 和 三角形', '三角形 和 四邊形', '四邊形 和 四邊形'],
+        ans: 0, // A
         hint: '剪掉一個角會少 1 個頂點，但剪開的那一刀會產生 2 個新頂點喔！畫畫看數數看有幾條邊。',
         steps: [
           '步驟1：觀察剪下來的小角：由原本相鄰的兩段邊與新的剪痕切線圍成，計算它有幾條邊。',
@@ -967,7 +983,7 @@
         id: 49, cat: '3-4',
         q: '【習作P.50綜合】如圖，三角形 DEF 是正三角形，E、F、G 在同一直線上，連接 DG，已知 ∠FDG = 15°，請問 ∠G（∠ㄅ）是幾度？',
         options: ['35 度', '45 度', '55 度', '60 度'],
-        ans: 1,
+        ans: 1, // B
         hint: '正三角形 DEF 的每個角都是 60°！看大三角形 DEG，∠E = 60°，頂角 ∠EDG = 60° + 15° = 75°。',
         steps: [
           '步驟1：由正三角形 DEF 得到 ∠E 與 ∠EDF 均為 60°。',
@@ -980,7 +996,7 @@
         id: 50, cat: '3-4',
         q: '【課本P.49練習園地】觀察箏形 ABCD，已知頂角 ∠A 是 40°，左右兩個對稱的角 ∠B 和 ∠D 都是 120°，請問底下的角 ∠C（∠ㄅ）是幾度？',
         options: ['60 度', '70 度', '80 度', '90 度'],
-        ans: 2,
+        ans: 2, // C
         hint: '箏形也是四邊形，4 個角的角度和是 360 度！',
         steps: [
           '步驟1：確認箏形具有 4 條邊與 4 個角，內角總合為 360 度。',
@@ -995,6 +1011,7 @@
     let currentQuiz = [];
     let userAnswers = {};
     let scratchpadData = {};
+    let currentEditingImage = '';
 
     let adminConfig = {
       password: 'ayu888',
@@ -1087,8 +1104,10 @@
       document.getElementById('tab-btn-quiz').className = 'px-3.5 py-2 rounded-lg font-bold text-sm bg-white text-amber-600 shadow-sm transition';
       setTimeout(() => {
         currentQuiz.forEach((q, idx) => {
-          const c = document.getElementById('q-canvas-' + idx);
-          if (c) drawQuestionCanvas(c, q, userAnswers[idx] !== undefined);
+          if (!q.image) {
+            const c = document.getElementById('q-canvas-' + idx);
+            if (c) drawQuestionCanvas(c, q, userAnswers[idx] !== undefined);
+          }
           redrawScratchpad(idx);
         });
       }, 50);
@@ -1195,7 +1214,7 @@
             <div class="bg-slate-50 border-b border-slate-200 px-5 py-3 flex flex-wrap items-center justify-between gap-2">
               <div class="flex items-center gap-2">
                 <span class="bg-amber-500 text-white font-black px-3 py-1 rounded-lg text-sm">第 ${idx + 1} 題</span>
-                <span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded text-xs">單元 ${q.cat}</span>
+                <span class="bg-amber-100 text-amber-800 font-bold px-2.5 py-0.5 rounded text-xs">小節 ${q.cat}</span>
                 <span id="q-status-badge-${idx}" class="text-xs font-bold text-slate-400">尚未作答</span>
               </div>
               <div class="flex items-center gap-2 no-print">
@@ -1228,7 +1247,7 @@
 
                 <div id="steps-box-${idx}" class="hidden bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-xl text-sm text-emerald-950 space-y-2">
                   <div class="flex items-center justify-between">
-                    <span class="font-black text-emerald-800">🧭 概念推導步驟：</span>
+                    <span class="font-black text-emerald-800">🧭 幾何觀念推導步驟：</span>
                     <button type="button" onclick="revealNextStep(${idx})" id="next-step-btn-${idx}" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-2.5 py-1 rounded shadow-sm">
                       顯示下一步 ➔
                     </button>
@@ -1240,14 +1259,19 @@
               </div>
 
               <div class="lg:col-span-5 flex flex-col items-center justify-center bg-slate-50 rounded-xl p-3 border border-slate-200 min-h-[220px]">
-                <canvas id="q-canvas-${idx}" width="340" height="210" class="max-w-full h-auto bg-white rounded-lg shadow-inner border border-slate-100"></canvas>
-                <span class="text-xs text-slate-500 font-bold mt-1.5">▲ 幾何輔助圖示（附頂點標籤）</span>
+                ${q.image ? `
+                  <img src="${q.image}" alt="題目圖示" class="max-w-full h-auto max-h-[200px] object-contain rounded-lg shadow-sm border border-slate-200 bg-white p-1" />
+                  <span class="text-xs text-slate-500 font-bold mt-1.5">▲ 課本題目原圖</span>
+                ` : `
+                  <canvas id="q-canvas-${idx}" width="340" height="210" class="max-w-full h-auto bg-white rounded-lg shadow-inner border border-slate-100"></canvas>
+                  <span class="text-xs text-slate-500 font-bold mt-1.5">▲ 幾何輔助圖示（附頂點代號）</span>
+                `}
               </div>
             </div>
 
             <div class="border-t border-slate-200 bg-slate-50/70 p-4 space-y-2.5">
               <div class="flex flex-wrap items-center justify-between gap-2">
-                <span class="text-sm font-black text-slate-700">✍️ 手寫計算過程與思考草稿</span>
+                <span class="text-sm font-black text-slate-700">✍️ 手寫計算與思考草稿白板</span>
                 <div class="flex flex-wrap items-center gap-1.5 no-print">
                   <button type="button" onclick="setPenTool(${idx}, '#1d4ed8', 3, false)" id="pen-blue-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-blue-600 text-white shadow-sm">🔵 藍筆</button>
                   <button type="button" onclick="setPenTool(${idx}, '#1e293b', 3, false)" id="pen-black-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-slate-200 text-slate-700">⚫ 黑筆</button>
@@ -1278,10 +1302,12 @@
 
       window.requestAnimationFrame(() => {
         currentQuiz.forEach((q, idx) => {
-          try {
-            const qCanvas = document.getElementById('q-canvas-' + idx);
-            if (qCanvas) drawQuestionCanvas(qCanvas, q, false);
-          } catch(e){}
+          if (!q.image) {
+            try {
+              const qCanvas = document.getElementById('q-canvas-' + idx);
+              if (qCanvas) drawQuestionCanvas(qCanvas, q, false);
+            } catch(e){}
+          }
           try {
             setupScratchpadEvents(idx);
           } catch(e){}
@@ -1319,8 +1345,10 @@
         }
       }
 
-      const qCanvas = document.getElementById('q-canvas-' + qIdx);
-      if (qCanvas) drawQuestionCanvas(qCanvas, q, true);
+      if (!q.image) {
+        const qCanvas = document.getElementById('q-canvas-' + qIdx);
+        if (qCanvas) drawQuestionCanvas(qCanvas, q, true);
+      }
 
       updateScoreDisplay();
     }
@@ -1627,7 +1655,7 @@
           <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
             <div class="lg:col-span-5 space-y-2 text-sm">
               <div class="font-bold text-slate-800">${q.q}</div>
-              <canvas id="review-geo-canvas-${idx}" width="280" height="175" class="bg-slate-50 rounded border border-slate-200"></canvas>
+              ${q.image ? '<img src="' + q.image + '" alt="題目圖" class="w-full max-h-[160px] object-contain rounded border border-slate-200 bg-white p-1" />' : '<canvas id="review-geo-canvas-' + idx + '" width="280" height="175" class="bg-slate-50 rounded border border-slate-200"></canvas>'}
               <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200 text-xs space-y-1">
                 <div class="font-black text-emerald-800">標準思考引導：</div>
                 ${q.steps.map(s => '<div>• ' + s + '</div>').join('')}
@@ -1642,7 +1670,7 @@
                 </button>
               </div>
               <div class="border-2 border-indigo-200 rounded-xl overflow-hidden bg-white">
-                <canvas id="review-pad-canvas-${idx}" width="920" height="${padState.height}" class="w-full block grid-canvas-bg scratchpad-canvas"></canvas>
+                <canvas id="review-pad-canvas-' + idx + '" width="920" height="${padState.height}" class="w-full block grid-canvas-bg scratchpad-canvas"></canvas>
               </div>
               ${padState.typedMath ? '<div class="bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg text-xs"><span class="font-bold text-amber-800">⌨️ 學生鍵盤補充算式：</span> ' + padState.typedMath + '</div>' : ''}
 
@@ -1670,13 +1698,15 @@
 
       setTimeout(() => {
         currentQuiz.forEach((q, idx) => {
-          const geoC = document.getElementById('review-geo-canvas-' + idx);
-          if (geoC) {
-            const tempC = document.createElement('canvas');
-            tempC.width = 340;
-            tempC.height = 210;
-            drawQuestionCanvas(tempC, q, true);
-            geoC.getContext('2d').drawImage(tempC, 0, 0, 280, 175);
+          if (!q.image) {
+            const geoC = document.getElementById('review-geo-canvas-' + idx);
+            if (geoC) {
+              const tempC = document.createElement('canvas');
+              tempC.width = 340;
+              tempC.height = 210;
+              drawQuestionCanvas(tempC, q, true);
+              geoC.getContext('2d').drawImage(tempC, 0, 0, 280, 175);
+            }
           }
           setupTeacherReviewPad(idx);
         });
@@ -2154,13 +2184,13 @@
           ctx.fillText(d.label || '正多邊形（每邊等長、每角等大）', 170, 185);
         }
       } catch (err) {
-        console.warn('Canvas 繪製警告:', err);
+        console.warn('幾何繪製提示:', err);
       }
 
       ctx.restore();
     }
 
-    // ==================== 題庫管理功能 ====================
+    // ==================== 題庫列表與編輯 ====================
     function renderBankList() {
       const container = document.getElementById('bank-list-container');
       if (!container) return;
@@ -2179,6 +2209,7 @@
             <div class="flex items-center gap-2">
               <span class="bg-amber-600 text-white text-xs font-bold px-2 py-0.5 rounded">#${q.id}</span>
               <span class="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-0.5 rounded">${q.cat}</span>
+              ${q.image ? '<span class="bg-emerald-100 text-emerald-800 text-xs font-bold px-2 py-0.5 rounded">🖼️ 附圖片</span>' : ''}
               <span class="text-xs text-emerald-700 font-bold">正解：(${['A','B','C','D'][q.ans]}) ${q.options[q.ans]}</span>
             </div>
             <div class="font-bold text-sm text-slate-800">${q.q}</div>
@@ -2213,6 +2244,11 @@
       document.getElementById('edit-q-step2').value = q.steps[1] || '';
       document.getElementById('edit-q-step3').value = q.steps[2] || '';
 
+      currentEditingImage = q.image || '';
+      document.getElementById('edit-image-file').value = '';
+      document.getElementById('edit-image-url').value = (q.image && !q.image.startsWith('data:')) ? q.image : '';
+      updateImagePreview(currentEditingImage);
+
       const modal = document.getElementById('edit-modal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
@@ -2234,9 +2270,51 @@
       document.getElementById('edit-q-step2').value = '步驟2：';
       document.getElementById('edit-q-step3').value = '步驟3：';
 
+      currentEditingImage = '';
+      document.getElementById('edit-image-file').value = '';
+      document.getElementById('edit-image-url').value = '';
+      updateImagePreview('');
+
       const modal = document.getElementById('edit-modal');
       modal.classList.remove('hidden');
       modal.classList.add('flex');
+    }
+
+    function handleImageFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        currentEditingImage = evt.target.result;
+        document.getElementById('edit-image-url').value = '';
+        updateImagePreview(currentEditingImage);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleImageUrlInput(val) {
+      currentEditingImage = val.trim();
+      updateImagePreview(currentEditingImage);
+    }
+
+    function clearAttachedImage() {
+      currentEditingImage = '';
+      document.getElementById('edit-image-file').value = '';
+      document.getElementById('edit-image-url').value = '';
+      updateImagePreview('');
+    }
+
+    function updateImagePreview(src) {
+      const box = document.getElementById('image-preview-box');
+      const img = document.getElementById('image-preview-el');
+      if (!box || !img) return;
+      if (src) {
+        img.src = src;
+        box.classList.remove('hidden');
+      } else {
+        img.src = '';
+        box.classList.add('hidden');
+      }
     }
 
     function closeEditModal() {
@@ -2272,6 +2350,7 @@
         const newId = parseInt(rawId.replace('NEW_', ''), 10);
         questionBank.unshift({
           id: newId, cat, q: text, options, ans, hint, steps,
+          image: currentEditingImage,
           draw: { type: 'tri_sides', vertices: ['A','B','C'], sides: ['?', '?', '?'] }
         });
       } else {
@@ -2284,6 +2363,7 @@
           q.ans = ans;
           q.hint = hint;
           q.steps = steps;
+          q.image = currentEditingImage;
         }
       }
 
