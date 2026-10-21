@@ -1,0 +1,2164 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>五上數學：第2單元＆第4單元 倍數因數與公倍數公因數（隨機選項答案版）</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    .grid-canvas-bg {
+      background-color: #ffffff;
+      background-image: 
+        linear-gradient(to right, #e2e8f0 1px, transparent 1px),
+        linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .scratchpad-canvas {
+      touch-action: none;
+      cursor: crosshair;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      .print-break {
+        page-break-inside: avoid;
+      }
+      body {
+        background-color: #ffffff;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- 頂部導覽列 -->
+  <header class="bg-teal-600 text-white shadow-md sticky top-0 z-40 no-print">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">🔢</span>
+        <div>
+          <h1 class="text-xl md:text-2xl font-black tracking-wide">五上數學：第 2 & 4 單元 統整特訓</h1>
+          <p class="text-xs md:text-sm text-teal-100 font-medium">答案全隨機分佈 · 概念思考引導 · 手寫白板自動合成單一PDF</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" onclick="switchStudentView()" id="tab-btn-quiz" class="px-3.5 py-2 rounded-lg font-bold text-sm bg-white text-teal-700 shadow-sm transition">
+          ✏️ 學生自主練習
+        </button>
+        <button type="button" onclick="window.print()" class="px-3.5 py-2 rounded-lg font-bold text-sm bg-slate-700 text-white hover:bg-slate-800 shadow-sm transition">
+          🖨️ 列印 / 存PDF
+        </button>
+        <button type="button" onclick="handleTeacherLoginClick()" id="btn-teacher-auth" class="px-3.5 py-2 rounded-lg font-bold text-sm bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition flex items-center gap-1.5">
+          🔒 教師後台登入
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 教師已登入管理列 -->
+  <nav id="teacher-sub-nav" class="bg-teal-950 text-white border-b border-teal-900 px-4 py-2 hidden no-print">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="bg-emerald-500 text-white font-black px-2 py-0.5 rounded">管理員已驗證</span>
+        <button type="button" onclick="switchAdminTab('review')" id="admin-tab-review" class="px-3 py-1.5 rounded-md font-bold bg-teal-800 text-white hover:bg-teal-700">
+          👨‍🏫 批改與學生筆跡檢視
+        </button>
+        <button type="button" onclick="switchAdminTab('bank')" id="admin-tab-bank" class="px-3 py-1.5 rounded-md font-bold bg-teal-900 text-teal-200 hover:bg-teal-800">
+          🛠️ 題庫管理 (<span id="bank-count-badge">50</span>)
+        </button>
+        <button type="button" onclick="switchAdminTab('settings')" id="admin-tab-settings" class="px-3 py-1.5 rounded-md font-bold bg-teal-900 text-teal-200 hover:bg-teal-800">
+          ⚙️ 雲端設定與密碼
+        </button>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="downloadStandaloneHTML()" class="px-3 py-1.5 rounded-md font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
+          💾 下載備份檔 (.html)
+        </button>
+        <button type="button" onclick="logoutTeacher()" class="px-2.5 py-1.5 rounded-md bg-rose-600 hover:bg-rose-700 text-white font-bold">
+          登出後台
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主內容區 -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
+
+    <!-- 頁面 1：學生練習區 -->
+    <section id="view-quiz" class="space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-teal-200 p-4 md:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-3">
+            <label class="text-sm font-bold text-slate-700">班級座號姓名：</label>
+            <input type="text" id="student-name" placeholder="例如：五年乙班 01號 王小明" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
+            
+            <label class="text-sm font-bold text-slate-700 ml-2">出題範圍：</label>
+            <select id="unit-filter" onchange="startNewQuiz()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-teal-400">
+              <option value="all">全部範圍（單元 2 ＋ 單元 4 隨機抽 10 題）</option>
+              <option value="unit2">第 2 單元：倍數與因數全部</option>
+              <option value="unit4">第 4 單元：公倍數與公因數全部</option>
+              <option value="2-1">2-1 認識倍數</option>
+              <option value="2-2">2-2 認識因數</option>
+              <option value="2-3">2-3 因倍數關係與應用</option>
+              <option value="4-1">4-1 公倍數與最小公倍數</option>
+              <option value="4-2">4-2 公因數與最大公因數</option>
+              <option value="4-3">4-3 公因倍數生活應用</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="bg-teal-50 border border-teal-200 px-3 py-1.5 rounded-lg text-sm font-bold text-teal-800">
+              目前得分：<span id="quiz-score" class="text-lg text-teal-600">0</span> / 100 分
+              （已作答 <span id="quiz-answered">0</span>/10）
+            </div>
+            <button type="button" onclick="startNewQuiz()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-4 py-2 rounded-lg text-sm shadow transition flex items-center gap-1 no-print">
+              🎲 重新抽 10 題
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 題目卡片容器 -->
+      <div id="quiz-questions-container" class="space-y-6"></div>
+
+      <!-- 底部作答完成與提交區 -->
+      <div class="bg-white rounded-2xl shadow-md border-2 border-emerald-300 p-6 text-center space-y-4 no-print">
+        <div class="space-y-1">
+          <h3 class="text-lg font-black text-slate-800">🎉 完成 10 道題目的作答與手寫計算了嗎？</h3>
+          <p class="text-xs text-slate-500">點擊下方按鈕，系統會將整份作答與 10 題手寫算式自動合成為一份 PDF 檔傳送給顏老師！</p>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <button type="button" id="btn-submit-cloud" onclick="submitWorkToTeacher()" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base shadow-lg transition flex items-center gap-2">
+            📄 一鍵生成單一完整 PDF 傳送給顏老師
+          </button>
+          <button type="button" onclick="copyResultsToClipboard()" class="px-4 py-3 rounded-xl bg-slate-700 hover:bg-slate-800 text-white font-bold text-sm shadow transition flex items-center gap-2">
+            📋 複製成績文字
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 頁面 2：教師檢視與批改專區 -->
+    <section id="view-review" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-teal-200 p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-xl font-black text-teal-900">👨‍🏫 學生作答與手寫算式批改</h2>
+            <p class="text-sm text-slate-600">老師可檢視學生每一題的作答與手寫白板草稿，並直接以紅筆圈註批註。</p>
+          </div>
+          <div class="flex gap-2 no-print">
+            <button type="button" onclick="window.print()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-4 py-2 rounded-lg text-sm shadow">
+              🖨️ 列印批改報告 / 存成 PDF
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-teal-50 p-4 rounded-xl border border-teal-100">
+          <div>
+            <div class="text-xs text-teal-600 font-bold">作答進度</div>
+            <div id="rev-stat-answered" class="text-xl font-black text-slate-800">0 / 10 題</div>
+          </div>
+          <div>
+            <div class="text-xs text-teal-600 font-bold">選擇題得分</div>
+            <div id="rev-stat-score" class="text-xl font-black text-emerald-600">0 分</div>
+          </div>
+          <div>
+            <div class="text-xs text-teal-600 font-bold">已寫計算過程</div>
+            <div id="rev-stat-written" class="text-xl font-black text-amber-600">0 / 10 題</div>
+          </div>
+          <div>
+            <div class="text-xs text-teal-600 font-bold">教師已評閱</div>
+            <div id="rev-stat-graded" class="text-xl font-black text-teal-700">0 / 10 題</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="review-cards-container" class="space-y-5"></div>
+    </section>
+
+    <!-- 頁面 3：題庫管理 -->
+    <section id="view-bank" class="hidden space-y-6 no-print">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-xl font-black text-slate-800">🛠️ 第 2 & 4 單元 題庫管理與線上編輯</h2>
+            <p class="text-sm text-slate-600">您可以直接修改題目敘述、選項、答案或概念引導步驟。</p>
+          </div>
+          <div class="flex gap-2">
+            <button type="button" onclick="openAddQuestionModal()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-4 py-2 rounded-lg text-sm shadow">
+              ➕ 新增題目
+            </button>
+            <button type="button" onclick="resetDefaultBank()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg text-sm">
+              🔄 還原預設 50 題
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mb-4">
+          <input type="text" id="bank-search" oninput="renderBankList()" placeholder="搜尋題目關鍵字..." class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[200px]" />
+          <select id="bank-cat-filter" onchange="renderBankList()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm bg-slate-50">
+            <option value="all">所有小節 (50)</option>
+            <option value="2-1">2-1 認識倍數</option>
+            <option value="2-2">2-2 認識因數</option>
+            <option value="2-3">2-3 因倍數關係與應用</option>
+            <option value="4-1">4-1 公倍數與最小公倍數</option>
+            <option value="4-2">4-2 公因數與最大公因數</option>
+            <option value="4-3">4-3 公因倍數生活應用</option>
+          </select>
+        </div>
+
+        <div id="bank-list-container" class="space-y-3 max-h-[650px] overflow-y-auto pr-1"></div>
+      </div>
+    </section>
+
+    <!-- 頁面 4：後台設定 -->
+    <section id="view-settings" class="hidden space-y-6 no-print">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-5">
+        <h2 class="text-xl font-black text-slate-800">⚙️ 系統安全性與雲端同步設定</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+            <h3 class="font-bold text-slate-800 text-sm">🔒 修改後台管理密碼</h3>
+            <div>
+              <label class="text-xs text-slate-500 block mb-1">新密碼：</label>
+              <input type="password" id="cfg-new-pwd" placeholder="請輸入新密碼" class="w-full border rounded-lg px-3 py-1.5 text-sm" />
+            </div>
+            <button type="button" onclick="saveAdminPassword()" class="px-4 py-1.5 rounded-lg bg-teal-600 text-white font-bold text-xs shadow-sm hover:bg-teal-700">儲存新密碼</button>
+          </div>
+
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+            <h3 class="font-bold text-slate-800 text-sm">🌐 Google Apps Script（自動產生PDF網址）</h3>
+            <p class="text-xs text-slate-500">已自動綁定您的雲端 Web App 網址：</p>
+            <div>
+              <input type="text" id="cfg-gas-url" class="w-full border rounded-lg px-3 py-1.5 text-xs text-slate-700 bg-slate-100" />
+            </div>
+            <button type="button" onclick="saveSubmitConfig()" class="px-4 py-1.5 rounded-lg bg-teal-600 text-white font-bold text-xs shadow-sm hover:bg-teal-700">更新設定</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 密碼登入 Modal -->
+  <div id="login-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="text-base font-black text-slate-800">🔒 教師後台密碼驗證</h3>
+        <button type="button" onclick="closeLoginModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+      </div>
+      <div class="space-y-2">
+        <label class="text-xs text-slate-600 font-medium">請輸入教師管理密碼：</label>
+        <input type="password" id="input-teacher-pwd" onkeydown="if(event.key==='Enter')verifyTeacherPassword()" placeholder="請輸入密碼" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-400" />
+        <p id="login-error-msg" class="text-xs text-rose-600 hidden font-bold">密碼不正確，請重新輸入！</p>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="closeLoginModal()" class="px-3.5 py-1.5 rounded-lg bg-slate-200 text-slate-700 font-bold text-xs">取消</button>
+        <button type="button" onclick="verifyTeacherPassword()" class="px-4 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow">登入驗證</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 題目編輯 Modal -->
+  <div id="edit-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h3 id="modal-title" class="text-lg font-black text-slate-800">編輯題目</h3>
+        <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+      </div>
+
+      <div class="space-y-3 text-sm">
+        <input type="hidden" id="edit-q-id" />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">單元小節</label>
+            <select id="edit-q-cat" class="w-full border rounded-lg px-3 py-2">
+              <option value="2-1">2-1 認識倍數</option>
+              <option value="2-2">2-2 認識因數</option>
+              <option value="2-3">2-3 因倍數關係與應用</option>
+              <option value="4-1">4-1 公倍數與最小公倍數</option>
+              <option value="4-2">4-2 公因數與最大公因數</option>
+              <option value="4-3">4-3 公因倍數生活應用</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">正確答案選項 (0=A, 1=B, 2=C, 3=D)</label>
+            <select id="edit-q-ans" class="w-full border rounded-lg px-3 py-2">
+              <option value="0">選項 (A)</option>
+              <option value="1">選項 (B)</option>
+              <option value="2">選項 (C)</option>
+              <option value="3">選項 (D)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">題目敘述</label>
+          <textarea id="edit-q-text" rows="2" class="w-full border rounded-lg px-3 py-2"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">選項 (A)</label>
+            <input type="text" id="edit-q-opt0" class="w-full border rounded-lg px-3 py-1.5" />
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">選項 (B)</label>
+            <input type="text" id="edit-q-opt1" class="w-full border rounded-lg px-3 py-1.5" />
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">選項 (C)</label>
+            <input type="text" id="edit-q-opt2" class="w-full border rounded-lg px-3 py-1.5" />
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">選項 (D)</label>
+            <input type="text" id="edit-q-opt3" class="w-full border rounded-lg px-3 py-1.5" />
+          </div>
+        </div>
+
+        <div>
+          <label class="font-bold text-amber-700 block mb-1">💡 學習小叮嚀（提示）</label>
+          <input type="text" id="edit-q-hint" class="w-full border border-amber-300 rounded-lg px-3 py-1.5 bg-amber-50" />
+        </div>
+
+        <div class="space-y-2">
+          <label class="font-bold text-emerald-700 block">🧭 概念解題引導三步驟（無答案，純思考引導）</label>
+          <input type="text" id="edit-q-step1" placeholder="步驟 1..." class="w-full border border-emerald-300 rounded-lg px-3 py-1.5 bg-emerald-50" />
+          <input type="text" id="edit-q-step2" placeholder="步驟 2..." class="w-full border border-emerald-300 rounded-lg px-3 py-1.5 bg-emerald-50" />
+          <input type="text" id="edit-q-step3" placeholder="步驟 3..." class="w-full border border-emerald-300 rounded-lg px-3 py-1.5 bg-emerald-50" />
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t">
+        <button type="button" onclick="closeEditModal()" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-700 font-bold text-sm">取消</button>
+        <button type="button" onclick="saveEditedQuestion()" class="px-5 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-sm shadow">儲存修改</button>
+      </div>
+    </div>
+  </div>
+
+  <script id="main-app-script">
+    // ==================== 50 題題庫（答案全數隨機分佈 A/B/C/D） ====================
+    const DEFAULT_QUESTIONS = [
+      // ---------- 2-1 認識倍數 (1~8題) ----------
+      {
+        id: 1, cat: '2-1',
+        q: '【課本P.18例1】一盒馬卡龍有 8 個，請問買 6 盒一共有幾個？下列哪一個敘述是正確的？',
+        options: ['8 是 48 的倍數', '48 是 8 的倍數，也是 6 的倍數', '48 只是 8 的倍數', '48 是 8 的因數'],
+        ans: 1, // 正解 B
+        hint: '在乘法算式「甲 × 乙 = 丙」中，積是被乘數與乘數的倍數。',
+        steps: [
+          '步驟1：列出乘法算式計算 8 × 6 的積。',
+          '步驟2：整數乘法中，相乘得到的積是兩個乘數的倍數。',
+          '步驟3：辨別「誰是誰的倍數」的文字語法關係。'
+        ],
+        draw: { type: 'mult_grid', a: 8, b: 6, label: '8 × 6 = 48' }
+      },
+      {
+        id: 2, cat: '2-1',
+        q: '【課本P.19例4】在 50 以內的所有數字中，6 的倍數裡面「最大」的是多少？',
+        options: ['42', '54', '48', '50'],
+        ans: 2, // 正解 C
+        hint: '用 50 除以 6，看看商是多少，再乘回去！',
+        steps: [
+          '步驟1：計算 50 ÷ 6 得到商與餘數。',
+          '步驟2：用除數 6 乘以整數商，找出不超過 50 的最大積。',
+          '步驟3：檢查是否為 50 以內符合條件的最大倍數。'
+        ],
+        draw: { type: 'number_line', start: 30, step: 6, max: 50 }
+      },
+      {
+        id: 3, cat: '2-1',
+        q: '【課本P.19例5】算算看，123 是 6 的倍數嗎？為什麼？',
+        options: ['是，因為個位數是 3', '是，因為 1+2+3=6', '不是，因為 123 比 6 大很多', '不是，因為 123 ÷ 6 = 20...3，有餘數不能整除'],
+        ans: 3, // 正解 D
+        hint: '判別一個數是不是另一個數的倍數，用除法檢查餘數是不是 0！',
+        steps: [
+          '步驟1：進行直式除法計算 123 ÷ 6。',
+          '步驟2：觀察計算後的商與餘數是否為 0。',
+          '步驟3：若有餘數無法整除，代表不能視為該數的倍數。'
+        ],
+        draw: { type: 'division_box', dividend: 123, divisor: 6 }
+      },
+      {
+        id: 4, cat: '2-1',
+        q: '【課本P.20例6】下列哪一個數「同時是 2 的倍數，也是 5 的倍數」？',
+        options: ['150', '75', '82', '104'],
+        ans: 0, // 正解 A
+        hint: '2 的倍數個位數是偶數，5 的倍數個位數是 0 或 5。',
+        steps: [
+          '步驟1：2 的倍數個位數字必須為 0、2、4、6、8。',
+          '步驟2：5 的倍數個位數字必須為 0 或 5。',
+          '步驟3：同時符合這兩個條件的數，個位數字必須是 0。'
+        ],
+        draw: { type: 'venn_2_5' }
+      },
+      {
+        id: 5, cat: '2-1',
+        q: '【習作P.11第4題】50 到 80 之間，7 的倍數最小的是多少？',
+        options: ['49', '56', '63', '70'],
+        ans: 1, // 正解 B
+        hint: '7 × 7 = 49（還不到 50），那麼下一個 7 的倍數是多少？',
+        steps: [
+          '步驟1：列出 7 的乘法：7 × 7 = 49、7 × 8 = 56。',
+          '步驟2：題目要求在 50 到 80 之間，49 小於 50 不符合。',
+          '步驟3：找出第一個大於 50 的 7 的倍數。'
+        ],
+        draw: { type: 'number_line', start: 42, step: 7, max: 80 }
+      },
+      {
+        id: 6, cat: '2-1',
+        q: '【習作P.12第6題】觀察數字「60、77、96、102、243、334、588」，裡面屬於 2 的倍數的共有幾個？',
+        options: ['3 個', '4 個', '5 個', '6 個'],
+        ans: 2, // 正解 C
+        hint: '只要個位數字是 0、2、4、6、8 的就是 2 的倍數。',
+        steps: [
+          '步驟1：逐一檢查每個數字的「個位數字」。',
+          '步驟2：篩選出個位數為偶數或 0 的數字。',
+          '步驟3：統計符合 2 的倍數條件的數字總個數。'
+        ],
+        draw: { type: 'digits_check', rule: '2的倍數檢查個位數' }
+      },
+      {
+        id: 7, cat: '2-1',
+        q: '【課本P.18例3】算式 48 × 5 = 240 中，下列哪一個說法是錯誤的？',
+        options: ['240 是 48 的倍數', '240 是 5 的倍數', '5 是 240 的因數', '240 是 48 的因數'],
+        ans: 3, // 正解 D
+        hint: '大數（積）是小數的倍數，小數是大數的因數。',
+        steps: [
+          '步驟1：在乘法算式中，兩個相乘的數與積的關係。',
+          '步驟2：積（240）是乘數（48 與 5）的倍數。',
+          '步驟3：辨別因數與倍數的主詞順序是否顛倒。'
+        ],
+        draw: { type: 'mult_grid', a: 48, b: 5, label: '48 × 5 = 240' }
+      },
+      {
+        id: 8, cat: '2-1',
+        q: '【習作P.11第3題】算式 154 ÷ 7 = 22 中，代表 154 是 7 的什麼數？',
+        options: ['倍數', '因數', '偶數', '公因數'],
+        ans: 0, // 正解 A
+        hint: '被除數能被除數整除，被除數就是除數的倍數。',
+        steps: [
+          '步驟1：除法算式中餘數為 0，代表能整除。',
+          '步驟2：反過來想即 7 × 22 = 154。',
+          '步驟3：判斷 154 相對於 7 的數學關係名稱。'
+        ],
+        draw: { type: 'division_box', dividend: 154, divisor: 7 }
+      },
+
+      // ---------- 2-2 認識因數 (9~16題) ----------
+      {
+        id: 9, cat: '2-2',
+        q: '【課本P.21例1】在除法算式中，如果「被除數 ÷ 除數 = 商...0」（餘數為 0），我們稱除數能夠做什麼？',
+        options: ['大於被除數', '整除被除數，且除數是被除數的因數', '整除被除數，且除數是被除數的倍數', '除不盡'],
+        ans: 1, // 正解 B
+        hint: '餘數是 0 叫作整除，此時除數與商都是被除數的因數。',
+        steps: [
+          '步驟1：回想整除的數學定義。',
+          '步驟2：確認餘數必須為 0，且除數、商都是整數。',
+          '步驟3：定義除數與被除數之間的因數關係。'
+        ],
+        draw: { type: 'division_box', dividend: 24, divisor: 6 }
+      },
+      {
+        id: 10, cat: '2-2',
+        q: '【課本P.22例4】請問「9 是不是 70 的因數」？',
+        options: ['是，因為 9 × 8 = 72 很接近 70', '是，因為 70 比 9 大', '不是，因為 70 ÷ 9 = 7...7，不能整除', '不是，因為 9 是奇數'],
+        ans: 2, // 正解 C
+        hint: '算算看 70 除以 9，有沒有餘數？',
+        steps: [
+          '步驟1：計算 70 ÷ 9。',
+          '步驟2：觀察計算結果是否有餘數。',
+          '步驟3：依據餘數不為 0 判定 9 是否為 70 的因數。'
+        ],
+        draw: { type: 'division_box', dividend: 70, divisor: 9 }
+      },
+      {
+        id: 11, cat: '2-2',
+        q: '【課本P.23例6】整數「32」的所有因數一共有幾個？',
+        options: ['5 個', '4 個', '8 個', '6 個（1, 2, 4, 8, 16, 32）'],
+        ans: 3, // 正解 D
+        hint: '用乘法配對找：1×32、2×16、4×8。',
+        steps: [
+          '步驟1：依序用乘法分拆：1 × 32 = 32。',
+          '步驟2：繼續分拆：2 × 16 = 32、4 × 8 = 32。',
+          '步驟3：列出所有不重複的因數並計算個數。'
+        ],
+        draw: { type: 'factor_pairs', num: 32 }
+      },
+      {
+        id: 12, cat: '2-2',
+        q: '【習作P.14第3題】整數「10」的所有因數加起來的總和是多少？',
+        options: ['18', '17', '15', '20'],
+        ans: 0, // 正解 A
+        hint: '先找出 10 的所有因數：1, 2, 5, 10，再加總。',
+        steps: [
+          '步驟1：找出能整除 10 的所有因數：1、2、5、10。',
+          '步驟2：將四個因數相加：1 + 2 + 5 + 10。',
+          '步驟3：計算出總和。'
+        ],
+        draw: { type: 'factor_pairs', num: 10 }
+      },
+      {
+        id: 13, cat: '2-2',
+        q: '【習作P.13第2題】下列哪一個數「可以整除 20」？',
+        options: ['3', '4', '6', '8'],
+        ans: 1, // 正解 B
+        hint: '檢查 20 除以哪一個選項時餘數剛好是 0。',
+        steps: [
+          '步驟1：檢查 20 ÷ 3 有餘數；20 ÷ 6 有餘數。',
+          '步驟2：檢查 20 ÷ 8 有餘數。',
+          '步驟3：計算 20 ÷ 4 = 5...0，剛好整除。'
+        ],
+        draw: { type: 'factor_pairs', num: 20 }
+      },
+      {
+        id: 14, cat: '2-2',
+        q: '【課本P.24例8】找出整數「24」的所有因數，下列哪一組是正確且完整的？',
+        options: ['1、2、4、6、8、24', '2、3、4、6、8、12', '1、2、3、4、6、8、12、24', '1、24'],
+        ans: 2, // 正解 C
+        hint: '由小到大成對找：1×24、2×12、3×8、4×6。',
+        steps: [
+          '步驟1：由 1 開始成對尋找：1 × 24 = 24、2 × 12 = 24。',
+          '步驟2：3 × 8 = 24、4 × 6 = 24。',
+          '步驟3：由小到大完整列出 8 個因數。'
+        ],
+        draw: { type: 'factor_pairs', num: 24 }
+      },
+      {
+        id: 15, cat: '2-2',
+        q: '【習作P.15第7題】整數「42」的最大因數與最小因數相差多少？',
+        options: ['42', '40', '21', '41'],
+        ans: 3, // 正解 D
+        hint: '任何大於 1 的整數，最小的因數是 1，最大的因數是它自己！',
+        steps: [
+          '步驟1：確認 42 最小的因數是 1。',
+          '步驟2：確認 42 最大的因數是本身 42。',
+          '步驟3：相減計算差值：42 - 1。'
+        ],
+        draw: { type: 'factor_pairs', num: 42 }
+      },
+      {
+        id: 16, cat: '2-2',
+        q: '【課本P.24思考帽】皮皮寫出一個數的所有因數，擦掉最小的因數和最大的因數後，剩下「2、3、6、9」，這個數是多少？',
+        options: ['18', '27', '36', '12'],
+        ans: 0, // 正解 A
+        hint: '最小的因數是 1，第二小的因數（2）配對第二大的因數（9），乘起來就是原數！',
+        steps: [
+          '步驟1：任何數最小的因數必為 1，最大因數必為該數本身。',
+          '步驟2：成對相乘的因數積相等：2 × 9 = 18、3 × 6 = 18。',
+          '步驟3：確認原數為 18（所有因數為 1, 2, 3, 6, 9, 18）。'
+        ],
+        draw: { type: 'factor_pairs', num: 18 }
+      },
+
+      // ---------- 2-3 因倍數關係與應用 (17~25題) ----------
+      {
+        id: 17, cat: '2-3',
+        q: '【課本P.25例1】算式「7 × 13 = 91」中，91 是 7 的什麼數？7 是 91 的什麼數？',
+        options: ['91 是 7 的因數，7 是 91 的倍數', '91 是 7 的倍數，7 是 91 的因數', '兩者都是因數', '兩者都是倍數'],
+        ans: 1, // 正解 B
+        hint: '大數是倍數，相乘的小數是因數。',
+        steps: [
+          '步驟1：乘法算式中，兩整數相乘等於積。',
+          '步驟2：積 91 是乘數 7 的倍數。',
+          '步驟3：7 能整除 91，故 7 是 91 的因數。'
+        ],
+        draw: { type: 'mult_grid', a: 7, b: 13, label: '7 × 13 = 91' }
+      },
+      {
+        id: 18, cat: '2-3',
+        q: '【課本P.26例3】一盒積木數量「不到 40 個」，每 6 個分一堆，剛好可以分完，這盒積木最多可能有幾個？',
+        options: ['30 個', '42 個', '36 個', '38 個'],
+        ans: 2, // 正解 C
+        hint: '積木總數是 6 的倍數，而且要小於 40 中最大的那一個。',
+        steps: [
+          '步驟1：每 6 個一堆剛好分完，代表數量是 6 的倍數。',
+          '步驟2：列出小於 40 的 6 的倍數：6, 12, 18, 24, 30, 36。',
+          '步驟3：選出其中數量最多（最大）的數值。'
+        ],
+        draw: { type: 'number_line', start: 18, step: 6, max: 40 }
+      },
+      {
+        id: 19, cat: '2-3',
+        q: '【課本P.27例4】全部糖果「不到 200 顆」，平分給 9 個小朋友剛好分完，全部糖果最多有幾顆？',
+        options: ['199 顆', '189 顆', '180 顆', '198 顆'],
+        ans: 3, // 正解 D
+        hint: '用 200 ÷ 9 算出商數，再乘回去求出最大的 9 的倍數。',
+        steps: [
+          '步驟1：平分給 9 人剛好分完，代表糖果總數是 9 的倍數。',
+          '步驟2：計算 200 ÷ 9 = 22...2。',
+          '步驟3：計算 9 × 22 求出小於 200 的最大倍數。'
+        ],
+        draw: { type: 'division_box', dividend: 200, divisor: 9 }
+      },
+      {
+        id: 20, cat: '2-3',
+        q: '【課本P.27例5】媽媽將 24 顆柚子平分裝箱，每箱顆數一樣多且大於 3 顆，剛好裝完，每箱「不可能」是幾顆？',
+        options: ['5 顆', '4 顆', '6 顆', '8 顆'],
+        ans: 0, // 正解 A
+        hint: '每箱的顆數必須是 24 的因數才能剛好裝完。',
+        steps: [
+          '步驟1：每箱顆數必須能整除 24（即 24 的因數）。',
+          '步驟2：24 的因數有 1, 2, 3, 4, 6, 8, 12, 24。',
+          '步驟3：檢驗選項中哪一個不是 24 的因數。'
+        ],
+        draw: { type: 'factor_pairs', num: 24 }
+      },
+      {
+        id: 21, cat: '2-3',
+        q: '【課本P.28例6】阿姨將 48 個月餅平分裝盒，每盒月餅一樣多，且每盒都裝「10 幾顆」（10~19顆之間），剛好裝完，每盒可能是幾顆？',
+        options: ['14 顆 或 18 顆', '12 顆 或 16 顆', '15 顆', '10 顆'],
+        ans: 1, // 正解 B
+        hint: '找出 48 的因數中，介於 10 到 19 之間的數字。',
+        steps: [
+          '步驟1：每盒顆數必須是 48 的因數。',
+          '步驟2：列出 48 的因數：1, 2, 3, 4, 6, 8, 12, 16, 24, 48。',
+          '步驟3：篩選出介於 10 到 19 之間的因數。'
+        ],
+        draw: { type: 'factor_pairs', num: 48 }
+      },
+      {
+        id: 22, cat: '2-3',
+        q: '【課本P.28例7】有 72 片餅乾平分到盤子裡，盤子數量大約在「10 到 20 個之間」，剛好可以分完，盤子數量可能有幾種？',
+        options: ['1 種', '3 種', '2 種（12個 或 18個）', '4 種'],
+        ans: 2, // 正解 C
+        hint: '盤子數量必須能整除 72，且介於 10 與 20 之間。',
+        steps: [
+          '步驟1：盤子數量是 72 的因數。',
+          '步驟2：列出 72 的所有因數：1, 2, 3, 4, 6, 8, 9, 12, 18, 24, 36, 72。',
+          '步驟3：找出落在 10~20 之間的因數有哪幾個。'
+        ],
+        draw: { type: 'factor_pairs', num: 72 }
+      },
+      {
+        id: 23, cat: '2-3',
+        q: '【習作P.17第3題】一副撲克牌有 52 張，平分給小朋友每人拿一樣多，每人都拿到「10 幾張」且剛好分完，每人分到幾張牌？',
+        options: ['12 張', '14 張', '16 張', '13 張'],
+        ans: 3, // 正解 D
+        hint: '找出 52 的因數中，十位數是 1 的數字！',
+        steps: [
+          '步驟1：每人拿到的張數是 52 的因數。',
+          '步驟2：52 = 1 × 52 = 2 × 26 = 4 × 13。',
+          '步驟3：在 10~19 之間的因數只有 13。'
+        ],
+        draw: { type: 'factor_pairs', num: 52 }
+      },
+      {
+        id: 24, cat: '2-3',
+        q: '【習作P.16第2題】算式「126 = 7 × 18」中，下列哪一個敘述是不正確的？',
+        options: ['18 是 126 的倍數', '126 是 7 的倍數', '7 是 126 的因數', '126 是 18 的倍數'],
+        ans: 0, // 正解 A
+        hint: '18 乘上 7 才等於 126，所以 18 是因數，不是倍數。',
+        steps: [
+          '步驟1：分析 126 = 7 × 18 的數學關係。',
+          '步驟2：126 是積，為 7 和 18 的倍數。',
+          '步驟3：18 是因數，指出選項中顛倒的錯誤敘述。'
+        ],
+        draw: { type: 'mult_grid', a: 7, b: 18, label: '7 × 18 = 126' }
+      },
+      {
+        id: 25, cat: '2-3',
+        q: '【習作P.19挑戰題】文具店每本筆記本價格相同且在 10 到 15 元之間。小錦買筆記本花了 36 元，每本筆記本是多少元？',
+        options: ['10 元', '12 元', '14 元', '18 元'],
+        ans: 1, // 正解 B
+        hint: '每本價格必須是 36 的因數，且介於 10 到 15 元之間。',
+        steps: [
+          '步驟1：筆記本單價必須能整除總花費 36 元（即 36 的因數）。',
+          '步驟2：36 的因數有 1, 2, 3, 4, 6, 9, 12, 18, 36。',
+          '步驟3：找出符合 10~15 元範圍內的因數價格。'
+        ],
+        draw: { type: 'factor_pairs', num: 36 }
+      },
+
+      // ---------- 4-1 公倍數與最小公倍數 (26~33題) ----------
+      {
+        id: 26, cat: '4-1',
+        q: '【課本P.54例1】美美用 2 公分和 3 公分的積木排成兩排，排到多少公分時，兩排積木的長度會「第一次」一樣長？',
+        options: ['12 公分', '5 公分', '6 公分', '8 公分'],
+        ans: 2, // 正解 C
+        hint: '第一次一樣長，就是找 2 和 3 的最小公倍數！',
+        steps: [
+          '步驟1：列出 2 公分積木排出的長度（2 的倍數）：2, 4, 6, 8...。',
+          '步驟2：列出 3 公分積木排出的長度（3 的倍數）：3, 6, 9, 12...。',
+          '步驟3：找出兩者第一個共同出現的最小長度。'
+        ],
+        draw: { type: 'blocks_align', a: 2, b: 3, lcm: 6 }
+      },
+      {
+        id: 27, cat: '4-1',
+        q: '【課本P.55例2】一個數同時是 4 的倍數，也是 6 的倍數，這個數叫作 4 和 6 的什麼？',
+        options: ['公因數', '最大公因數', '合數', '公倍數'],
+        ans: 3, // 正解 D
+        hint: '共同擁有的倍數，就叫作公倍數。',
+        steps: [
+          '步驟1：4 的倍數：4, 8, 12, 16, 20, 24...。',
+          '步驟2：6 的倍數：6, 12, 18, 24, 30...。',
+          '步驟3：共同的倍數（如 12、24）在數學上定義為公倍數。'
+        ],
+        draw: { type: 'venn_lcm', a: 4, b: 6, lcm: 12 }
+      },
+      {
+        id: 28, cat: '4-1',
+        q: '【課本P.55例3】求 6 和 9 的「最小公倍數」是多少？',
+        options: ['18', '36', '54', '27'],
+        ans: 0, // 正解 A
+        hint: '列出 9 的倍數：9, 18, 27...，檢查哪一個最早能被 6 整除。',
+        steps: [
+          '步驟1：列出較大數 9 的倍數：9、18、27、36...。',
+          '步驟2：檢查 9 不能被 6 整除；檢查 18 ÷ 6 = 3 剛好整除。',
+          '步驟3：確認 18 即為兩者的最小公倍數。'
+        ],
+        draw: { type: 'venn_lcm', a: 6, b: 9, lcm: 18 }
+      },
+      {
+        id: 29, cat: '4-1',
+        q: '【課本P.55例4】9 和 30 的公倍數中，最小的那一個是多少？',
+        options: ['180', '90', '60', '30'],
+        ans: 1, // 正解 B
+        hint: '從 30 的倍數（30, 60, 90...）檢查哪一個也是 9 的倍數。',
+        steps: [
+          '步驟1：列出 30 的倍數：30, 60, 90, 120...。',
+          '步驟2：檢驗 30、60 是否為 9 的倍數（不能整除）。',
+          '步驟3：檢驗 90 ÷ 9 = 10 剛好整除，故 90 為最小公倍數。'
+        ],
+        draw: { type: 'venn_lcm', a: 9, b: 30, lcm: 90 }
+      },
+      {
+        id: 30, cat: '4-1',
+        q: '【習作P.30第1題】4 和 3 的公倍數中，小於 30 的有哪些？',
+        options: ['12、24、36', '6、12、18', '12、24', '24、28'],
+        ans: 2, // 正解 C
+        hint: '4 和 3 的最小公倍數是 12，接下來是 12 的倍數！',
+        steps: [
+          '步驟1：找出 4 和 3 的最小公倍數為 12。',
+          '步驟2：4 和 3 的公倍數都是最小公倍數 12 的倍數：12, 24, 36...。',
+          '步驟3：選出小於 30 的公倍數。'
+        ],
+        draw: { type: 'number_line', start: 0, step: 12, max: 30 }
+      },
+      {
+        id: 31, cat: '4-1',
+        q: '【習作P.31第4題】找出 12 和 18 的最小公倍數是多少？',
+        options: ['72', '24', '18', '36'],
+        ans: 3, // 正解 D
+        hint: '從 18 的倍數看：18（不能除以12）、36（可以除以12）。',
+        steps: [
+          '步驟1：列出 18 的倍數：18, 36, 54, 72...。',
+          '步驟2：檢查 18 ÷ 12 無法整除；36 ÷ 12 = 3 整除。',
+          '步驟3：得到最小公倍數為 36。'
+        ],
+        draw: { type: 'venn_lcm', a: 12, b: 18, lcm: 36 }
+      },
+      {
+        id: 32, cat: '4-1',
+        q: '【課本P.55思考】如果兩個數的最小公倍數是 15，那麼這兩個數的其他公倍數有什麼規律？',
+        options: ['全部都是 15 的倍數（如 30, 45, 60...）', '全部都是奇數', '全部小於 15', '沒有任何規則'],
+        ans: 0, // 正解 A
+        hint: '所有公倍數必定是最小公倍數的整數倍！',
+        steps: [
+          '步驟1：理解公倍數定理：兩數的任意公倍數，必為其最小公倍數的倍數。',
+          '步驟2：已知最小公倍數為 15。',
+          '步驟3：其餘公倍數依序為 15 × 2 = 30、15 × 3 = 45 等。'
+        ],
+        draw: { type: 'number_line', start: 0, step: 15, max: 60 }
+      },
+      {
+        id: 33, cat: '4-1',
+        q: '【習作P.31第4題】求 7 和 5 的最小公倍數是多少？',
+        options: ['70', '35', '12', '25'],
+        ans: 1, // 正解 B
+        hint: '7 和 5 除了 1 以外沒有其他公因數，直接相乘就是最小公倍數。',
+        steps: [
+          '步驟1：觀察 7 和 5 都是質數，兩數互質。',
+          '步驟2：列出 7 的倍數尋找能被 5 整除（個位數是 0 或 5）的數。',
+          '步驟3：計算 7 × 5 = 35 即為最小公倍數。'
+        ],
+        draw: { type: 'venn_lcm', a: 7, b: 5, lcm: 35 }
+      },
+
+      // ---------- 4-2 公因數與最大公因數 (34~41題) ----------
+      {
+        id: 34, cat: '4-2',
+        q: '【課本P.56例1】把 10 公分和 15 公分的紙條剪成一樣長的等長小段且不浪費，剪成的每段長度必須是 10 和 15 的什麼數？',
+        options: ['公倍數', '最小公倍數', '公因數', '倍數'],
+        ans: 2, // 正解 C
+        hint: '要能把紙條剪完（整除），長度必須是長度的因數。',
+        steps: [
+          '步驟1：能剪完 10 公分紙條的長度是 10 的因數。',
+          '步驟2：能剪完 15 公分紙條的長度是 15 的因數。',
+          '步驟3：兩根紙條都能剛好剪完的長度即為兩者的公因數。'
+        ],
+        draw: { type: 'strips_cut', a: 10, b: 15 }
+      },
+      {
+        id: 35, cat: '4-2',
+        q: '【課本P.57例2】12 和 18 的所有公因數有哪些？',
+        options: ['1、2、3', '1、6', '1、2、3、4、6', '1、2、3、6'],
+        ans: 3, // 正解 D
+        hint: '12 的因數有 1,2,3,4,6,12；18 的因數有 1,2,3,6,9,18。圈出相同的！',
+        steps: [
+          '步驟1：列出 12 的因數：1, 2, 3, 4, 6, 12。',
+          '步驟2：列出 18 的因數：1, 2, 3, 6, 9, 18。',
+          '步驟3：找出同時出現在兩組名單中的所有因數。'
+        ],
+        draw: { type: 'venn_gcd', a: 12, b: 18, gcd: 6 }
+      },
+      {
+        id: 36, cat: '4-2',
+        q: '【課本P.57例2】12 和 18 的「最大公因數」是多少？',
+        options: ['6', '3', '2', '12'],
+        ans: 0, // 正解 A
+        hint: '公因數有 1, 2, 3, 6，裡面最大的數字是哪一個？',
+        steps: [
+          '步驟1：找出 12 和 18 的所有公因數（1, 2, 3, 6）。',
+          '步驟2：比較公因數數值大小。',
+          '步驟3：選出其中最大的一個數字作為最大公因數。'
+        ],
+        draw: { type: 'venn_gcd', a: 12, b: 18, gcd: 6 }
+      },
+      {
+        id: 37, cat: '4-2',
+        q: '【課本P.57例3】24 和 28 的最大公因數是多少？',
+        options: ['2', '4', '8', '6'],
+        ans: 1, // 正解 B
+        hint: '24 的因數有 1,2,3,4,6,8,12,24；28 的因數有 1,2,4,7,14,28。',
+        steps: [
+          '步驟1：列出 24 的因數與 28 的因數。',
+          '步驟2：找出公因數有 1, 2, 4。',
+          '步驟3：選出最大的公因數為 4。'
+        ],
+        draw: { type: 'venn_gcd', a: 24, b: 28, gcd: 4 }
+      },
+      {
+        id: 38, cat: '4-2',
+        q: '【課本P.57例4】18 和 32 的最大公因數是多少？',
+        options: ['4', '6', '2', '8'],
+        ans: 2, // 正解 C
+        hint: '18 的因數：1,2,3,6,9,18；32 的因數：1,2,4,8,16,32。',
+        steps: [
+          '步驟1：列出 18 的因數及 32 的因數。',
+          '步驟2：比對兩者共同擁有的因數為 1 和 2。',
+          '步驟3：確認最大公因數為 2。'
+        ],
+        draw: { type: 'venn_gcd', a: 18, b: 32, gcd: 2 }
+      },
+      {
+        id: 39, cat: '4-2',
+        q: '【習作P.32第2題】20 和 14 的所有公因數有哪幾個？',
+        options: ['1、2、4', '1、2、7', '只有 1', '1 和 2'],
+        ans: 3, // 正解 D
+        hint: '20 的因數有 1,2,4,5,10,20；14 的因數有 1,2,7,14。',
+        steps: [
+          '步驟1：列出 20 的因數：1, 2, 4, 5, 10, 20。',
+          '步驟2：列出 14 的因數：1, 2, 7, 14。',
+          '步驟3：共同的因數只有 1 和 2。'
+        ],
+        draw: { type: 'venn_gcd', a: 20, b: 14, gcd: 2 }
+      },
+      {
+        id: 40, cat: '4-2',
+        q: '【習作P.33第4題】找出 27 和 36 的最大公因數是多少？',
+        options: ['9', '3', '6', '18'],
+        ans: 0, // 正解 A
+        hint: '27 = 3×9；36 = 4×9，檢查 9 是不是最大公因數。',
+        steps: [
+          '步驟1：27 的因數：1, 3, 9, 27。',
+          '步驟2：36 的因數：1, 2, 3, 4, 6, 9, 12, 18, 36。',
+          '步驟3：共同因數為 1, 3, 9，最大的是 9。'
+        ],
+        draw: { type: 'venn_gcd', a: 27, b: 36, gcd: 9 }
+      },
+      {
+        id: 41, cat: '4-2',
+        q: '【習作P.33第4題】16 和 48 的最大公因數是多少？',
+        options: ['8', '16', '4', '2'],
+        ans: 1, // 正解 B
+        hint: '因為 48 剛好是 16 的 3 倍，所以較小的數 16 自己就是最大公因數！',
+        steps: [
+          '步驟1：檢查 48 ÷ 16 = 3 剛好整除。',
+          '步驟2：當大數是小數的倍數時，小數即為兩數的最大公因數。',
+          '步驟3：確認最大公因數為 16。'
+        ],
+        draw: { type: 'venn_gcd', a: 16, b: 48, gcd: 16 }
+      },
+
+      // ---------- 4-3 解題與應用 (42~50題) ----------
+      {
+        id: 42, cat: '4-3',
+        q: '【課本P.58例1】媽媽做了一些餅乾「不到 60 片」，每 3 片裝一包剛好裝完，每 8 片裝一包也剛好裝完。媽媽可能做了多少片餅乾？',
+        options: ['36 片 或 48 片', '24 片 或 54 片', '24 片 或 48 片', '16 片 或 32 片'],
+        ans: 2, // 正解 C
+        hint: '餅乾數量是 3 和 8 的公倍數，且要小於 60。',
+        steps: [
+          '步驟1：每 3 片與每 8 片皆剛好裝完，代表數量是 3 和 8 的公倍數。',
+          '步驟2：3 和 8 的最小公倍數是 24。',
+          '步驟3：列出小於 60 的公倍數：24、48。'
+        ],
+        draw: { type: 'venn_lcm', a: 3, b: 8, lcm: 24 }
+      },
+      {
+        id: 43, cat: '4-3',
+        q: '【課本P.58例2】才藝班學生每 4 人分一組剛好分完，每 9 人分一組也剛好分完。才藝班學生「最少」有多少人？',
+        options: ['72 人', '18 人', '45 人', '36 人'],
+        ans: 3, // 正解 D
+        hint: '學生人數是 4 和 9 的最小公倍數！',
+        steps: [
+          '步驟1：依題意得知學生總人數是 4 和 9 的公倍數。',
+          '步驟2：題目要求「最少」，即為求 4 和 9 的最小公倍數。',
+          '步驟3：計算 4 和 9 的最小公倍數。'
+        ],
+        draw: { type: 'venn_lcm', a: 4, b: 9, lcm: 36 }
+      },
+      {
+        id: 44, cat: '4-3',
+        q: '【課本P.59例3】有一盒遊戲卡平分成 5 疊剛好分完，平分成 20 疊也剛好分完，卡片張數在「30 到 50 張之間」，請問有多少張？',
+        options: ['40 張', '35 張', '45 張', '50 張'],
+        ans: 0, // 正解 A
+        hint: '張數是 5 和 20 的公倍數，也是 20 的倍數，找介於 30 到 50 之間的數。',
+        steps: [
+          '步驟1：張數是 5 和 20 的公倍數，最小公倍數是 20。',
+          '步驟2：公倍數有 20, 40, 60...。',
+          '步驟3：選出介於 30 到 50 張之間的正確數值。'
+        ],
+        draw: { type: 'number_line', start: 20, step: 20, max: 60 }
+      },
+      {
+        id: 45, cat: '4-3',
+        q: '【課本P.60例4】裝潢師傅用「長 20 公分、寬 15 公分」的長方形瓷磚，想要邊對邊拼成一個「正方形」牆面，正方形邊長「最少」是幾公分？',
+        options: ['30 公分', '60 公分', '120 公分', '5 公分'],
+        ans: 1, // 正解 B
+        hint: '拼成正方形代表邊長必須同時是長（20）與寬（15）的倍數！求最小公倍數。',
+        steps: [
+          '步驟1：正方形邊長 = 20 × 幾片 = 15 × 幾片。',
+          '步驟2：邊長必須是 20 和 15 的公倍數，題目求最少邊長即最小公倍數。',
+          '步驟3：找出 20 和 15 的最小公倍數。'
+        ],
+        draw: { type: 'tile_square', w: 20, h: 15, lcm: 60 }
+      },
+      {
+        id: 46, cat: '4-3',
+        q: '【課本P.60例5】有一張「長 20 公分、寬 12 公分」的長方形紙卡，要全部剪成大小一樣且邊長為整數公分的正方形紙片，正方形邊長「最大」可以是幾公分？',
+        options: ['2 公分', '6 公分', '4 公分', '60 公分'],
+        ans: 2, // 正解 C
+        hint: '把大長方形「分割」成小正方形，邊長必須是長和寬的公因數！求最大公因數。',
+        steps: [
+          '步驟1：正方形邊長必須能同時整除長（20）與寬（12）。',
+          '步驟2：正方形邊長是 20 和 12 的公因數。',
+          '步驟3：題目要求「最大」邊長，求 20 和 12 的最大公因數。'
+        ],
+        draw: { type: 'cut_grid', w: 20, h: 12, gcd: 4 }
+      },
+      {
+        id: 47, cat: '4-3',
+        q: '【課本P.61例6】丹丹和妮妮分別用 48 元和 56 元買了一些餅乾，每片餅乾單價相同且都是整數元，兩人的錢都剛好花完，每片餅乾「最多」可能是多少元？',
+        options: ['4 元', '6 元', '12 元', '8 元'],
+        ans: 3, // 正解 D
+        hint: '單價必須能整除 48 和 56，求 48 和 56 的最大公因數。',
+        steps: [
+          '步驟1：餅乾單價是 48 和 56 的公因數。',
+          '步驟2：48 的因數：1, 2, 3, 4, 6, 8, 12, 16, 24, 48。',
+          '步驟3：找出能整除 56 的最大公因數。'
+        ],
+        draw: { type: 'venn_gcd', a: 48, b: 56, gcd: 8 }
+      },
+      {
+        id: 48, cat: '4-3',
+        q: '【習作P.35第5題】多多用正方形貼紙剛好貼滿「長 36 公分、寬 24 公分」的長方形卡片，下列哪一種邊長的正方形貼紙「不可能」剛好貼滿？',
+        options: ['8 公分', '6 公分', '12 公分', '4 公分'],
+        ans: 0, // 正解 A
+        hint: '檢查選項中哪一個數字不能同時整除 36 和 24（不是公因數）。',
+        steps: [
+          '步驟1：貼紙邊長必須是 36 和 24 的公因數。',
+          '步驟2：36 和 24 的公因數有 1, 2, 3, 4, 6, 12。',
+          '步驟3：8 無法整除 36，故 8 公分不可能貼滿。'
+        ],
+        draw: { type: 'cut_grid', w: 36, h: 24, gcd: 12 }
+      },
+      {
+        id: 49, cat: '4-3',
+        q: '【習作P.37第2題】有兩根木棒分別長 96 公分和 72 公分，要切成一樣長度的小木棒且剛好切完，小木棒最長可以是幾公分？',
+        options: ['12 公分', '24 公分', '18 公分', '8 公分'],
+        ans: 1, // 正解 B
+        hint: '切木棒是分割問題，求 96 和 72 的最大公因數！',
+        steps: [
+          '步驟1：小木棒長度是 96 和 72 的公因數。',
+          '步驟2：求最長長度即為求兩數的最大公因數。',
+          '步驟3：計算 96 和 72 的最大公因數。'
+        ],
+        draw: { type: 'strips_cut', a: 96, b: 72 }
+      },
+      {
+        id: 50, cat: '4-3',
+        q: '【課本P.59素養題】餐廳供應芒果生乳塔每 8 天一次，抹茶戚風蛋糕每 6 天一次。今天兩種甜點都有供應，下一次「最少」要再等幾天兩種甜點才會又剛好同一天供應？',
+        options: ['48 天', '14 天', '24 天', '12 天'],
+        ans: 2, // 正解 C
+        hint: '找兩種天數週期的「最小公倍數」，不是直接相乘喔！',
+        steps: [
+          '步驟1：再次同時供應的天數間隔是 8 和 6 的公倍數。',
+          '步驟2：題目問「最少」要等幾天，代表求 8 和 6 的最小公倍數。',
+          '步驟3：計算 8 和 6 的最小公倍數。'
+        ],
+        draw: { type: 'venn_lcm', a: 8, b: 6, lcm: 24 }
+      }
+    ];
+
+    let questionBank = JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+    let currentQuiz = [];
+    let userAnswers = {};
+    let scratchpadData = {};
+
+    let adminConfig = {
+      password: 'ayu888',
+      teacherEmail: 'krauser_ayu@mail.ylc.edu.tw',
+      gasWebhookUrl: 'https://script.google.com/macros/s/AKfycbx1WUZ2k9FKOM56AY2Kir7KUJWjx4Ym-UEOri4rh2bwkksRiQbiutLd9raIkgtZO23N9w/exec'
+    };
+    let isTeacherLoggedIn = false;
+
+    function updateBankCountBadge() {
+      const badge = document.getElementById('bank-count-badge');
+      if (badge) badge.textContent = questionBank.length;
+    }
+
+    function copyResultsToClipboard() {
+      const sName = document.getElementById('student-name')?.value.trim() || '未填寫姓名';
+      let correct = 0;
+      let answered = 0;
+      let details = '';
+
+      currentQuiz.forEach((q, idx) => {
+        const uAns = userAnswers[idx];
+        if (uAns !== undefined) {
+          answered++;
+          if (uAns === q.ans) correct++;
+          details += `第 ${idx + 1} 題：${uAns === q.ans ? '✅ 正確' : '❌ 錯誤'} (選 ${['A','B','C','D'][uAns]})\n`;
+        } else {
+          details += `第 ${idx + 1} 題：未作答\n`;
+        }
+      });
+
+      const summaryText = `【五上數學第 2 & 4 單元】作答成績單\n` +
+        `學生：${sName}\n` +
+        `得分：${correct * 10} 分（作答 ${answered}/10 題）\n` +
+        `時間：${new Date().toLocaleString()}\n\n` +
+        `-- 各題明細 --\n${details}`;
+
+      navigator.clipboard.writeText(summaryText).then(() => {
+        alert('📋 成績文字已複製到剪貼簿！');
+      }).catch(() => {
+        alert('請手動選取文字複製：\n\n' + summaryText);
+      });
+    }
+
+    function handleTeacherLoginClick() {
+      if (isTeacherLoggedIn) {
+        switchAdminTab('review');
+      } else {
+        openLoginModal();
+      }
+    }
+
+    function openLoginModal() {
+      document.getElementById('input-teacher-pwd').value = '';
+      document.getElementById('login-error-msg').classList.add('hidden');
+      const m = document.getElementById('login-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+      setTimeout(() => document.getElementById('input-teacher-pwd')?.focus(), 100);
+    }
+
+    function closeLoginModal() {
+      const m = document.getElementById('login-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function verifyTeacherPassword() {
+      const input = document.getElementById('input-teacher-pwd').value;
+      if (input === adminConfig.password) {
+        isTeacherLoggedIn = true;
+        closeLoginModal();
+        document.getElementById('teacher-sub-nav').classList.remove('hidden');
+        document.getElementById('btn-teacher-auth').innerHTML = '👨‍🏫 教師後台 (已解鎖)';
+        switchAdminTab('review');
+      } else {
+        document.getElementById('login-error-msg').classList.remove('hidden');
+      }
+    }
+
+    function logoutTeacher() {
+      isTeacherLoggedIn = false;
+      document.getElementById('teacher-sub-nav').classList.add('hidden');
+      document.getElementById('btn-teacher-auth').innerHTML = '🔒 教師後台登入';
+      switchStudentView();
+    }
+
+    function switchStudentView() {
+      hideAllViews();
+      document.getElementById('view-quiz').classList.remove('hidden');
+      document.getElementById('tab-btn-quiz').className = 'px-3.5 py-2 rounded-lg font-bold text-sm bg-white text-teal-700 shadow-sm transition';
+      setTimeout(() => {
+        currentQuiz.forEach((q, idx) => {
+          const c = document.getElementById('q-canvas-' + idx);
+          if (c) drawQuestionCanvas(c, q, userAnswers[idx] !== undefined);
+          redrawScratchpad(idx);
+        });
+      }, 50);
+    }
+
+    function switchAdminTab(tab) {
+      if (!isTeacherLoggedIn) {
+        openLoginModal();
+        return;
+      }
+      hideAllViews();
+      const adminTabs = ['review', 'bank', 'settings'];
+      adminTabs.forEach(t => {
+        const btn = document.getElementById('admin-tab-' + t);
+        if (btn) {
+          if (t === tab) {
+            btn.className = 'px-3 py-1.5 rounded-md font-bold bg-teal-800 text-white shadow-sm';
+          } else {
+            btn.className = 'px-3 py-1.5 rounded-md font-bold bg-teal-900 text-teal-200 hover:bg-teal-800';
+          }
+        }
+      });
+
+      const target = document.getElementById('view-' + tab);
+      if (target) target.classList.remove('hidden');
+
+      if (tab === 'review') renderTeacherReview();
+      if (tab === 'bank') renderBankList();
+      if (tab === 'settings') {
+        document.getElementById('cfg-gas-url').value = adminConfig.gasWebhookUrl;
+      }
+    }
+
+    function hideAllViews() {
+      ['view-quiz', 'view-review', 'view-bank', 'view-settings'].forEach(id => {
+        document.getElementById(id)?.classList.add('hidden');
+      });
+      document.getElementById('tab-btn-quiz').className = 'px-3.5 py-2 rounded-lg font-bold text-sm bg-teal-700 text-white hover:bg-teal-800 transition';
+    }
+
+    function saveAdminPassword() {
+      const p = document.getElementById('cfg-new-pwd').value.trim();
+      if (!p) {
+        alert('請輸入有效密碼！');
+        return;
+      }
+      adminConfig.password = p;
+      alert('後台管理密碼已成功更新！');
+      document.getElementById('cfg-new-pwd').value = '';
+    }
+
+    function saveSubmitConfig() {
+      adminConfig.gasWebhookUrl = document.getElementById('cfg-gas-url').value.trim();
+      alert('雲端設定已儲存！');
+    }
+
+    // ==================== 抽題核心 ====================
+    function startNewQuiz() {
+      const filterEl = document.getElementById('unit-filter');
+      const unitFilter = filterEl ? filterEl.value : 'all';
+      let pool = [];
+
+      if (unitFilter === 'all') {
+        pool = [...questionBank];
+      } else if (unitFilter === 'unit2') {
+        pool = questionBank.filter(q => q.cat.startsWith('2-'));
+      } else if (unitFilter === 'unit4') {
+        pool = questionBank.filter(q => q.cat.startsWith('4-'));
+      } else {
+        pool = questionBank.filter(q => q.cat === unitFilter);
+      }
+
+      if (pool.length === 0) pool = [...questionBank];
+
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+
+      currentQuiz = pool.slice(0, 10);
+      userAnswers = {};
+      scratchpadData = {};
+      updateScoreDisplay();
+      renderQuizCards();
+    }
+
+    function initScratchpadState(idx) {
+      if (!scratchpadData[idx]) {
+        scratchpadData[idx] = {
+          strokes: [],
+          currentColor: '#1d4ed8',
+          currentSize: 3,
+          isEraser: false,
+          height: 180,
+          typedMath: '',
+          teacherTag: '',
+          teacherComment: ''
+        };
+      }
+      return scratchpadData[idx];
+    }
+
+    function renderQuizCards() {
+      const container = document.getElementById('quiz-questions-container');
+      if (!container) return;
+
+      let html = '';
+      currentQuiz.forEach((q, idx) => {
+        const padState = initScratchpadState(idx);
+        html += `
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden print-break">
+            <div class="bg-slate-50 border-b border-slate-200 px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="bg-teal-600 text-white font-black px-3 py-1 rounded-lg text-sm">第 ${idx + 1} 題</span>
+                <span class="bg-teal-100 text-teal-800 font-bold px-2.5 py-0.5 rounded text-xs">單元 ${q.cat}</span>
+                <span id="q-status-badge-${idx}" class="text-xs font-bold text-slate-400">尚未作答</span>
+              </div>
+              <div class="flex items-center gap-2 no-print">
+                <button type="button" onclick="toggleHint(${idx})" class="px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-xs transition">
+                  💡 觀念提示
+                </button>
+                <button type="button" onclick="toggleSteps(${idx})" class="px-3 py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-xs transition">
+                  🧭 思考引導
+                </button>
+              </div>
+            </div>
+
+            <div class="p-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+              <div class="lg:col-span-7 space-y-4">
+                <p class="text-base md:text-lg font-bold text-slate-800 leading-relaxed">${q.q}</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="options-box-${idx}">
+                  ${q.options.map((opt, oIdx) => `
+                    <button type="button" onclick="selectAnswer(${idx}, ${oIdx})" id="opt-btn-${idx}-${oIdx}"
+                      class="text-left px-4 py-3 rounded-xl border-2 border-slate-200 hover:border-teal-500 hover:bg-teal-50/40 font-medium text-sm transition flex items-start gap-2">
+                      <span class="font-black text-teal-600">(${['A','B','C','D'][oIdx]})</span>
+                      <span class="flex-1">${opt}</span>
+                    </button>
+                  `).join('')}
+                </div>
+
+                <div id="hint-box-${idx}" class="hidden bg-amber-50 border-l-4 border-amber-400 p-3.5 rounded-r-xl text-sm text-amber-900">
+                  <div class="font-black mb-1">💡 學習小叮嚀：</div>
+                  <div>${q.hint}</div>
+                </div>
+
+                <div id="steps-box-${idx}" class="hidden bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-xl text-sm text-emerald-950 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-black text-emerald-800">🧭 概念推導步驟（請自行計算答案）：</span>
+                    <button type="button" onclick="revealNextStep(${idx})" id="next-step-btn-${idx}" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-2.5 py-1 rounded shadow-sm">
+                      顯示下一步 ➔
+                    </button>
+                  </div>
+                  <div id="step-item-${idx}-0" class="p-2 bg-white/80 rounded border border-emerald-200 font-medium">${q.steps[0] || ''}</div>
+                  <div id="step-item-${idx}-1" class="hidden p-2 bg-white/80 rounded border border-emerald-200 font-medium">${q.steps[1] || ''}</div>
+                  <div id="step-item-${idx}-2" class="hidden p-2 bg-white/80 rounded border border-emerald-200 font-medium">${q.steps[2] || ''}</div>
+                </div>
+              </div>
+
+              <div class="lg:col-span-5 flex flex-col items-center justify-center bg-slate-50 rounded-xl p-3 border border-slate-200 min-h-[220px]">
+                <canvas id="q-canvas-${idx}" width="340" height="210" class="max-w-full h-auto bg-white rounded-lg shadow-inner border border-slate-100"></canvas>
+                <span class="text-xs text-slate-500 font-bold mt-1.5">▲ 算式與圖形結構輔助圖示</span>
+              </div>
+            </div>
+
+            <div class="border-t border-slate-200 bg-slate-50/70 p-4 space-y-2.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-sm font-black text-slate-700">✍️ 手寫計算過程與思考草稿</span>
+                <div class="flex flex-wrap items-center gap-1.5 no-print">
+                  <button type="button" onclick="setPenTool(${idx}, '#1d4ed8', 3, false)" id="pen-blue-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-blue-600 text-white shadow-sm">🔵 藍筆</button>
+                  <button type="button" onclick="setPenTool(${idx}, '#1e293b', 3, false)" id="pen-black-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-slate-200 text-slate-700">⚫ 黑筆</button>
+                  <button type="button" onclick="setPenTool(${idx}, '#dc2626', 3, false)" id="pen-red-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-slate-200 text-slate-700">🔴 紅筆</button>
+                  <button type="button" onclick="setPenTool(${idx}, '#ffffff', 18, true)" id="pen-eraser-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-slate-200 text-slate-700">🧽 橡皮擦</button>
+                  <button type="button" onclick="undoScratchpad(${idx})" class="px-2.5 py-1 rounded text-xs font-bold bg-white border border-slate-300 text-slate-700 hover:bg-slate-100">↩️ 復原</button>
+                  <button type="button" onclick="clearScratchpad(${idx})" class="px-2.5 py-1 rounded text-xs font-bold bg-white border border-rose-300 text-rose-600 hover:bg-rose-50">🗑️ 清空</button>
+                </div>
+              </div>
+
+              <div class="border-2 border-dashed border-slate-300 rounded-xl overflow-hidden bg-white shadow-inner">
+                <canvas id="pad-canvas-${idx}" width="920" height="${padState.height}" class="w-full block grid-canvas-bg scratchpad-canvas"></canvas>
+              </div>
+
+              <div class="flex items-center gap-2 pt-1">
+                <span class="text-xs font-bold text-slate-500 whitespace-nowrap">⌨️ 鍵盤算式補充：</span>
+                <input type="text" id="typed-math-${idx}" value="${padState.typedMath}"
+                  oninput="updateTypedMath(${idx}, this.value)"
+                  placeholder="若不便手寫，亦可在此輸入文字算式或推論..."
+                  class="flex-1 text-xs border border-slate-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-teal-400" />
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+
+      window.requestAnimationFrame(() => {
+        currentQuiz.forEach((q, idx) => {
+          try {
+            const qCanvas = document.getElementById('q-canvas-' + idx);
+            if (qCanvas) drawQuestionCanvas(qCanvas, q, false);
+          } catch(e){}
+          try {
+            setupScratchpadEvents(idx);
+          } catch(e){}
+        });
+      });
+    }
+
+    function selectAnswer(qIdx, optIdx) {
+      userAnswers[qIdx] = optIdx;
+      const q = currentQuiz[qIdx];
+      const isCorrect = (optIdx === q.ans);
+
+      q.options.forEach((_, idx) => {
+        const btn = document.getElementById(`opt-btn-${qIdx}-${idx}`);
+        if (!btn) return;
+        if (idx === q.ans) {
+          btn.className = 'text-left px-4 py-3 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 font-bold text-sm transition flex items-start gap-2';
+        } else if (idx === optIdx && !isCorrect) {
+          btn.className = 'text-left px-4 py-3 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-900 font-bold text-sm transition flex items-start gap-2';
+        } else {
+          btn.className = 'text-left px-4 py-3 rounded-xl border-2 border-slate-200 opacity-60 font-medium text-sm transition flex items-start gap-2';
+        }
+      });
+
+      const badge = document.getElementById(`q-status-badge-${qIdx}`);
+      if (badge) {
+        if (isCorrect) {
+          badge.className = 'text-xs font-black text-emerald-600 bg-emerald-100 px-2.5 py-0.5 rounded';
+          badge.textContent = '✅ 答對了！(+10分)';
+        } else {
+          badge.className = 'text-xs font-black text-rose-600 bg-rose-100 px-2.5 py-0.5 rounded';
+          badge.textContent = '❌ 答錯了，請參考引導步驟推理';
+          document.getElementById(`hint-box-${qIdx}`)?.classList.remove('hidden');
+          document.getElementById(`steps-box-${qIdx}`)?.classList.remove('hidden');
+        }
+      }
+
+      const qCanvas = document.getElementById('q-canvas-' + qIdx);
+      if (qCanvas) drawQuestionCanvas(qCanvas, q, true);
+
+      updateScoreDisplay();
+    }
+
+    function updateScoreDisplay() {
+      let answered = 0;
+      let correct = 0;
+      currentQuiz.forEach((q, idx) => {
+        if (userAnswers[idx] !== undefined) {
+          answered++;
+          if (userAnswers[idx] === q.ans) correct++;
+        }
+      });
+      const scoreEl = document.getElementById('quiz-score');
+      const ansEl = document.getElementById('quiz-answered');
+      if (scoreEl) scoreEl.textContent = correct * 10;
+      if (ansEl) ansEl.textContent = answered;
+    }
+
+    function toggleHint(idx) {
+      document.getElementById('hint-box-' + idx)?.classList.toggle('hidden');
+    }
+
+    function toggleSteps(idx) {
+      document.getElementById('steps-box-' + idx)?.classList.toggle('hidden');
+    }
+
+    function revealNextStep(idx) {
+      const s1 = document.getElementById(`step-item-${idx}-1`);
+      const s2 = document.getElementById(`step-item-${idx}-2`);
+      const btn = document.getElementById(`next-step-btn-${idx}`);
+      if (s1 && s1.classList.contains('hidden')) {
+        s1.classList.remove('hidden');
+      } else if (s2 && s2.classList.contains('hidden')) {
+        s2.classList.remove('hidden');
+        if (btn) btn.textContent = '已顯示全部步驟 ✓';
+      }
+    }
+
+    // ==================== 學生一鍵提交雲端並自動合成 PDF ====================
+    async function submitWorkToTeacher() {
+      const sName = document.getElementById('student-name')?.value.trim();
+      if (!sName) {
+        alert('請先在最上方輸入「班級座號姓名」，才能交卷喔！');
+        document.getElementById('student-name')?.focus();
+        return;
+      }
+
+      let correct = 0;
+      let answered = 0;
+      const records = [];
+
+      currentQuiz.forEach((q, idx) => {
+        const uAns = userAnswers[idx];
+        const isAns = uAns !== undefined;
+        if (isAns) {
+          answered++;
+          if (uAns === q.ans) correct++;
+        }
+        const padCanvas = document.getElementById('pad-canvas-' + idx);
+        let dataUrl = '';
+        try {
+          dataUrl = padCanvas ? padCanvas.toDataURL('image/png') : '';
+        } catch(e){}
+        const padState = initScratchpadState(idx);
+
+        records.push({
+          qNum: idx + 1,
+          qText: q.q,
+          studentAns: isAns ? ['A','B','C','D'][uAns] : '未作答',
+          correctAns: ['A','B','C','D'][q.ans],
+          isCorrect: uAns === q.ans,
+          typedMath: padState.typedMath,
+          drawingBase64: dataUrl
+        });
+      });
+
+      const score = correct * 10;
+      const confirmSubmit = confirm(`確認要交卷嗎？\n\n學生：${sName}\n作答題數：${answered} / 10\n目前得分：${score} 分\n\n系統將自動把 10 題手寫算式合成為一份 PDF 存入顏老師的雲端硬碟！`);
+      if (!confirmSubmit) return;
+
+      const btn = document.getElementById('btn-submit-cloud');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ 正在合成 PDF 並上傳雲端，請稍候...';
+      }
+
+      try {
+        await fetch(adminConfig.gasWebhookUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            unit: '第2&4單元 倍數因數與公因公倍',
+            student: sName,
+            score: score,
+            answered: answered,
+            timestamp: new Date().toLocaleString(),
+            records: records
+          })
+        });
+        alert(`🎉 恭喜 ${sName}！\n\n你的成績（${score}分）與 10 題手寫白板筆跡已自動合成為單一 PDF 檔，成功存入顏老師的雲端硬碟中！`);
+      } catch (err) {
+        alert('雲端連線失敗，請通知老師或截圖畫面！');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '📄 一鍵生成單一完整 PDF 傳送給顏老師';
+        }
+      }
+    }
+
+    // ==================== 手寫板繪圖控制 ====================
+    function setupScratchpadEvents(idx) {
+      const canvas = document.getElementById('pad-canvas-' + idx);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const padState = initScratchpadState(idx);
+      redrawScratchpad(idx);
+
+      let isDrawing = false;
+      let currentStroke = null;
+
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / (rect.width || 1);
+        const scaleY = canvas.height / (rect.height || 1);
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        if (e.touches && e.touches.length > 0) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        }
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+        };
+      }
+
+      function startDraw(e) {
+        if (e.cancelable) e.preventDefault();
+        isDrawing = true;
+        const pos = getPos(e);
+        currentStroke = {
+          color: padState.currentColor,
+          size: padState.currentSize,
+          isEraser: padState.isEraser,
+          points: [pos]
+        };
+        padState.strokes.push(currentStroke);
+        drawSingleSegment(ctx, currentStroke, 0);
+      }
+
+      function moveDraw(e) {
+        if (!isDrawing || !currentStroke) return;
+        if (e.cancelable) e.preventDefault();
+        const pos = getPos(e);
+        currentStroke.points.push(pos);
+        drawSingleSegment(ctx, currentStroke, currentStroke.points.length - 1);
+      }
+
+      function endDraw() {
+        isDrawing = false;
+        currentStroke = null;
+      }
+
+      canvas.addEventListener('pointerdown', startDraw);
+      canvas.addEventListener('pointermove', moveDraw);
+      canvas.addEventListener('pointerup', endDraw);
+      canvas.addEventListener('pointerleave', endDraw);
+    }
+
+    function drawSingleSegment(ctx, stroke, ptIdx) {
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = stroke.size;
+      if (stroke.isEraser) {
+        ctx.globalCompositeOperation = 'destination-out';
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = stroke.color;
+      }
+
+      const pts = stroke.points;
+      ctx.beginPath();
+      if (ptIdx === 0) {
+        ctx.arc(pts[0].x, pts[0].y, stroke.size / 2, 0, Math.PI * 2);
+        ctx.fillStyle = stroke.isEraser ? 'rgba(0,0,0,1)' : stroke.color;
+        ctx.fill();
+      } else {
+        ctx.moveTo(pts[ptIdx - 1].x, pts[ptIdx - 1].y);
+        ctx.lineTo(pts[ptIdx].x, pts[ptIdx].y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function redrawScratchpad(idx) {
+      const canvas = document.getElementById('pad-canvas-' + idx);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const padState = initScratchpadState(idx);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      padState.strokes.forEach(stroke => {
+        for (let i = 0; i < stroke.points.length; i++) {
+          drawSingleSegment(ctx, stroke, i);
+        }
+      });
+    }
+
+    function setPenTool(idx, color, size, isEraser) {
+      const padState = initScratchpadState(idx);
+      padState.currentColor = color;
+      padState.currentSize = size;
+      padState.isEraser = isEraser;
+
+      const btns = [
+        { id: 'pen-blue-' + idx, active: !isEraser && color === '#1d4ed8', cls: 'bg-blue-600 text-white' },
+        { id: 'pen-black-' + idx, active: !isEraser && color === '#1e293b', cls: 'bg-slate-800 text-white' },
+        { id: 'pen-red-' + idx, active: !isEraser && color === '#dc2626', cls: 'bg-red-600 text-white' },
+        { id: 'pen-eraser-' + idx, active: isEraser, cls: 'bg-amber-600 text-white' }
+      ];
+      btns.forEach(b => {
+        const el = document.getElementById(b.id);
+        if (!el) return;
+        el.className = b.active
+          ? 'px-2.5 py-1 rounded text-xs font-bold shadow-sm ' + b.cls
+          : 'px-2.5 py-1 rounded text-xs font-bold bg-slate-200 text-slate-700';
+      });
+    }
+
+    function undoScratchpad(idx) {
+      const padState = initScratchpadState(idx);
+      if (padState.strokes.length > 0) {
+        padState.strokes.pop();
+        redrawScratchpad(idx);
+      }
+    }
+
+    function clearScratchpad(idx) {
+      const padState = initScratchpadState(idx);
+      padState.strokes = [];
+      redrawScratchpad(idx);
+    }
+
+    function expandScratchpad(idx) {
+      const padState = initScratchpadState(idx);
+      padState.height += 120;
+      const canvas = document.getElementById('pad-canvas-' + idx);
+      if (canvas) {
+        canvas.height = padState.height;
+        redrawScratchpad(idx);
+      }
+    }
+
+    function updateTypedMath(idx, val) {
+      const padState = initScratchpadState(idx);
+      padState.typedMath = val;
+    }
+
+    // ==================== 教師批改專區 ====================
+    function renderTeacherReview() {
+      const container = document.getElementById('review-cards-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      let answeredCount = 0;
+      let correctCount = 0;
+      let writtenCount = 0;
+      let gradedCount = 0;
+      const total = currentQuiz.length;
+
+      currentQuiz.forEach((q, idx) => {
+        const padState = initScratchpadState(idx);
+        const uAns = userAnswers[idx];
+        const isAnswered = uAns !== undefined;
+        const isCorrect = uAns === q.ans;
+        const hasWritten = padState.strokes.length > 0 || (padState.typedMath && padState.typedMath.trim() !== '');
+        const hasGraded = (padState.teacherTag && padState.teacherTag !== '') || (padState.teacherComment && padState.teacherComment.trim() !== '');
+
+        if (isAnswered) answeredCount++;
+        if (isCorrect) correctCount++;
+        if (hasWritten) writtenCount++;
+        if (hasGraded) gradedCount++;
+
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4 print-break';
+        card.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
+            <div class="flex items-center gap-2">
+              <span class="bg-teal-600 text-white font-black px-3 py-1 rounded-lg text-sm">第 ${idx + 1} 題</span>
+              <span class="text-xs font-bold px-2.5 py-1 rounded ${
+                !isAnswered ? 'bg-slate-100 text-slate-600' : isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+              }">
+                ${!isAnswered ? '未作答' : isCorrect ? '✅ 選擇題答對' : '❌ 選擇題答錯（學生選 ' + ['A','B','C','D'][uAns] + '，正解為 ' + ['A','B','C','D'][q.ans] + '）'}
+              </span>
+            </div>
+            <div class="text-xs font-bold text-teal-700">
+              ${padState.teacherTag ? '教師評定：' + padState.teacherTag : '尚未評定計算過程'}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            <div class="lg:col-span-5 space-y-2 text-sm">
+              <div class="font-bold text-slate-800">${q.q}</div>
+              <canvas id="review-geo-canvas-${idx}" width="280" height="175" class="bg-slate-50 rounded border border-slate-200"></canvas>
+              <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200 text-xs space-y-1">
+                <div class="font-black text-emerald-800">標準思考引導：</div>
+                ${q.steps.map(s => '<div>• ' + s + '</div>').join('')}
+              </div>
+            </div>
+
+            <div class="lg:col-span-7 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-black text-slate-700">📝 學生手寫算式（老師可直接以紅筆圈註批閱）：</span>
+                <button type="button" onclick="undoTeacherStroke(${idx})" class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded font-bold text-slate-700 no-print">
+                  ↩️ 復原老師紅筆
+                </button>
+              </div>
+              <div class="border-2 border-teal-200 rounded-xl overflow-hidden bg-white">
+                <canvas id="review-pad-canvas-${idx}" width="920" height="${padState.height}" class="w-full block grid-canvas-bg scratchpad-canvas"></canvas>
+              </div>
+              ${padState.typedMath ? '<div class="bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg text-xs"><span class="font-bold text-amber-800">⌨️ 學生鍵盤補充算式：</span> ' + padState.typedMath + '</div>' : ''}
+
+              <div class="bg-teal-50/70 p-3 rounded-xl border border-teal-100 space-y-2 no-print">
+                <div class="flex flex-wrap gap-1.5">
+                  ${['✅ 算式清楚、因倍數觀念正確', '⚠️ 計算粗心、除法有誤', '💡 請注意題意是求公因數或公倍數', '❓ 觀念混淆需訂正'].map(tag => `
+                    <button type="button" onclick="setTeacherTag(${idx}, '${tag}')"
+                      class="px-2.5 py-1 rounded-lg text-xs font-bold border transition ${
+                        padState.teacherTag === tag ? 'bg-teal-700 text-white border-teal-700' : 'bg-white text-slate-700 border-slate-300 hover:bg-teal-100'
+                      }">
+                      ${tag}
+                    </button>
+                  `).join('')}
+                </div>
+                <input type="text" value="${padState.teacherComment}"
+                  oninput="setTeacherComment(${idx}, this.value)"
+                  placeholder="輸入教師個別指導評語..."
+                  class="w-full text-xs border border-teal-200 rounded-lg px-3 py-1.5 bg-white" />
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      setTimeout(() => {
+        currentQuiz.forEach((q, idx) => {
+          const geoC = document.getElementById('review-geo-canvas-' + idx);
+          if (geoC) {
+            const tempC = document.createElement('canvas');
+            tempC.width = 340;
+            tempC.height = 210;
+            drawQuestionCanvas(tempC, q, true);
+            geoC.getContext('2d').drawImage(tempC, 0, 0, 280, 175);
+          }
+          setupTeacherReviewPad(idx);
+        });
+      }, 50);
+
+      const score = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+      document.getElementById('rev-stat-answered').textContent = answeredCount + ' / ' + total + ' 題';
+      document.getElementById('rev-stat-score').textContent = score + ' 分';
+      document.getElementById('rev-stat-written').textContent = writtenCount + ' / ' + total + ' 題';
+      document.getElementById('rev-stat-graded').textContent = gradedCount + ' / ' + total + ' 題';
+    }
+
+    function setupTeacherReviewPad(idx) {
+      const canvas = document.getElementById('review-pad-canvas-' + idx);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const padState = initScratchpadState(idx);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      padState.strokes.forEach(stroke => {
+        for (let i = 0; i < stroke.points.length; i++) {
+          drawSingleSegment(ctx, stroke, i);
+        }
+      });
+
+      let isDrawing = false;
+      let currentStroke = null;
+
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / (rect.width || 1);
+        const scaleY = canvas.height / (rect.height || 1);
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        if (e.touches && e.touches.length > 0) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        }
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+        };
+      }
+
+      canvas.addEventListener('pointerdown', e => {
+        if (e.cancelable) e.preventDefault();
+        isDrawing = true;
+        const pos = getPos(e);
+        currentStroke = { color: '#dc2626', size: 4, isEraser: false, points: [pos] };
+        padState.strokes.push(currentStroke);
+        drawSingleSegment(ctx, currentStroke, 0);
+      });
+
+      canvas.addEventListener('pointermove', e => {
+        if (!isDrawing || !currentStroke) return;
+        if (e.cancelable) e.preventDefault();
+        const pos = getPos(e);
+        currentStroke.points.push(pos);
+        drawSingleSegment(ctx, currentStroke, currentStroke.points.length - 1);
+      });
+
+      const stop = () => {
+        isDrawing = false;
+        currentStroke = null;
+      };
+      canvas.addEventListener('pointerup', stop);
+      canvas.addEventListener('pointerleave', stop);
+    }
+
+    function undoTeacherStroke(idx) {
+      const padState = initScratchpadState(idx);
+      if (padState.strokes.length > 0) {
+        padState.strokes.pop();
+        renderTeacherReview();
+      }
+    }
+
+    function setTeacherTag(idx, tag) {
+      const padState = initScratchpadState(idx);
+      padState.teacherTag = padState.teacherTag === tag ? '' : tag;
+      renderTeacherReview();
+    }
+
+    function setTeacherComment(idx, comment) {
+      const padState = initScratchpadState(idx);
+      padState.teacherComment = comment;
+    }
+
+    // ==================== 數學動態幾何與因倍數圖解引擎 ====================
+    function drawQuestionCanvas(canvas, q, showAns) {
+      if (!canvas || !q) return;
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width;
+      const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      ctx.save();
+      ctx.font = 'bold 13px "Noto Sans TC", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const d = q.draw || { type: 'mult_grid', a: 6, b: 8, label: '因倍數數線圖解' };
+
+      try {
+        if (d.type === 'mult_grid') {
+          ctx.strokeStyle = '#0d9488';
+          ctx.fillStyle = 'rgba(13, 148, 136, 0.15)';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(60, 45, 220, 110);
+          ctx.fillRect(60, 45, 220, 110);
+
+          ctx.fillStyle = '#0f766e';
+          ctx.font = 'bold 15px sans-serif';
+          ctx.fillText(d.label || `${d.a} × ${d.b}`, 170, 100);
+
+          ctx.font = '12px sans-serif';
+          ctx.fillStyle = '#64748b';
+          ctx.fillText(`長度分組：${d.a} 單位`, 170, 32);
+          ctx.fillText(`倍數個數：${d.b} 組`, 170, 175);
+
+        } else if (d.type === 'number_line') {
+          ctx.strokeStyle = '#0284c7';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(35, 110); ctx.lineTo(305, 110);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(300, 105); ctx.lineTo(310, 110); ctx.lineTo(300, 115);
+          ctx.fillStyle = '#0284c7'; ctx.fill();
+
+          ctx.font = '11px sans-serif';
+          const steps = 4;
+          for (let i = 0; i <= steps; i++) {
+            const x = 50 + i * 55;
+            const val = d.start + i * d.step;
+            ctx.beginPath();
+            ctx.moveTo(x, 105); ctx.lineTo(x, 115);
+            ctx.stroke();
+            ctx.fillStyle = '#334155';
+            ctx.fillText(val, x, 130);
+
+            if (i < steps) {
+              ctx.beginPath();
+              ctx.strokeStyle = '#f59e0b';
+              ctx.lineWidth = 1.5;
+              ctx.arc(x + 27.5, 105, 27.5, Math.PI, 0, false);
+              ctx.stroke();
+              ctx.fillStyle = '#b45309';
+              ctx.fillText(`+${d.step}`, x + 27.5, 70);
+            }
+          }
+          ctx.fillStyle = '#0369a1';
+          ctx.fillText(`數線尋找 ${d.step} 的倍數`, 170, 35);
+
+        } else if (d.type === 'division_box') {
+          ctx.strokeStyle = '#475569';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(110, 95); ctx.lineTo(135, 95);
+          ctx.arc(135, 115, 20, -Math.PI / 2, Math.PI / 2, true);
+          ctx.moveTo(135, 95); ctx.lineTo(225, 95);
+          ctx.stroke();
+
+          ctx.font = 'bold 16px sans-serif';
+          ctx.fillStyle = '#0f172a';
+          ctx.fillText(d.divisor, 115, 115);
+          ctx.fillText(d.dividend, 175, 115);
+
+          ctx.fillStyle = '#059669';
+          ctx.font = '12px sans-serif';
+          ctx.fillText('利用除法驗證餘數是否為 0', 170, 45);
+          ctx.fillText('整除 ➔ 除數是因數、被除數是倍數', 170, 165);
+
+        } else if (d.type === 'factor_pairs') {
+          ctx.strokeStyle = '#8b5cf6';
+          ctx.fillStyle = '#ede9fe';
+          ctx.lineWidth = 2;
+          ctx.roundRect(70, 45, 200, 110, 12);
+          ctx.fill(); ctx.stroke();
+
+          ctx.fillStyle = '#6d28d9';
+          ctx.font = 'bold 15px sans-serif';
+          ctx.fillText(`整數 ${d.num} 的因數分拆`, 170, 75);
+          ctx.font = '13px sans-serif';
+          ctx.fillStyle = '#4c1d95';
+          ctx.fillText('成對乘積尋找法：', 170, 105);
+          ctx.fillText('1 × ' + d.num + ' = ' + d.num + ' ...', 170, 130);
+
+        } else if (d.type === 'venn_lcm') {
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = '#2563eb';
+          ctx.fillStyle = 'rgba(37, 99, 235, 0.12)';
+          ctx.beginPath(); ctx.arc(135, 105, 50, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+          ctx.strokeStyle = '#f59e0b';
+          ctx.fillStyle = 'rgba(245, 158, 11, 0.12)';
+          ctx.beginPath(); ctx.arc(205, 105, 50, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+          ctx.fillStyle = '#1e3a8a'; ctx.fillText(`${d.a}的倍數`, 105, 105);
+          ctx.fillStyle = '#78350f'; ctx.fillText(`${d.b}的倍數`, 235, 105);
+          ctx.fillStyle = '#dc2626'; ctx.font = 'bold 13px sans-serif';
+          ctx.fillText(`最小公倍數`, 170, 95);
+          ctx.fillText(`${d.lcm}`, 170, 115);
+
+        } else if (d.type === 'venn_gcd') {
+          ctx.lineWidth = 2;
+          ctx.strokeStyle = '#059669';
+          ctx.fillStyle = 'rgba(5, 150, 105, 0.12)';
+          ctx.beginPath(); ctx.arc(135, 105, 50, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+          ctx.strokeStyle = '#7c3aed';
+          ctx.fillStyle = 'rgba(124, 58, 237, 0.12)';
+          ctx.beginPath(); ctx.arc(205, 105, 50, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+
+          ctx.fillStyle = '#064e3b'; ctx.fillText(`${d.a}的因數`, 105, 105);
+          ctx.fillStyle = '#4c1d95'; ctx.fillText(`${d.b}的因數`, 235, 105);
+          ctx.fillStyle = '#dc2626'; ctx.font = 'bold 13px sans-serif';
+          ctx.fillText(`最大公因數`, 170, 95);
+          ctx.fillText(`${d.gcd}`, 170, 115);
+
+        } else if (d.type === 'tile_square') {
+          ctx.strokeStyle = '#0891b2';
+          ctx.lineWidth = 2.5;
+          ctx.strokeRect(95, 40, 150, 150);
+
+          ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = '#94a3b8';
+          ctx.strokeRect(95, 40, 75, 50);
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = '#0e7490';
+          ctx.fillText(`瓷磚長 ${d.w}cm`, 132, 65);
+          ctx.fillText(`寬 ${d.h}cm`, 132, 80);
+          ctx.font = 'bold 12px sans-serif';
+          ctx.fillText(`目標：最小正方形邊長 = 公倍數`, 170, 155);
+
+        } else if (d.type === 'cut_grid') {
+          ctx.strokeStyle = '#4f46e5';
+          ctx.fillStyle = 'rgba(79, 70, 229, 0.08)';
+          ctx.lineWidth = 2.5;
+          ctx.fillRect(70, 50, 200, 120);
+          ctx.strokeRect(70, 50, 200, 120);
+
+          ctx.setLineDash([3, 3]);
+          ctx.strokeStyle = '#dc2626';
+          ctx.strokeRect(70, 50, 40, 40);
+          ctx.setLineDash([]);
+
+          ctx.fillStyle = '#312e81';
+          ctx.fillText(`長 ${d.w} cm`, 170, 40);
+          ctx.fillText(`寬 ${d.h} cm`, 50, 110);
+          ctx.fillStyle = '#b91c1c';
+          ctx.fillText(`最大正方形邊長 = 公因數`, 170, 130);
+
+        } else {
+          ctx.fillStyle = '#475569';
+          ctx.fillText('因數與倍數概念輔助圖示', W / 2, H / 2);
+        }
+      } catch (err) {
+        console.warn('Canvas 繪製警告:', err);
+      }
+
+      ctx.restore();
+    }
+
+    // ==================== 題庫列表與編輯 ====================
+    function renderBankList() {
+      const container = document.getElementById('bank-list-container');
+      if (!container) return;
+      const keyword = (document.getElementById('bank-search')?.value || '').trim().toLowerCase();
+      const catFilter = document.getElementById('bank-cat-filter')?.value || 'all';
+
+      const filtered = questionBank.filter(q => {
+        const matchCat = catFilter === 'all' || q.cat === catFilter;
+        const matchKw = !keyword || q.q.toLowerCase().includes(keyword) || q.hint.toLowerCase().includes(keyword);
+        return matchCat && matchKw;
+      });
+
+      container.innerHTML = filtered.map((q) => `
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/60 hover:bg-white transition flex flex-wrap items-start justify-between gap-3">
+          <div class="space-y-1 flex-1 min-w-[260px]">
+            <div class="flex items-center gap-2">
+              <span class="bg-teal-700 text-white text-xs font-bold px-2 py-0.5 rounded">#${q.id}</span>
+              <span class="bg-teal-100 text-teal-800 text-xs font-bold px-2 py-0.5 rounded">${q.cat}</span>
+              <span class="text-xs text-emerald-700 font-bold">正解：(${['A','B','C','D'][q.ans]}) ${q.options[q.ans]}</span>
+            </div>
+            <div class="font-bold text-sm text-slate-800">${q.q}</div>
+            <div class="text-xs text-slate-500">💡 提示：${q.hint}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="openEditModal(${q.id})" class="px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs shadow-sm">
+              ✏️ 編輯
+            </button>
+            <button type="button" onclick="deleteQuestion(${q.id})" class="px-3 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs">
+              🗑️ 刪除
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openEditModal(id) {
+      const q = questionBank.find(item => item.id === id);
+      if (!q) return;
+      document.getElementById('modal-title').textContent = '編輯題目 #' + q.id;
+      document.getElementById('edit-q-id').value = q.id;
+      document.getElementById('edit-q-cat').value = q.cat;
+      document.getElementById('edit-q-ans').value = q.ans;
+      document.getElementById('edit-q-text').value = q.q;
+      document.getElementById('edit-q-opt0').value = q.options[0] || '';
+      document.getElementById('edit-q-opt1').value = q.options[1] || '';
+      document.getElementById('edit-q-opt2').value = q.options[2] || '';
+      document.getElementById('edit-q-opt3').value = q.options[3] || '';
+      document.getElementById('edit-q-hint').value = q.hint || '';
+      document.getElementById('edit-q-step1').value = q.steps[0] || '';
+      document.getElementById('edit-q-step2').value = q.steps[1] || '';
+      document.getElementById('edit-q-step3').value = q.steps[2] || '';
+
+      const modal = document.getElementById('edit-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function openAddQuestionModal() {
+      const nextId = questionBank.length > 0 ? Math.max(...questionBank.map(q => q.id)) + 1 : 1;
+      document.getElementById('modal-title').textContent = '新增題目 #' + nextId;
+      document.getElementById('edit-q-id').value = 'NEW_' + nextId;
+      document.getElementById('edit-q-cat').value = '2-1';
+      document.getElementById('edit-q-ans').value = '0';
+      document.getElementById('edit-q-text').value = '';
+      document.getElementById('edit-q-opt0').value = '';
+      document.getElementById('edit-q-opt1').value = '';
+      document.getElementById('edit-q-opt2').value = '';
+      document.getElementById('edit-q-opt3').value = '';
+      document.getElementById('edit-q-hint').value = '';
+      document.getElementById('edit-q-step1').value = '步驟1：';
+      document.getElementById('edit-q-step2').value = '步驟2：';
+      document.getElementById('edit-q-step3').value = '步驟3：';
+
+      const modal = document.getElementById('edit-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById('edit-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveEditedQuestion() {
+      const rawId = document.getElementById('edit-q-id').value;
+      const cat = document.getElementById('edit-q-cat').value;
+      const ans = parseInt(document.getElementById('edit-q-ans').value, 10);
+      const text = document.getElementById('edit-q-text').value.trim();
+      const options = [
+        document.getElementById('edit-q-opt0').value.trim(),
+        document.getElementById('edit-q-opt1').value.trim(),
+        document.getElementById('edit-q-opt2').value.trim(),
+        document.getElementById('edit-q-opt3').value.trim()
+      ];
+      const hint = document.getElementById('edit-q-hint').value.trim();
+      const steps = [
+        document.getElementById('edit-q-step1').value.trim(),
+        document.getElementById('edit-q-step2').value.trim(),
+        document.getElementById('edit-q-step3').value.trim()
+      ].filter(Boolean);
+
+      if (!text) {
+        alert('請輸入題目敘述！');
+        return;
+      }
+
+      if (rawId.startsWith('NEW_')) {
+        const newId = parseInt(rawId.replace('NEW_', ''), 10);
+        questionBank.unshift({
+          id: newId, cat, q: text, options, ans, hint, steps,
+          draw: { type: 'mult_grid', a: 6, b: 8, label: '自訂題目' }
+        });
+      } else {
+        const id = parseInt(rawId, 10);
+        const q = questionBank.find(item => item.id === id);
+        if (q) {
+          q.cat = cat;
+          q.q = text;
+          q.options = options;
+          q.ans = ans;
+          q.hint = hint;
+          q.steps = steps;
+        }
+      }
+
+      updateBankCountBadge();
+      renderBankList();
+      closeEditModal();
+      startNewQuiz();
+    }
+
+    function deleteQuestion(id) {
+      if (!confirm('確定要刪除第 #' + id + ' 題嗎？')) return;
+      questionBank = questionBank.filter(q => q.id !== id);
+      updateBankCountBadge();
+      renderBankList();
+    }
+
+    function resetDefaultBank() {
+      if (!confirm('確定要還原為預設題庫嗎？新增或修改的題目將會重設。')) return;
+      questionBank = JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+      updateBankCountBadge();
+      renderBankList();
+      startNewQuiz();
+    }
+
+    // ==================== 安全下載 HTML 備份 ====================
+    function downloadStandaloneHTML() {
+      let fullSource = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      
+      const jsonBank = JSON.stringify(questionBank);
+      fullSource = fullSource.replace(
+        /const DEFAULT_QUESTIONS = \[[\s\S]*?\];\n\n    let questionBank/,
+        'const DEFAULT_QUESTIONS = ' + jsonBank + ';\n\n    let questionBank'
+      );
+
+      const jsonCfg = JSON.stringify(adminConfig);
+      fullSource = fullSource.replace(
+        /let adminConfig = \{[\s\S]*?\};/,
+        'let adminConfig = ' + jsonCfg + ';'
+      );
+
+      const blob = new Blob([fullSource], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '五上數學_單元2與4_因倍數特訓系統_備份.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // ==================== 啟動應用 ====================
+    function bootApp() {
+      try {
+        updateBankCountBadge();
+        startNewQuiz();
+      } catch (err) {
+        console.error('啟動失敗:', err);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootApp);
+    } else {
+      bootApp();
+    }
+  </script>
+</body>
+</html>
