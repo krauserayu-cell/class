@@ -1,0 +1,2210 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>五上數學：第5單元 立體形體（隨機選項答案版）</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+    }
+    .grid-canvas-bg {
+      background-color: #ffffff;
+      background-image: 
+        linear-gradient(to right, #e2e8f0 1px, transparent 1px),
+        linear-gradient(to bottom, #e2e8f0 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+    .scratchpad-canvas {
+      touch-action: none;
+      cursor: crosshair;
+    }
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      .print-break {
+        page-break-inside: avoid;
+      }
+      body {
+        background-color: #ffffff;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- 頂部導覽列 -->
+  <header class="bg-indigo-600 text-white shadow-md sticky top-0 z-40 no-print">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">🧊</span>
+        <div>
+          <h1 class="text-xl md:text-2xl font-black tracking-wide">五上數學：第 5 單元 立體形體</h1>
+          <p class="text-xs md:text-sm text-indigo-100 font-medium">答案全隨機分佈 · 概念思考引導 · 手寫白板自動合成單一PDF</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <button type="button" onclick="switchStudentView()" id="tab-btn-quiz" class="px-3.5 py-2 rounded-lg font-bold text-sm bg-white text-indigo-600 shadow-sm transition">
+          ✏️ 學生自主練習
+        </button>
+        <button type="button" onclick="window.print()" class="px-3.5 py-2 rounded-lg font-bold text-sm bg-slate-700 text-white hover:bg-slate-800 shadow-sm transition">
+          🖨️ 列印 / 存PDF
+        </button>
+        <button type="button" onclick="handleTeacherLoginClick()" id="btn-teacher-auth" class="px-3.5 py-2 rounded-lg font-bold text-sm bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition flex items-center gap-1.5">
+          🔒 教師後台登入
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 教師已登入管理列 -->
+  <nav id="teacher-sub-nav" class="bg-indigo-950 text-white border-b border-indigo-900 px-4 py-2 hidden no-print">
+    <div class="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div class="flex items-center gap-2">
+        <span class="bg-emerald-500 text-white font-black px-2 py-0.5 rounded">管理員已驗證</span>
+        <button type="button" onclick="switchAdminTab('review')" id="admin-tab-review" class="px-3 py-1.5 rounded-md font-bold bg-indigo-700 text-white hover:bg-indigo-600">
+          👨‍🏫 批改與學生筆跡檢視
+        </button>
+        <button type="button" onclick="switchAdminTab('bank')" id="admin-tab-bank" class="px-3 py-1.5 rounded-md font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700">
+          🛠️ 題庫管理 (<span id="bank-count-badge">50</span>)
+        </button>
+        <button type="button" onclick="switchAdminTab('settings')" id="admin-tab-settings" class="px-3 py-1.5 rounded-md font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700">
+          ⚙️ 雲端設定與密碼
+        </button>
+      </div>
+      <div class="flex items-center gap-2">
+        <button type="button" onclick="downloadStandaloneHTML()" class="px-3 py-1.5 rounded-md font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm">
+          💾 下載備份檔 (.html)
+        </button>
+        <button type="button" onclick="logoutTeacher()" class="px-2.5 py-1.5 rounded-md bg-rose-600 hover:bg-rose-700 text-white font-bold">
+          登出後台
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 主內容區 -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-4 py-6">
+
+    <!-- 頁面 1：學生練習區 -->
+    <section id="view-quiz" class="space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-indigo-200 p-4 md:p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-3">
+            <label class="text-sm font-bold text-slate-700">班級座號姓名：</label>
+            <input type="text" id="student-name" placeholder="例如：五年乙班 01號 王小明" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+            
+            <label class="text-sm font-bold text-slate-700 ml-2">出題範圍：</label>
+            <select id="unit-filter" onchange="startNewQuiz()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm font-medium bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+              <option value="all">第 5 單元 全部範圍（隨機抽 10 題）</option>
+              <option value="5-1">5-1 面的垂直與平行</option>
+              <option value="5-2">5-2 角柱與圓柱</option>
+              <option value="5-3">5-3 角錐與圓錐</option>
+              <option value="5-4">5-4 認識球與單元統整</option>
+            </select>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <div class="bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg text-sm font-bold text-indigo-800">
+              目前得分：<span id="quiz-score" class="text-lg text-indigo-600">0</span> / 100 分
+              （已作答 <span id="quiz-answered">0</span>/10）
+            </div>
+            <button type="button" onclick="startNewQuiz()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg text-sm shadow transition flex items-center gap-1 no-print">
+              🎲 重新抽 10 題
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 題目卡片容器 -->
+      <div id="quiz-questions-container" class="space-y-6"></div>
+
+      <!-- 底部作答完成與提交區 -->
+      <div class="bg-white rounded-2xl shadow-md border-2 border-emerald-300 p-6 text-center space-y-4 no-print">
+        <div class="space-y-1">
+          <h3 class="text-lg font-black text-slate-800">🎉 完成 10 道題目的作答與手寫計算了嗎？</h3>
+          <p class="text-xs text-slate-500">點擊下方按鈕，系統會將整份作答與 10 題手寫算式自動合成為一份 PDF 檔傳送給顏老師！</p>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-3">
+          <button type="button" id="btn-submit-cloud" onclick="submitWorkToTeacher()" class="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-base shadow-lg transition flex items-center gap-2">
+            📄 一鍵生成單一完整 PDF 傳送給顏老師
+          </button>
+          <button type="button" onclick="copyResultsToClipboard()" class="px-4 py-3 rounded-xl bg-slate-700 hover:bg-slate-800 text-white font-bold text-sm shadow transition flex items-center gap-2">
+            📋 複製成績文字
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 頁面 2：教師檢視與批改專區 -->
+    <section id="view-review" class="hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-indigo-200 p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-xl font-black text-indigo-900">👨‍🏫 學生作答與手寫算式批改</h2>
+            <p class="text-sm text-slate-600">老師可檢視學生每一題的作答與手寫白板草稿，並直接以紅筆圈註批註。</p>
+          </div>
+          <div class="flex gap-2 no-print">
+            <button type="button" onclick="window.print()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg text-sm shadow">
+              🖨️ 列印批改報告 / 存成 PDF
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+          <div>
+            <div class="text-xs text-indigo-600 font-bold">作答進度</div>
+            <div id="rev-stat-answered" class="text-xl font-black text-slate-800">0 / 10 題</div>
+          </div>
+          <div>
+            <div class="text-xs text-indigo-600 font-bold">選擇題得分</div>
+            <div id="rev-stat-score" class="text-xl font-black text-emerald-600">0 分</div>
+          </div>
+          <div>
+            <div class="text-xs text-indigo-600 font-bold">已寫計算過程</div>
+            <div id="rev-stat-written" class="text-xl font-black text-amber-600">0 / 10 題</div>
+          </div>
+          <div>
+            <div class="text-xs text-indigo-600 font-bold">教師已評閱</div>
+            <div id="rev-stat-graded" class="text-xl font-black text-indigo-600">0 / 10 題</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="review-cards-container" class="space-y-5"></div>
+    </section>
+
+    <!-- 頁面 3：題庫管理 -->
+    <section id="view-bank" class="hidden space-y-6 no-print">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+          <div>
+            <h2 class="text-xl font-black text-slate-800">🛠️ 第 5 單元 題庫管理與線上編輯</h2>
+            <p class="text-sm text-slate-600">您可以直接修改題目敘述、選項、答案或概念引導步驟。</p>
+          </div>
+          <div class="flex gap-2">
+            <button type="button" onclick="openAddQuestionModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg text-sm shadow">
+              ➕ 新增題目
+            </button>
+            <button type="button" onclick="resetDefaultBank()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2 rounded-lg text-sm">
+              🔄 還原預設 50 題
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2 mb-4">
+          <input type="text" id="bank-search" oninput="renderBankList()" placeholder="搜尋題目關鍵字..." class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm flex-1 min-w-[200px]" />
+          <select id="bank-cat-filter" onchange="renderBankList()" class="border border-slate-300 rounded-lg px-3 py-1.5 text-sm bg-slate-50">
+            <option value="all">所有小節 (50)</option>
+            <option value="5-1">5-1 面的垂直與平行</option>
+            <option value="5-2">5-2 角柱與圓柱</option>
+            <option value="5-3">5-3 角錐與圓錐</option>
+            <option value="5-4">5-4 認識球與單元統整</option>
+          </select>
+        </div>
+
+        <div id="bank-list-container" class="space-y-3 max-h-[650px] overflow-y-auto pr-1"></div>
+      </div>
+    </section>
+
+    <!-- 頁面 4：後台設定 -->
+    <section id="view-settings" class="hidden space-y-6 no-print">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-5">
+        <h2 class="text-xl font-black text-slate-800">⚙️ 系統安全性與雲端同步設定</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+            <h3 class="font-bold text-slate-800 text-sm">🔒 修改後台管理密碼</h3>
+            <div>
+              <label class="text-xs text-slate-500 block mb-1">新密碼：</label>
+              <input type="password" id="cfg-new-pwd" placeholder="請輸入新密碼" class="w-full border rounded-lg px-3 py-1.5 text-sm" />
+            </div>
+            <button type="button" onclick="saveAdminPassword()" class="px-4 py-1.5 rounded-lg bg-indigo-600 text-white font-bold text-xs shadow-sm hover:bg-indigo-700">儲存新密碼</button>
+          </div>
+
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+            <h3 class="font-bold text-slate-800 text-sm">🌐 Google Apps Script（自動產生PDF網址）</h3>
+            <p class="text-xs text-slate-500">已自動綁定您的雲端 Web App 網址：</p>
+            <div>
+              <input type="text" id="cfg-gas-url" class="w-full border rounded-lg px-3 py-1.5 text-xs text-slate-700 bg-slate-100" />
+            </div>
+            <button type="button" onclick="saveSubmitConfig()" class="px-4 py-1.5 rounded-lg bg-indigo-600 text-white font-bold text-xs shadow-sm hover:bg-indigo-700">更新設定</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 密碼登入 Modal -->
+  <div id="login-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b pb-2">
+        <h3 class="text-base font-black text-slate-800">🔒 教師後台密碼驗證</h3>
+        <button type="button" onclick="closeLoginModal()" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+      </div>
+      <div class="space-y-2">
+        <label class="text-xs text-slate-600 font-medium">請輸入教師管理密碼：</label>
+        <input type="password" id="input-teacher-pwd" onkeydown="if(event.key==='Enter')verifyTeacherPassword()" placeholder="請輸入密碼" class="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+        <p id="login-error-msg" class="text-xs text-rose-600 hidden font-bold">密碼不正確，請重新輸入！</p>
+      </div>
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="closeLoginModal()" class="px-3.5 py-1.5 rounded-lg bg-slate-200 text-slate-700 font-bold text-xs">取消</button>
+        <button type="button" onclick="verifyTeacherPassword()" class="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow">登入驗證</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 題目編輯 Modal -->
+  <div id="edit-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h3 id="modal-title" class="text-lg font-black text-slate-800">編輯題目</h3>
+        <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">✕</button>
+      </div>
+
+      <div class="space-y-3 text-sm">
+        <input type="hidden" id="edit-q-id" />
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">單元小節</label>
+            <select id="edit-q-cat" class="w-full border rounded-lg px-3 py-2">
+              <option value="5-1">5-1 面的垂直與平行</option>
+              <option value="5-2">5-2 角柱與圓柱</option>
+              <option value="5-3">5-3 角錐與圓錐</option>
+              <option value="5-4">5-4 認識球與單元統整</option>
+            </select>
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">正確答案選項 (0=A, 1=B, 2=C, 3=D)</label>
+            <select id="edit-q-ans" class="w-full border rounded-lg px-3 py-2">
+              <option value="0">選項 (A)</option>
+              <option value="1">選項 (B)</option>
+              <option value="2">選項 (C)</option>
+              <option value="3">選項 (D)</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="font-bold text-slate-700 block mb-1">題目敘述</label>
+          <textarea id="edit-q-text" rows="2" class="w-full border rounded-lg px-3 py-2"></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">選項 (A)</label>
+            <input type="text" id="edit-q-opt0" class="w-full border rounded-lg px-3 py-1.5" />
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">選項 (B)</label>
+            <input type="text" id="edit-q-opt1" class="w-full border rounded-lg px-3 py-1.5" />
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">選項 (C)</label>
+            <input type="text" id="edit-q-opt2" class="w-full border rounded-lg px-3 py-1.5" />
+          </div>
+          <div>
+            <label class="font-bold text-slate-700 block mb-1">選項 (D)</label>
+            <input type="text" id="edit-q-opt3" class="w-full border rounded-lg px-3 py-1.5" />
+          </div>
+        </div>
+
+        <div>
+          <label class="font-bold text-amber-700 block mb-1">💡 學習小叮嚀（提示）</label>
+          <input type="text" id="edit-q-hint" class="w-full border border-amber-300 rounded-lg px-3 py-1.5 bg-amber-50" />
+        </div>
+
+        <div class="space-y-2">
+          <label class="font-bold text-emerald-700 block">🧭 概念解題引導三步驟（無答案，純思考引導）</label>
+          <input type="text" id="edit-q-step1" placeholder="步驟 1..." class="w-full border border-emerald-300 rounded-lg px-3 py-1.5 bg-emerald-50" />
+          <input type="text" id="edit-q-step2" placeholder="步驟 2..." class="w-full border border-emerald-300 rounded-lg px-3 py-1.5 bg-emerald-50" />
+          <input type="text" id="edit-q-step3" placeholder="步驟 3..." class="w-full border border-emerald-300 rounded-lg px-3 py-1.5 bg-emerald-50" />
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-3 border-t">
+        <button type="button" onclick="closeEditModal()" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-700 font-bold text-sm">取消</button>
+        <button type="button" onclick="saveEditedQuestion()" class="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow">儲存修改</button>
+      </div>
+    </div>
+  </div>
+
+  <script id="main-app-script">
+    // ==================== 50 題題庫（答案全數隨機分佈 A/B/C/D） ====================
+    const DEFAULT_QUESTIONS = [
+      // ---------- 5-1 面的垂直與平行 (1~12題) ----------
+      {
+        id: 1, cat: '5-1',
+        q: '【課本P.66例1】觀察生活中的物品，冰箱關上門時，冰箱的「側面」和「頂面」有什麼垂直或平行的關係？',
+        options: ['互相平行', '互相垂直', '既不垂直也不平行', '重疊在一起'],
+        ans: 1, // 正解 B
+        hint: '想想看，正方體或長方體相鄰的兩個面相交夾成什麼角度？',
+        steps: [
+          '步驟1：將冰箱的外觀視為一個立體的長方體結構。',
+          '步驟2：觀察側面與頂面：兩面相鄰並交於一條邊，且夾角為 90 度直角。',
+          '步驟3：回想長方體「相鄰的面」之幾何關係定理。'
+        ],
+        draw: { type: 'cuboid_face', highlight: 'adj' }
+      },
+      {
+        id: 2, cat: '5-1',
+        q: '【課本P.66例3】將兩張平整的紙卡立在桌面上，如果要檢驗這兩張紙卡是否「互相垂直」，可以用下列哪一種工具來貼合檢驗？',
+        options: ['圓柱體模型', '圓錐體模型', '正方體或長方體模型', '球體模型'],
+        ans: 2, // 正解 C
+        hint: '哪一種立體形體本身就具有完全標準的直角面？',
+        steps: [
+          '步驟1：垂直代表面與面之間的夾角為直角（90度）。',
+          '步驟2：檢查選項中形體的面特徵：正方體或長方體的相鄰兩面必然互相垂直。',
+          '步驟3：利用長方體相鄰兩面與兩張紙卡完全密合，即可檢驗是否垂直。'
+        ],
+        draw: { type: 'cuboid_check' }
+      },
+      {
+        id: 3, cat: '5-1',
+        q: '【課本P.66】在一個長方體中，任選一個面，請問這個面一共有幾個和它相鄰的面？',
+        options: ['2 個', '3 個', '5 個', '4 個'],
+        ans: 3, // 正解 D
+        hint: '長方體共有 6 個面，扣除自己和對面的面，剩下周圍有幾個面？',
+        steps: [
+          '步驟1：確認長方體共有 6 個面。',
+          '步驟2：任選一個面作為基準面，正對面只有 1 個互相平行的相對面。',
+          '步驟3：計算圍繞在它四周且各有一條共用邊相接的面有幾個。'
+        ],
+        draw: { type: 'cuboid_net' }
+      },
+      {
+        id: 4, cat: '5-1',
+        q: '【習作P.38第4題】關於長方體與正方體面與面的關係，下列哪一個敘述是正確的？',
+        options: ['長方體中，相鄰的面都互相垂直', '長方體中，相對的面都互相垂直', '正方體中，相鄰的面都互相平行', '正方體中，相鄰的面既不垂直也不平行'],
+        ans: 0, // 正解 A
+        hint: '相鄰是黏在一起的兩個面，相對是面對面不相交的兩個面喔！',
+        steps: [
+          '步驟1：回想「相鄰」與「相對」的定義區別。',
+          '步驟2：相鄰的面有共同交線，彼此夾角為 90 度。',
+          '步驟3：相對的面彼此距離處處相等，兩面永遠不相交。'
+        ],
+        draw: { type: 'cuboid_face', highlight: 'adj' }
+      },
+      {
+        id: 5, cat: '5-1',
+        q: '【習作P.38】日常教室空間中，教室的「天花板」和「地板」有什麼空間關係？',
+        options: ['互相垂直', '互相平行', '相交成銳角', '相鄰相接'],
+        ans: 1, // 正解 B
+        hint: '天花板在最上面，地板在最下面，兩者面對面且距離一樣高。',
+        steps: [
+          '步驟1：將教室整體空間想像成一個大型的長方體。',
+          '步驟2：天花板為頂面，地板為底面，兩者為面對面的相對面。',
+          '步驟3：長方體相對的面彼此距離處處相等，判斷其幾何關係。'
+        ],
+        draw: { type: 'cuboid_face', highlight: 'opp' }
+      },
+      {
+        id: 6, cat: '5-1',
+        q: '【習作P.38】教室的「地板」和四面的「牆壁」，彼此的空間關係是什麼？',
+        options: ['互相平行', '互相重疊', '互相垂直', '無法判斷'],
+        ans: 2, // 正解 C
+        hint: '牆壁垂直豎立在地板上，相交接的地方形成踢腳線。',
+        steps: [
+          '步驟1：地板與每一面牆壁都有一條邊線相接，屬於相鄰的面。',
+          '步驟2：牆壁垂直直立於地面，夾角為直角。',
+          '步驟3：長方體中底面與四周的相鄰側面皆具備何種關係。'
+        ],
+        draw: { type: 'cuboid_face', highlight: 'adj' }
+      },
+      {
+        id: 7, cat: '5-1',
+        q: '【課本P.68例5】書櫃的各層置物隔板（層板），在安裝時層板與層板之間應該保持什麼關係，擺放物品才不會歪斜？',
+        options: ['互相垂直', '互相交叉', '傾斜相接', '互相平行'],
+        ans: 3, // 正解 D
+        hint: '兩片層板兩端高度必須一樣高，才不會一高一低。',
+        steps: [
+          '步驟1：觀察生活中書櫃的層板構造。',
+          '步驟2：層板之間要讓左右兩端距離固定相等。',
+          '步驟3：兩平面之間各處距離皆相等時，兩平面具備何種關係。'
+        ],
+        draw: { type: 'cuboid_shelves' }
+      },
+      {
+        id: 8, cat: '5-1',
+        q: '【課本P.69例7】如圖長方體 ABCD-EFGH 中，面 ABCD（頂面）和底部的面 EFGH（底面）是什麼關係？',
+        options: ['互相平行', '互相垂直', '互相重合', '相交一條線'],
+        ans: 0, // 正解 A
+        hint: '這是最上方和最下方的兩個面，四個垂直邊長度都一樣。',
+        steps: [
+          '步驟1：觀察長方體的頂點代號：面 ABCD 位於頂部，面 EFGH 位於底部。',
+          '步驟2：四條高 AE、BF、CG、DH 長度均相等，代表兩面距離固定。',
+          '步驟3：相對的面具備何種空間幾何特性。'
+        ],
+        draw: { type: 'cuboid_labeled', focus: 'parallel' }
+      },
+      {
+        id: 9, cat: '5-1',
+        q: '【課本P.69例7】在長方體 ABCD-EFGH 中，與面 ABCD（頂面）「互相垂直」的面一共有幾個？',
+        options: ['2 個', '4 個', '1 個', '0 個'],
+        ans: 1, // 正解 B
+        hint: '頂面四周相鄰的立面（前、後、左、右）都會和頂面垂直。',
+        steps: [
+          '步驟1：在長方體中，與一個面垂直的面必定是與它相鄰的面。',
+          '步驟2：面 ABCD 周圍有面 ABFE、面 BCGF、面 CDHG、面 DAEH 與它相接。',
+          '步驟3：計算圍繞在頂面四周的立面總共有幾個。'
+        ],
+        draw: { type: 'cuboid_labeled', focus: 'vertical' }
+      },
+      {
+        id: 10, cat: '5-1',
+        q: '【課本P.68】在正方體中，如果甲面和乙面互相垂直，乙面和丙面互相垂直，那麼甲面和丙面「不可能」是什麼關係？',
+        options: ['互相平行', '互相垂直', '相交成 45 度角', '以上皆可能'],
+        ans: 2, // 正解 C
+        hint: '正方體的面只有兩種夾角關係：90度（相鄰垂直）或 180度/平行（面對面）。',
+        steps: [
+          '步驟1：正方體共有 6 個完全相同的正方形面。',
+          '步驟2：正方體任兩面之間，只有「相鄰互相垂直」或「相對互相平行」兩種情況。',
+          '步驟3：正方體中絕對不會出現 45 度或任意斜角關係。'
+        ],
+        draw: { type: 'cuboid_face', highlight: 'adj' }
+      },
+      {
+        id: 11, cat: '5-1',
+        q: '【習作P.39第5題】長方體中，面 ABFE（前側面）和面 DCGH（後側面）是一雙相對的面，它們有什麼關係？',
+        options: ['互相垂直', '相鄰交會', '互為銳角', '互相平行'],
+        ans: 3, // 正解 D
+        hint: '一個是前面的面，一個是後面的面，面對面永不相交。',
+        steps: [
+          '步驟1：找出面 ABFE 與面 DCGH 在長方體透視圖中的對應位置。',
+          '步驟2：確認這兩個面分別為正前側與正後側，沒有任何共用邊。',
+          '步驟3：長方體相對的兩面必然互相平行。'
+        ],
+        draw: { type: 'cuboid_labeled', focus: 'front_back' }
+      },
+      {
+        id: 12, cat: '5-1',
+        q: '【課本P.67】下列關於「垂直」的敘述，哪一個是錯誤的？',
+        options: ['長方體中，相對的兩個面會互相垂直', '兩平面相交且夾角為 90 度，稱為互相垂直', '長方體中，底面和四個側面都互相垂直', '正方體相鄰的兩個面一定互相垂直'],
+        ans: 0, // 正解 A
+        hint: '相對的面是面對面，它們永遠不相交喔！',
+        steps: [
+          '步驟1：審視垂直的定義：兩面相接且夾角為 90 度直角。',
+          '步驟2：長方體相鄰的面有交線且為直角，因此垂直。',
+          '步驟3：相對的面是平行而非垂直，檢出錯誤敘述。'
+        ],
+        draw: { type: 'cuboid_face', highlight: 'opp' }
+      },
+
+      // ---------- 5-2 角柱與圓柱 (13~27題) ----------
+      {
+        id: 13, cat: '5-2',
+        q: '【課本P.70例1】立體形體可以分成「柱體」與「錐體」兩大類。請問「柱體」最主要的外觀特徵是什麼？',
+        options: ['頂端有一個尖尖的頂點', '上、下各有一個平平且全等的底面，像柱子一樣', '側面全部都是三角形', '只有一個平平的底面'],
+        ans: 1, // 正解 B
+        hint: '柱體就像支撐房子的柱子，上下是一樣粗細的。',
+        steps: [
+          '步驟1：回想柱體與錐體的分類活動。',
+          '步驟2：錐體頂端尖尖且只有一個底面；柱體上下有兩個大小形狀一樣的面。',
+          '步驟3：歸納柱體上下兩個全等平面的特徵。'
+        ],
+        draw: { type: 'prism_tri' }
+      },
+      {
+        id: 14, cat: '5-2',
+        q: '【課本P.71例3】角柱的「側面」通常都是什麼形狀？',
+        options: ['三角形', '圓形', '長方形（或正方形）', '梯形'],
+        ans: 2, // 正解 C
+        hint: '想像把角柱的側面展開攤平，每一面立面都是直挺挺的。',
+        steps: [
+          '步驟1：觀察三角柱、四角柱、五角柱等直角柱的側面。',
+          '步驟2：底面與側面互相垂直，連接上下兩底面對應邊所形成的立面。',
+          '步驟3：直角柱的每一個側面都是長方形（特殊情況下為正方形）。'
+        ],
+        draw: { type: 'prism_rect_face' }
+      },
+      {
+        id: 15, cat: '5-2',
+        q: '【課本P.71例4】角柱命名是依照什麼部位的形狀來決定的？',
+        options: ['側面的形狀', '頂點的形狀', '高的大小', '底面的形狀'],
+        ans: 3, // 正解 D
+        hint: '例如底面是三角形就叫三角柱，底面是五邊形就叫五角柱。',
+        steps: [
+          '步驟1：回想角柱的命名規則。',
+          '步驟2：所有角柱的側面都是長方形，無法作為命名的區別依據。',
+          '步驟3：上、下兩底面的多邊形邊數與形狀是命名的唯一關鍵。'
+        ],
+        draw: { type: 'prism_pent' }
+      },
+      {
+        id: 16, cat: '5-2',
+        q: '【課本P.72例6】一個「五角柱」一共有幾個底面、幾個側面？',
+        options: ['2 個底面、5 個側面', '1 個底面、5 個側面', '2 個底面、10 個側面', '5 個底面、2 個側面'],
+        ans: 0, // 正解 A
+        hint: '角柱一律有上下 2 個底面；底面是幾邊形，側面就有幾個長方形。',
+        steps: [
+          '步驟1：確認柱體結構：上、下各有一個底面，所以底面固定為 2 個。',
+          '步驟2：五角柱底面為五邊形，有 5 條邊。',
+          '步驟3：底面的每一條邊都會向上延伸形成一個長方形側面，故有 5 個側面。'
+        ],
+        draw: { type: 'prism_pent' }
+      },
+      {
+        id: 17, cat: '5-2',
+        q: '【習作P.42第5題】「三角柱」一共有幾個頂點、幾條邊、幾個面？',
+        options: ['3 個頂點、6 條邊、5 個面', '6 個頂點、9 條邊、5 個面', '6 個頂點、6 條邊、3 個面', '5 個頂點、9 條邊、6 個面'],
+        ans: 1, // 正解 B
+        hint: '三角柱頂點：3×2；邊：3×3；面：3+2。',
+        steps: [
+          '步驟1：頂點數：上底面 3 個頂點 + 下底面 3 個頂點 = 3 × 2 = 6 個。',
+          '步驟2：邊數：上底 3 條 + 下底 3 條 + 側面 3 條高 = 3 × 3 = 9 條。',
+          '步驟3：面數：2 個三角形底面 + 3 個長方形側面 = 3 + 2 = 5 個面。'
+        ],
+        draw: { type: 'prism_tri' }
+      },
+      {
+        id: 18, cat: '5-2',
+        q: '【課本P.72公式歸納】若一個角柱底面是「n 邊形」，則這個角柱的「所有邊數」可以怎麼計算？',
+        options: ['n × 2', 'n + 2', 'n × 3', 'n × 1'],
+        ans: 2, // 正解 C
+        hint: '上底面有 n 條邊、下底面有 n 條邊、側面柱高有 n 條邊。',
+        steps: [
+          '步驟1：分析角柱所有邊的分佈區域。',
+          '步驟2：頂部底面有 n 條邊，底部底面也有 n 條邊，中間垂直邊有 n 條。',
+          '步驟3：三組加總：n + n + n = n × 3 條邊。'
+        ],
+        draw: { type: 'prism_hex' }
+      },
+      {
+        id: 19, cat: '5-2',
+        q: '【課本P.72公式歸納】若一個角柱底面是「n 邊形」，則這個角柱的「所有頂點數」是多少？',
+        options: ['n × 3', 'n + 2', 'n + 1', 'n × 2'],
+        ans: 3, // 正解 D
+        hint: '只有上底面有 n 個頂點，下底面有 n 個頂點，側面中間沒有頂點。',
+        steps: [
+          '步驟1：觀察角柱頂點的分佈位置。',
+          '步驟2：頂點只會出現在上底面與下底面的轉角處。',
+          '步驟3：上下兩層各 n 個頂點，總頂點數 = n × 2。'
+        ],
+        draw: { type: 'prism_pent' }
+      },
+      {
+        id: 20, cat: '5-2',
+        q: '【習作P.42】一個「六角柱」一共有幾條邊？',
+        options: ['18 條', '12 條', '24 條', '8 條'],
+        ans: 0, // 正解 A
+        hint: '底面是六邊形（n=6），邊數計算為 6 × 3。',
+        steps: [
+          '步驟1：確認六角柱底面邊數為 6。',
+          '步驟2：應用角柱邊數公式：底面邊數 × 3。',
+          '步驟3：計算 6 × 3 求出總邊數。'
+        ],
+        draw: { type: 'prism_hex' }
+      },
+      {
+        id: 21, cat: '5-2',
+        q: '【課本P.73例7】在五角柱中，兩個五邊形底面之間的空間關係是什麼？',
+        options: ['互相垂直', '互相平行且全等', '相交成銳角', '大小不同但互相平行'],
+        ans: 1, // 正解 B
+        hint: '角柱的兩個底面形狀大小完全相同，而且彼此處處等距。',
+        steps: [
+          '步驟1：檢視角柱的基本定義。',
+          '步驟2：所有側面的高長度均相等，使上底面與下底面距離固定。',
+          '步驟3：兩底面彼此面對面永不相交，故互相平行且形狀完全全等。'
+        ],
+        draw: { type: 'prism_pent' }
+      },
+      {
+        id: 22, cat: '5-2',
+        q: '【課本P.73例7】在角柱中，每一個「側面」與「底面」之間的關係是什麼？',
+        options: ['互相平行', '相交成 45 度角', '互相垂直', '重疊'],
+        ans: 2, // 正解 C
+        hint: '直立角柱的側面就像直立的牆壁立在地板上。',
+        steps: [
+          '步驟1：用長方體模型檢驗角柱的側面與底面。',
+          '步驟2：直角柱的每一條側面邊都垂直於底面。',
+          '步驟3：側面長方形與底面多邊形相接處均為 90 度垂直關係。'
+        ],
+        draw: { type: 'prism_tri' }
+      },
+      {
+        id: 23, cat: '5-2',
+        q: '【課本P.74例8】關於「圓柱」的構造特徵，下列哪一個敘述是正確的？',
+        options: ['側面展開是一個三角形', '只有一個圓形底面', '側面由許多個長方形拼成', '有兩個全等且互相平行的圓形底面，側面是曲面'],
+        ans: 3, // 正解 D
+        hint: '圓柱就像茶葉罐或易開罐，上下是圓形，周圍是光滑彎曲的曲面。',
+        steps: [
+          '步驟1：觀察圓柱實體模型（如洋芋片圓罐）。',
+          '步驟2：上底與下底都是圓形，大小相同且互相平行。',
+          '步驟3：圓柱周圍沒有稜角，是一個彎曲平滑的側面（曲面）。'
+        ],
+        draw: { type: 'cylinder' }
+      },
+      {
+        id: 24, cat: '5-2',
+        q: '【課本P.74例9】將一個圓柱的側面「沿著垂直於底面的直線」剪開攤平，側面的展開圖會是什麼形狀？',
+        options: ['長方形（或正方形）', '扇形', '圓形', '三角形'],
+        ans: 0, // 正解 A
+        hint: '想像把圓柱形罐頭的包裝標籤紙撕下來攤平。',
+        steps: [
+          '步驟1：圓柱側面沿高垂直切開展開。',
+          '步驟2：展開後的上下兩邊長度剛好等於圓形底面的圓周長，左右兩邊等於柱高。',
+          '步驟3：四個角都是直角，形成標準的長方形。'
+        ],
+        draw: { type: 'cylinder_net' }
+      },
+      {
+        id: 25, cat: '5-2',
+        q: '【習作P.41例4】一個底面每邊長 6 公分的「正五角柱」，高為 3 公分。請問它的側面展開後是由 5 個什麼規格的長方形組成的？',
+        options: ['長 6 公分、寬 6 公分的正方形', '長 6 公分、寬 3 公分的長方形', '長 3 公分、寬 3 公分的正方形', '長 5 公分、寬 3 公分的長方形'],
+        ans: 1, // 正解 B
+        hint: '側面的邊長分別對應底面的一邊長（6cm）與角柱的高（3cm）。',
+        steps: [
+          '步驟1：正五角柱的底面是正五邊形，每邊長皆為 6 公分。',
+          '步驟2：五角柱的高為 3 公分，代表側面長方形的柱高為 3 公分。',
+          '步驟3：每個側面長方形長寬分別為底面邊長與柱高，即 6cm × 3cm。'
+        ],
+        draw: { type: 'prism_pent' }
+      },
+      {
+        id: 26, cat: '5-2',
+        q: '【統整概念】有一個角柱一共有 14 個頂點，請問這個角柱是什麼角柱？',
+        options: ['十四角柱', '六角柱', '七角柱', '八角柱'],
+        ans: 2, // 正解 C
+        hint: '角柱頂點數 = 底面邊數 × 2，用 14 ÷ 2 算算看！',
+        steps: [
+          '步驟1：回想角柱頂點數與底面邊數的關係公式：頂點數 = 底面邊數 × 2。',
+          '步驟2：已知總頂點數為 14，列式計算：14 ÷ 2 = 7。',
+          '步驟3：底面是七邊形，故該立體為七角柱。'
+        ],
+        draw: { type: 'prism_hex' }
+      },
+      {
+        id: 27, cat: '5-2',
+        q: '【統整概念】有一個角柱一共有 10 個面，請問這個角柱是什麼角柱？',
+        options: ['十角柱', '九角柱', '七角柱', '八角柱'],
+        ans: 3, // 正解 D
+        hint: '角柱總面數 = 側面數 + 2 個底面，用 10 - 2 算出側面數！',
+        steps: [
+          '步驟1：角柱的總面數 = 底面邊數（側面數） + 2（上下兩底面）。',
+          '步驟2：已知總面數為 10，扣除 2 個底面：10 - 2 = 8 個側面。',
+          '步驟3：側面有 8 個長方形，代表底面是八邊形，所以是八角柱。'
+        ],
+        draw: { type: 'prism_hex' }
+      },
+
+      // ---------- 5-3 角錐與圓錐 (28~40題) ----------
+      {
+        id: 28, cat: '5-3',
+        q: '【課本P.75例1】「角錐」與「角柱」在構造上有一個最大的不同點，下列哪一項是角錐的特徵？',
+        options: ['只有 1 個多邊形底面，頂端有一個尖尖的頂點', '有 2 個平行的底面', '側面全部都是長方形', '側面是平滑的曲面'],
+        ans: 0, // 正解 A
+        hint: '角錐就像埃及金字塔，頂部匯聚成一點，底部只有一個底面。',
+        steps: [
+          '步驟1：比較角柱與角錐模型。',
+          '步驟2：角柱有 2 個底面且側面是長方形；角錐只有 1 個底面。',
+          '步驟3：角錐的所有側面向上交會於頂端唯一的一點。'
+        ],
+        draw: { type: 'pyramid_quad' }
+      },
+      {
+        id: 29, cat: '5-3',
+        q: '【課本P.75例2】角錐的「側面」全部都是什麼形狀？',
+        options: ['長方形', '三角形', '五邊形', '圓形'],
+        ans: 1, // 正解 B
+        hint: '側面從底面邊緣向上收攏到頂點，三條邊圍成什麼形狀？',
+        steps: [
+          '步驟1：觀察三角錐、四角錐、五角錐的側面。',
+          '步驟2：側面的底邊是底面多邊形的一條邊，另兩邊向上交會於同一個頂點。',
+          '步驟3：由三條邊所圍成的封閉側面必定為三角形。'
+        ],
+        draw: { type: 'pyramid_tri' }
+      },
+      {
+        id: 30, cat: '5-3',
+        q: '【課本P.75例3】角錐的命名依據是什麼？',
+        options: ['側面的形狀', '錐體的高度', '底面的形狀', '頂點的個數'],
+        ans: 2, // 正解 C
+        hint: '底面是三角形就叫三角錐，底面是四邊形就叫四角錐。',
+        steps: [
+          '步驟1：所有角錐的側面都是三角形，無法區分種類。',
+          '步驟2：觀察角錐底部的多邊形形狀。',
+          '步驟3：依據底面是幾邊形來命名（如四邊形底面即稱為四角錐）。'
+        ],
+        draw: { type: 'pyramid_quad' }
+      },
+      {
+        id: 31, cat: '5-3',
+        q: '【課本P.75例2】拿長方體模型檢查角錐，角錐的「側面」和「底面」有沒有互相垂直？',
+        options: ['有互相垂直', '每一面都垂直', '只有一面垂直', '沒有互相垂直'],
+        ans: 3, // 正解 D
+        hint: '側面都朝向中心頂點傾斜收攏，不是直立立起來的喔！',
+        steps: [
+          '步驟1：將長方體模型的直角面靠在角錐的底面上。',
+          '步驟2：觀察角錐側面是斜斜向上收攏至頂點，與底面夾角不是直角 90 度。',
+          '步驟3：確認角錐的側面與底面並不互相垂直。'
+        ],
+        draw: { type: 'pyramid_quad' }
+      },
+      {
+        id: 32, cat: '5-3',
+        q: '【習作P.43第1題】「四角錐」一共有幾個頂點？',
+        options: ['5 個', '4 個', '8 個', '10 個'],
+        ans: 0, // 正解 A
+        hint: '底面四邊形有 4 個頂點，再加上頂端尖尖的 1 個頂點。',
+        steps: [
+          '步驟1：計算底面頂點：四邊形底面有 4 個頂點。',
+          '步驟2：計算頂部頂點：頂端有 1 個尖頂點。',
+          '步驟3：兩者相加：4 + 1 = 5 個頂點。'
+        ],
+        draw: { type: 'pyramid_quad' }
+      },
+      {
+        id: 33, cat: '5-3',
+        q: '【課本P.76公式歸納】若一個角錐底面是「n 邊形」，則這個角錐的「所有頂點數」公式是什麼？',
+        options: ['n × 2', 'n + 1', 'n × 3', 'n + 2'],
+        ans: 1, // 正解 B
+        hint: '底面有 n 個頂點，頂端永遠只有 1 個尖尖頂點。',
+        steps: [
+          '步驟1：分析角錐頂點構成位置。',
+          '步驟2：底面的 n 邊形有 n 個角與頂點。',
+          '步驟3：側面向上匯聚形成頂部唯 1 的頂點，故總頂點數為 n + 1。'
+        ],
+        draw: { type: 'pyramid_pent' }
+      },
+      {
+        id: 34, cat: '5-3',
+        q: '【課本P.76公式歸納】若一個角錐底面是「n 邊形」，則這個角錐的「所有邊數」公式是什麼？',
+        options: ['n × 3', 'n + 1', 'n × 2', 'n + 2'],
+        ans: 2, // 正解 C
+        hint: '底面有 n 條邊，側面有 n 條斜邊連到頂點。',
+        steps: [
+          '步驟1：分析角錐的稜邊分佈。',
+          '步驟2：底面周圍有 n 條多邊形邊。',
+          '步驟3：從底面每個頂點向上連到尖頂點的斜邊共有 n 條，合共 n + n = n × 2 條。'
+        ],
+        draw: { type: 'pyramid_pent' }
+      },
+      {
+        id: 35, cat: '5-3',
+        q: '【課本P.76公式歸納】若一個角錐底面是「n 邊形」，則這個角錐的「所有面數」是多少？',
+        options: ['n + 2', 'n × 2', 'n × 3', 'n + 1'],
+        ans: 3, // 正解 D
+        hint: '有 1 個底面，加上底面每條邊延伸出來的 n 個三角形側面。',
+        steps: [
+          '步驟1：角錐只有 1 個多邊形底面。',
+          '步驟2：底面有 n 條邊，因此延伸出 n 個三角形側面。',
+          '步驟3：全部面的個數 = n（側面） + 1（底面） = n + 1 個面。'
+        ],
+        draw: { type: 'pyramid_tri' }
+      },
+      {
+        id: 36, cat: '5-3',
+        q: '【習作P.44例3】一個「五角錐」一共有幾條邊、幾個面？',
+        options: ['10 條邊、6 個面', '15 條邊、7 個面', '10 條邊、7 個面', '12 條邊、6 個面'],
+        ans: 0, // 正解 A
+        hint: '五角錐底面 n=5，邊數為 5×2，面數為 5+1。',
+        steps: [
+          '步驟1：確認五角錐底面為五邊形，n = 5。',
+          '步驟2：計算邊數：底面 5 條邊 + 側面 5 條稜邊 = 5 × 2 = 10 條邊。',
+          '步驟3：計算面數：1 個五邊形底面 + 5 個三角形側面 = 5 + 1 = 6 個面。'
+        ],
+        draw: { type: 'pyramid_pent' }
+      },
+      {
+        id: 37, cat: '5-3',
+        q: '【課本P.75例1】「圓錐」具有什麼特徵？下列哪一個敘述是正確的？',
+        options: ['有 2 個互相平行的圓形底面', '只有 1 個圓形底面，頂端有 1 個尖尖頂點，側面是曲面', '側面展開是一個長方形', '側面由許多三角形拼成'],
+        ans: 1, // 正解 B
+        hint: '圓錐就像交通錐或冰淇淋甜筒。',
+        steps: [
+          '步驟1：觀察圓錐模型特徵。',
+          '步驟2：底部是 1 個平平的圓形底面，頂部有尖尖的錐頂頂點。',
+          '步驟3：側面是圍繞著錐頂旋轉的光滑曲面。'
+        ],
+        draw: { type: 'cone' }
+      },
+      {
+        id: 38, cat: '5-3',
+        q: '【課本P.76】將一個「圓錐」的側面沿著斜邊剪開攤平，側面的展開圖會是什麼形狀？',
+        options: ['長方形', '三角形', '扇形', '圓形'],
+        ans: 2, // 正解 C
+        hint: '甜筒包裝紙撕開後，是一邊彎曲、兩邊直線的形狀喔！',
+        steps: [
+          '步驟1：將圓錐側面展開操作。',
+          '步驟2：兩條直線邊等於圓錐側面的母線長度，底部圓弧等於圓形底面的圓周長。',
+          '步驟3：由兩條半徑與一段圓弧組成的幾何形狀稱為扇形。'
+        ],
+        draw: { type: 'cone_net' }
+      },
+      {
+        id: 39, cat: '5-3',
+        q: '【習作P.44挑戰題】皮皮把四角錐剪開得到展開圖，原四角錐有 8 條邊，剪開時一共需要剪開幾條邊？',
+        options: ['3 條邊', '5 條邊', '8 條邊', '4 條邊'],
+        ans: 3, // 正解 D
+        hint: '將展開圖拼回原形體時，要黏合幾條縫線，當初就剪開了幾條邊。',
+        steps: [
+          '步驟1：觀察四角錐展開圖，4 個三角形側面平鋪在四邊形底面的四周。',
+          '步驟2：原本相鄰黏合的側面稜邊共有 4 條縫隙被剪開。',
+          '步驟3：剪開 4 條側面稜邊即可完全攤平為星狀展開圖。'
+        ],
+        draw: { type: 'pyramid_quad_net' }
+      },
+      {
+        id: 40, cat: '5-3',
+        q: '【統整比較】有一個立體形體的頂點數是 7 個，請問它可能是什麼形體？',
+        options: ['六角錐', '七角柱', '七角錐', '五角柱'],
+        ans: 0, // 正解 A
+        hint: '角錐頂點數是 n+1，若是六角錐剛好是 6+1=7 個頂點！',
+        steps: [
+          '步驟1：測試角柱公式：角柱頂點數為 n × 2，必定為偶數，不可能等於 7。',
+          '步驟2：測試角錐公式：角錐頂點數為 n + 1。',
+          '步驟3：令 n + 1 = 7，求得 n = 6，即底面為六邊形，故為六角錐。'
+        ],
+        draw: { type: 'pyramid_hex' }
+      },
+
+      // ---------- 5-4 認識球與單元統整 (41~50題) ----------
+      {
+        id: 41, cat: '5-4',
+        q: '【課本P.78~79】日常生活中，不論從哪一個方向切開，切開的切面「永遠都是圓形」的立體形體是什麼？',
+        options: ['圓柱體', '球體', '圓錐體', '長方體'],
+        ans: 1, // 正解 B
+        hint: '想像切西瓜或切蘋果，不管橫切斜切直切，切面都是圓圓的。',
+        steps: [
+          '步驟1：檢視各立體切面：圓柱橫切是圓形，但縱向直切是長方形。',
+          '步驟2：圓錐縱向切開是等腰三角形，斜切是橢圓。',
+          '步驟3：唯有球體具備完全中心對稱性，從任意角度平平切開皆為圓形。'
+        ],
+        draw: { type: 'sphere_cut' }
+      },
+      {
+        id: 42, cat: '5-4',
+        q: '【課本P.79例3】把一個球體切開，切在哪一個位置時，所得到的圓形切面會是「最大」的？',
+        options: ['靠近球體邊緣的切面', '垂直於地面的任意邊緣切面', '通過球心的平面（剛好把球平分成兩半）', '不管切在哪裡大小都完全一樣'],
+        ans: 2, // 正解 C
+        hint: '通過最中心正中央的那一刀，圓的直徑剛好等於球的直徑。',
+        steps: [
+          '步驟1：球體越靠近邊緣切開，切出的圓半徑越小。',
+          '步驟2：切面逐漸移向中心時，圓形切面半徑逐漸變大。',
+          '步驟3：切刀通過球的正中心「球心」時，切出的圓半徑最大且剛好等於球體半徑。'
+        ],
+        draw: { type: 'sphere_max_cut' }
+      },
+      {
+        id: 43, cat: '5-4',
+        q: '【課本P.79】從球心到球面上「任一點」的直線距離都相等，這段距離叫作球體的什麼？',
+        options: ['直徑', '周長', '圓心', '半徑'],
+        ans: 3, // 正解 D
+        hint: '就像平面的圓，圓心到圓周上的距離叫作半徑。',
+        steps: [
+          '步驟1：回想球體的幾何定義。',
+          '步驟2：球體中心點稱為球心。',
+          '步驟3：球心到球表面上任意一點的直線距離固定相等，稱為該球體的半徑。'
+        ],
+        draw: { type: 'sphere_radius' }
+      },
+      {
+        id: 44, cat: '5-4',
+        q: '【習作P.45第1題】有一個半徑為 5 公分的球體，如果「通過球心」把它切成兩半，切開後形成的圓形截面，它的直徑是幾公分？',
+        options: ['10 公分', '5 公分', '2.5 公分', '15 公分'],
+        ans: 0, // 正解 A
+        hint: '通過球心的最大切面，圓的半徑就是球的半徑（5cm），直徑是半徑的 2 倍！',
+        steps: [
+          '步驟1：通過球心的切面是球體的最大截面。',
+          '步驟2：該截面圓形的半徑等於球的半徑，即為 5 公分。',
+          '步驟3：計算圓形截面的直徑：半徑 × 2 = 5 × 2 = 10 公分。'
+        ],
+        draw: { type: 'sphere_max_cut' }
+      },
+      {
+        id: 45, cat: '5-4',
+        q: '【習作P.45第1題】承上題，如果切開的位置「沒有通過球心」，那麼切開後的圓形切面半徑會如何？',
+        options: ['等於 5 公分', '小於 5 公分', '大於 5 公分', '等於 10 公分'],
+        ans: 1, // 正解 B
+        hint: '只要沒有通過球心，切出來的圓一定比最大的圓還要小。',
+        steps: [
+          '步驟1：已知通過球心時截面半徑最大且等於 5 公分。',
+          '步驟2：未通過球心的截面偏向球體兩端。',
+          '步驟3：偏向兩端的切面圓形必定小於最大截面，故半徑小於 5 公分。'
+        ],
+        draw: { type: 'sphere_cut' }
+      },
+      {
+        id: 46, cat: '5-4',
+        q: '【習作P.46統整第1題】有一個錐體的側面全部都是三角形，它的底面是五邊形，這個形體是什麼？',
+        options: ['五角柱', '圓錐', '五角錐', '三角錐'],
+        ans: 2, // 正解 C
+        hint: '只有一個底面（五邊形）且側面是三角形，必定是錐體。',
+        steps: [
+          '步驟1：側面為三角形代表此形體為錐體（排除角柱）。',
+          '步驟2：底面是五邊形多邊形（排除圓錐）。',
+          '步驟3：底面是五邊形的角錐，名稱為五角錐。'
+        ],
+        draw: { type: 'pyramid_pent' }
+      },
+      {
+        id: 47, cat: '5-4',
+        q: '【習作P.47第5題】下列形體中，哪一個形體「剛好有 12 條邊」？',
+        options: ['三角柱', '五角柱', '三角錐', '四角柱（或六角錐）'],
+        ans: 3, // 正解 D
+        hint: '四角柱邊數：4×3=12；六角錐邊數：6×2=12。',
+        steps: [
+          '步驟1：計算四角柱邊數：4 × 3 = 12 條邊。',
+          '步驟2：計算六角錐邊數：6 × 2 = 12 條邊。',
+          '步驟3：比對選項找出具備 12 條邊的正確形體。'
+        ],
+        draw: { type: 'prism_quad' }
+      },
+      {
+        id: 48, cat: '5-4',
+        q: '【習作P.47第5題】下列形體中，哪一個形體「剛好有 7 個面」？',
+        options: ['五角柱（或六角錐）', '四角柱', '三角錐', '七角柱'],
+        ans: 0, // 正解 A
+        hint: '五角柱面數：5+2=7；六角錐面數：6+1=7。',
+        steps: [
+          '步驟1：五角柱面數：5 個長方形側面 + 2 個底面 = 7 個面。',
+          '步驟2：六角錐面數：6 個三角形側面 + 1 個底面 = 7 個面。',
+          '步驟3：確認選項中具備 7 個面的形體組合。'
+        ],
+        draw: { type: 'prism_pent' }
+      },
+      {
+        id: 49, cat: '5-4',
+        q: '【習作P.47素養題】一個長方體紙箱剛好可以裝滿 8 個相同的皮球（上層放 4 個、下層放 4 個，剛好排滿緊靠）。若每個皮球的半徑都是 5 公分，這個紙箱的「高」是多少公分？',
+        options: ['10 公分', '20 公分', '40 公分', '5 公分'],
+        ans: 1, // 正解 B
+        hint: '每個球的直徑是 5×2=10 公分；上下放了兩層球，高就是 10×2。',
+        steps: [
+          '步驟1：計算每個皮球的直徑：半徑 × 2 = 5 × 2 = 10 公分。',
+          '步驟2：觀察箱內垂直堆疊情形：上層 4 個球，下層 4 個球，共疊了 2 層球。',
+          '步驟3：紙箱的高剛好等於 2 個球的直徑和：10 × 2 = 20 公分。'
+        ],
+        draw: { type: 'box_balls' }
+      },
+      {
+        id: 50, cat: '5-4',
+        q: '【課本P.79素養評量】拿刀子將一個長方體蛋糕「平平的切一刀」，切開後的兩個形體「不可能」是下列哪一種組合？',
+        options: ['切成兩個四角柱', '切成兩個三角柱', '切成一個圓柱和一個三角柱', '切成一個三角柱和一個四角柱'],
+        ans: 2, // 正解 C
+        hint: '長方體切開後的側面和底面都是直線多邊形，切不出圓弧的圓形喔！',
+        steps: [
+          '步驟1：長方體蛋糕是由平整的矩形面構成的角柱體。',
+          '步驟2：平直切一刀所產生的所有切面都是平整的多邊形（三角形或四邊形）。',
+          '步驟3：平切直線絕不可能產生具有曲面與圓形底面的圓柱體。'
+        ],
+        draw: { type: 'cake_cut' }
+      }
+    ];
+
+    let questionBank = JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+    let currentQuiz = [];
+    let userAnswers = {};
+    let scratchpadData = {};
+
+    let adminConfig = {
+      password: 'ayu888',
+      teacherEmail: 'krauser_ayu@mail.ylc.edu.tw',
+      gasWebhookUrl: 'https://script.google.com/macros/s/AKfycbx1WUZ2k9FKOM56AY2Kir7KUJWjx4Ym-UEOri4rh2bwkksRiQbiutLd9raIkgtZO23N9w/exec'
+    };
+    let isTeacherLoggedIn = false;
+
+    function updateBankCountBadge() {
+      const badge = document.getElementById('bank-count-badge');
+      if (badge) badge.textContent = questionBank.length;
+    }
+
+    function copyResultsToClipboard() {
+      const sName = document.getElementById('student-name')?.value.trim() || '未填寫姓名';
+      let correct = 0;
+      let answered = 0;
+      let details = '';
+
+      currentQuiz.forEach((q, idx) => {
+        const uAns = userAnswers[idx];
+        if (uAns !== undefined) {
+          answered++;
+          if (uAns === q.ans) correct++;
+          details += `第 ${idx + 1} 題：${uAns === q.ans ? '✅ 正確' : '❌ 錯誤'} (選 ${['A','B','C','D'][uAns]})\n`;
+        } else {
+          details += `第 ${idx + 1} 題：未作答\n`;
+        }
+      });
+
+      const summaryText = `【五上數學第5單元 立體形體】作答成績單\n` +
+        `學生：${sName}\n` +
+        `得分：${correct * 10} 分（作答 ${answered}/10 題）\n` +
+        `時間：${new Date().toLocaleString()}\n\n` +
+        `-- 各題明細 --\n${details}`;
+
+      navigator.clipboard.writeText(summaryText).then(() => {
+        alert('📋 成績文字已複製到剪貼簿！');
+      }).catch(() => {
+        alert('請手動選取文字複製：\n\n' + summaryText);
+      });
+    }
+
+    function handleTeacherLoginClick() {
+      if (isTeacherLoggedIn) {
+        switchAdminTab('review');
+      } else {
+        openLoginModal();
+      }
+    }
+
+    function openLoginModal() {
+      document.getElementById('input-teacher-pwd').value = '';
+      document.getElementById('login-error-msg').classList.add('hidden');
+      const m = document.getElementById('login-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+      setTimeout(() => document.getElementById('input-teacher-pwd')?.focus(), 100);
+    }
+
+    function closeLoginModal() {
+      const m = document.getElementById('login-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function verifyTeacherPassword() {
+      const input = document.getElementById('input-teacher-pwd').value;
+      if (input === adminConfig.password) {
+        isTeacherLoggedIn = true;
+        closeLoginModal();
+        document.getElementById('teacher-sub-nav').classList.remove('hidden');
+        document.getElementById('btn-teacher-auth').innerHTML = '👨‍🏫 教師後台 (已解鎖)';
+        switchAdminTab('review');
+      } else {
+        document.getElementById('login-error-msg').classList.remove('hidden');
+      }
+    }
+
+    function logoutTeacher() {
+      isTeacherLoggedIn = false;
+      document.getElementById('teacher-sub-nav').classList.add('hidden');
+      document.getElementById('btn-teacher-auth').innerHTML = '🔒 教師後台登入';
+      switchStudentView();
+    }
+
+    function switchStudentView() {
+      hideAllViews();
+      document.getElementById('view-quiz').classList.remove('hidden');
+      document.getElementById('tab-btn-quiz').className = 'px-3.5 py-2 rounded-lg font-bold text-sm bg-white text-indigo-600 shadow-sm transition';
+      setTimeout(() => {
+        currentQuiz.forEach((q, idx) => {
+          const c = document.getElementById('q-canvas-' + idx);
+          if (c) drawQuestionCanvas(c, q, userAnswers[idx] !== undefined);
+          redrawScratchpad(idx);
+        });
+      }, 50);
+    }
+
+    function switchAdminTab(tab) {
+      if (!isTeacherLoggedIn) {
+        openLoginModal();
+        return;
+      }
+      hideAllViews();
+      const adminTabs = ['review', 'bank', 'settings'];
+      adminTabs.forEach(t => {
+        const btn = document.getElementById('admin-tab-' + t);
+        if (btn) {
+          if (t === tab) {
+            btn.className = 'px-3 py-1.5 rounded-md font-bold bg-indigo-700 text-white shadow-sm';
+          } else {
+            btn.className = 'px-3 py-1.5 rounded-md font-bold bg-indigo-800 text-indigo-200 hover:bg-indigo-700';
+          }
+        }
+      });
+
+      const target = document.getElementById('view-' + tab);
+      if (target) target.classList.remove('hidden');
+
+      if (tab === 'review') renderTeacherReview();
+      if (tab === 'bank') renderBankList();
+      if (tab === 'settings') {
+        document.getElementById('cfg-gas-url').value = adminConfig.gasWebhookUrl;
+      }
+    }
+
+    function hideAllViews() {
+      ['view-quiz', 'view-review', 'view-bank', 'view-settings'].forEach(id => {
+        document.getElementById(id)?.classList.add('hidden');
+      });
+      document.getElementById('tab-btn-quiz').className = 'px-3.5 py-2 rounded-lg font-bold text-sm bg-indigo-700 text-white hover:bg-indigo-800 transition';
+    }
+
+    function saveAdminPassword() {
+      const p = document.getElementById('cfg-new-pwd').value.trim();
+      if (!p) {
+        alert('請輸入有效密碼！');
+        return;
+      }
+      adminConfig.password = p;
+      alert('後台管理密碼已成功更新！');
+      document.getElementById('cfg-new-pwd').value = '';
+    }
+
+    function saveSubmitConfig() {
+      adminConfig.gasWebhookUrl = document.getElementById('cfg-gas-url').value.trim();
+      alert('雲端設定已儲存！');
+    }
+
+    // ==================== 抽題核心 ====================
+    function startNewQuiz() {
+      const filterEl = document.getElementById('unit-filter');
+      const unitFilter = filterEl ? filterEl.value : 'all';
+      let pool = unitFilter === 'all'
+        ? [...questionBank]
+        : questionBank.filter(q => q.cat === unitFilter);
+
+      if (pool.length === 0) pool = [...questionBank];
+
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+
+      currentQuiz = pool.slice(0, 10);
+      userAnswers = {};
+      scratchpadData = {};
+      updateScoreDisplay();
+      renderQuizCards();
+    }
+
+    function initScratchpadState(idx) {
+      if (!scratchpadData[idx]) {
+        scratchpadData[idx] = {
+          strokes: [],
+          currentColor: '#1d4ed8',
+          currentSize: 3,
+          isEraser: false,
+          height: 180,
+          typedMath: '',
+          teacherTag: '',
+          teacherComment: ''
+        };
+      }
+      return scratchpadData[idx];
+    }
+
+    function renderQuizCards() {
+      const container = document.getElementById('quiz-questions-container');
+      if (!container) return;
+
+      let html = '';
+      currentQuiz.forEach((q, idx) => {
+        const padState = initScratchpadState(idx);
+        html += `
+          <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden print-break">
+            <div class="bg-slate-50 border-b border-slate-200 px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="bg-indigo-600 text-white font-black px-3 py-1 rounded-lg text-sm">第 ${idx + 1} 題</span>
+                <span class="bg-indigo-100 text-indigo-800 font-bold px-2.5 py-0.5 rounded text-xs">小節 ${q.cat}</span>
+                <span id="q-status-badge-${idx}" class="text-xs font-bold text-slate-400">尚未作答</span>
+              </div>
+              <div class="flex items-center gap-2 no-print">
+                <button type="button" onclick="toggleHint(${idx})" class="px-3 py-1.5 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-xs transition">
+                  💡 觀念提示
+                </button>
+                <button type="button" onclick="toggleSteps(${idx})" class="px-3 py-1.5 rounded-lg bg-emerald-100 hover:bg-emerald-200 text-emerald-800 font-bold text-xs transition">
+                  🧭 思考引導
+                </button>
+              </div>
+            </div>
+
+            <div class="p-5 grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+              <div class="lg:col-span-7 space-y-4">
+                <p class="text-base md:text-lg font-bold text-slate-800 leading-relaxed">${q.q}</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5" id="options-box-${idx}">
+                  ${q.options.map((opt, oIdx) => `
+                    <button type="button" onclick="selectAnswer(${idx}, ${oIdx})" id="opt-btn-${idx}-${oIdx}"
+                      class="text-left px-4 py-3 rounded-xl border-2 border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/40 font-medium text-sm transition flex items-start gap-2">
+                      <span class="font-black text-indigo-600">(${['A','B','C','D'][oIdx]})</span>
+                      <span class="flex-1">${opt}</span>
+                    </button>
+                  `).join('')}
+                </div>
+
+                <div id="hint-box-${idx}" class="hidden bg-amber-50 border-l-4 border-amber-400 p-3.5 rounded-r-xl text-sm text-amber-900">
+                  <div class="font-black mb-1">💡 學習小叮嚀：</div>
+                  <div>${q.hint}</div>
+                </div>
+
+                <div id="steps-box-${idx}" class="hidden bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-xl text-sm text-emerald-950 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="font-black text-emerald-800">🧭 幾何觀念推導步驟：</span>
+                    <button type="button" onclick="revealNextStep(${idx})" id="next-step-btn-${idx}" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-2.5 py-1 rounded shadow-sm">
+                      顯示下一步 ➔
+                    </button>
+                  </div>
+                  <div id="step-item-${idx}-0" class="p-2 bg-white/80 rounded border border-emerald-200 font-medium">${q.steps[0] || ''}</div>
+                  <div id="step-item-${idx}-1" class="hidden p-2 bg-white/80 rounded border border-emerald-200 font-medium">${q.steps[1] || ''}</div>
+                  <div id="step-item-${idx}-2" class="hidden p-2 bg-white/80 rounded border border-emerald-200 font-medium">${q.steps[2] || ''}</div>
+                </div>
+              </div>
+
+              <div class="lg:col-span-5 flex flex-col items-center justify-center bg-slate-50 rounded-xl p-3 border border-slate-200 min-h-[220px]">
+                <canvas id="q-canvas-${idx}" width="340" height="210" class="max-w-full h-auto bg-white rounded-lg shadow-inner border border-slate-100"></canvas>
+                <span class="text-xs text-slate-500 font-bold mt-1.5">▲ 立體幾何透視圖示</span>
+              </div>
+            </div>
+
+            <div class="border-t border-slate-200 bg-slate-50/70 p-4 space-y-2.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <span class="text-sm font-black text-slate-700">✍️ 手寫計算與思考草稿白板</span>
+                <div class="flex flex-wrap items-center gap-1.5 no-print">
+                  <button type="button" onclick="setPenTool(${idx}, '#1d4ed8', 3, false)" id="pen-blue-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-blue-600 text-white shadow-sm">🔵 藍筆</button>
+                  <button type="button" onclick="setPenTool(${idx}, '#1e293b', 3, false)" id="pen-black-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-slate-200 text-slate-700">⚫ 黑筆</button>
+                  <button type="button" onclick="setPenTool(${idx}, '#dc2626', 3, false)" id="pen-red-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-slate-200 text-slate-700">🔴 紅筆</button>
+                  <button type="button" onclick="setPenTool(${idx}, '#ffffff', 18, true)" id="pen-eraser-${idx}" class="px-2.5 py-1 rounded text-xs font-bold bg-slate-200 text-slate-700">🧽 橡皮擦</button>
+                  <button type="button" onclick="undoScratchpad(${idx})" class="px-2.5 py-1 rounded text-xs font-bold bg-white border border-slate-300 text-slate-700 hover:bg-slate-100">↩️ 復原</button>
+                  <button type="button" onclick="clearScratchpad(${idx})" class="px-2.5 py-1 rounded text-xs font-bold bg-white border border-rose-300 text-rose-600 hover:bg-rose-50">🗑️ 清空</button>
+                </div>
+              </div>
+
+              <div class="border-2 border-dashed border-slate-300 rounded-xl overflow-hidden bg-white shadow-inner">
+                <canvas id="pad-canvas-${idx}" width="920" height="${padState.height}" class="w-full block grid-canvas-bg scratchpad-canvas"></canvas>
+              </div>
+
+              <div class="flex items-center gap-2 pt-1">
+                <span class="text-xs font-bold text-slate-500 whitespace-nowrap">⌨️ 鍵盤算式補充：</span>
+                <input type="text" id="typed-math-${idx}" value="${padState.typedMath}"
+                  oninput="updateTypedMath(${idx}, this.value)"
+                  placeholder="若不便手寫，亦可在此輸入文字算式或推論..."
+                  class="flex-1 text-xs border border-slate-300 rounded-lg px-3 py-1.5 bg-white focus:outline-none focus:ring-2 focus:ring-indigo-400" />
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+
+      window.requestAnimationFrame(() => {
+        currentQuiz.forEach((q, idx) => {
+          try {
+            const qCanvas = document.getElementById('q-canvas-' + idx);
+            if (qCanvas) drawQuestionCanvas(qCanvas, q, false);
+          } catch(e){}
+          try {
+            setupScratchpadEvents(idx);
+          } catch(e){}
+        });
+      });
+    }
+
+    function selectAnswer(qIdx, optIdx) {
+      userAnswers[qIdx] = optIdx;
+      const q = currentQuiz[qIdx];
+      const isCorrect = (optIdx === q.ans);
+
+      q.options.forEach((_, idx) => {
+        const btn = document.getElementById(`opt-btn-${qIdx}-${idx}`);
+        if (!btn) return;
+        if (idx === q.ans) {
+          btn.className = 'text-left px-4 py-3 rounded-xl border-2 border-emerald-500 bg-emerald-50 text-emerald-900 font-bold text-sm transition flex items-start gap-2';
+        } else if (idx === optIdx && !isCorrect) {
+          btn.className = 'text-left px-4 py-3 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-900 font-bold text-sm transition flex items-start gap-2';
+        } else {
+          btn.className = 'text-left px-4 py-3 rounded-xl border-2 border-slate-200 opacity-60 font-medium text-sm transition flex items-start gap-2';
+        }
+      });
+
+      const badge = document.getElementById(`q-status-badge-${qIdx}`);
+      if (badge) {
+        if (isCorrect) {
+          badge.className = 'text-xs font-black text-emerald-600 bg-emerald-100 px-2.5 py-0.5 rounded';
+          badge.textContent = '✅ 答對了！(+10分)';
+        } else {
+          badge.className = 'text-xs font-black text-rose-600 bg-rose-100 px-2.5 py-0.5 rounded';
+          badge.textContent = '❌ 答錯了，請參考引導步驟推理';
+          document.getElementById(`hint-box-${qIdx}`)?.classList.remove('hidden');
+          document.getElementById(`steps-box-${qIdx}`)?.classList.remove('hidden');
+        }
+      }
+
+      const qCanvas = document.getElementById('q-canvas-' + qIdx);
+      if (qCanvas) drawQuestionCanvas(qCanvas, q, true);
+
+      updateScoreDisplay();
+    }
+
+    function updateScoreDisplay() {
+      let answered = 0;
+      let correct = 0;
+      currentQuiz.forEach((q, idx) => {
+        if (userAnswers[idx] !== undefined) {
+          answered++;
+          if (userAnswers[idx] === q.ans) correct++;
+        }
+      });
+      const scoreEl = document.getElementById('quiz-score');
+      const ansEl = document.getElementById('quiz-answered');
+      if (scoreEl) scoreEl.textContent = correct * 10;
+      if (ansEl) ansEl.textContent = answered;
+    }
+
+    function toggleHint(idx) {
+      document.getElementById('hint-box-' + idx)?.classList.toggle('hidden');
+    }
+
+    function toggleSteps(idx) {
+      document.getElementById('steps-box-' + idx)?.classList.toggle('hidden');
+    }
+
+    function revealNextStep(idx) {
+      const s1 = document.getElementById(`step-item-${idx}-1`);
+      const s2 = document.getElementById(`step-item-${idx}-2`);
+      const btn = document.getElementById(`next-step-btn-${idx}`);
+      if (s1 && s1.classList.contains('hidden')) {
+        s1.classList.remove('hidden');
+      } else if (s2 && s2.classList.contains('hidden')) {
+        s2.classList.remove('hidden');
+        if (btn) btn.textContent = '已顯示全部步驟 ✓';
+      }
+    }
+
+    // ==================== 學生一鍵提交雲端並自動合成 PDF ====================
+    async function submitWorkToTeacher() {
+      const sName = document.getElementById('student-name')?.value.trim();
+      if (!sName) {
+        alert('請先在最上方輸入「班級座號姓名」，才能交卷喔！');
+        document.getElementById('student-name')?.focus();
+        return;
+      }
+
+      let correct = 0;
+      let answered = 0;
+      const records = [];
+
+      currentQuiz.forEach((q, idx) => {
+        const uAns = userAnswers[idx];
+        const isAns = uAns !== undefined;
+        if (isAns) {
+          answered++;
+          if (uAns === q.ans) correct++;
+        }
+        const padCanvas = document.getElementById('pad-canvas-' + idx);
+        let dataUrl = '';
+        try {
+          dataUrl = padCanvas ? padCanvas.toDataURL('image/png') : '';
+        } catch(e){}
+        const padState = initScratchpadState(idx);
+
+        records.push({
+          qNum: idx + 1,
+          qText: q.q,
+          studentAns: isAns ? ['A','B','C','D'][uAns] : '未作答',
+          correctAns: ['A','B','C','D'][q.ans],
+          isCorrect: uAns === q.ans,
+          typedMath: padState.typedMath,
+          drawingBase64: dataUrl
+        });
+      });
+
+      const score = correct * 10;
+      const confirmSubmit = confirm(`確認要交卷嗎？\n\n學生：${sName}\n作答題數：${answered} / 10\n目前得分：${score} 分\n\n系統將自動把 10 題手寫算式合成為一份 PDF 存入顏老師的雲端硬碟！`);
+      if (!confirmSubmit) return;
+
+      const btn = document.getElementById('btn-submit-cloud');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ 正在合成 PDF 並上傳雲端，請稍候...';
+      }
+
+      try {
+        await fetch(adminConfig.gasWebhookUrl, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            unit: '第5單元 立體形體',
+            student: sName,
+            score: score,
+            answered: answered,
+            timestamp: new Date().toLocaleString(),
+            records: records
+          })
+        });
+        alert(`🎉 恭喜 ${sName}！\n\n你的成績（${score}分）與 10 題手寫白板筆跡已自動合成為單一 PDF 檔，成功存入顏老師的雲端硬碟中！`);
+      } catch (err) {
+        alert('雲端連線失敗，請通知老師或截圖畫面！');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '📄 一鍵生成單一完整 PDF 傳送給顏老師';
+        }
+      }
+    }
+
+    // ==================== 手寫板繪圖控制 ====================
+    function setupScratchpadEvents(idx) {
+      const canvas = document.getElementById('pad-canvas-' + idx);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const padState = initScratchpadState(idx);
+      redrawScratchpad(idx);
+
+      let isDrawing = false;
+      let currentStroke = null;
+
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / (rect.width || 1);
+        const scaleY = canvas.height / (rect.height || 1);
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        if (e.touches && e.touches.length > 0) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        }
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+        };
+      }
+
+      function startDraw(e) {
+        if (e.cancelable) e.preventDefault();
+        isDrawing = true;
+        const pos = getPos(e);
+        currentStroke = {
+          color: padState.currentColor,
+          size: padState.currentSize,
+          isEraser: padState.isEraser,
+          points: [pos]
+        };
+        padState.strokes.push(currentStroke);
+        drawSingleSegment(ctx, currentStroke, 0);
+      }
+
+      function moveDraw(e) {
+        if (!isDrawing || !currentStroke) return;
+        if (e.cancelable) e.preventDefault();
+        const pos = getPos(e);
+        currentStroke.points.push(pos);
+        drawSingleSegment(ctx, currentStroke, currentStroke.points.length - 1);
+      }
+
+      function endDraw() {
+        isDrawing = false;
+        currentStroke = null;
+      }
+
+      canvas.addEventListener('pointerdown', startDraw);
+      canvas.addEventListener('pointermove', moveDraw);
+      canvas.addEventListener('pointerup', endDraw);
+      canvas.addEventListener('pointerleave', endDraw);
+    }
+
+    function drawSingleSegment(ctx, stroke, ptIdx) {
+      ctx.save();
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = stroke.size;
+      if (stroke.isEraser) {
+        ctx.globalCompositeOperation = 'destination-out';
+      } else {
+        ctx.globalCompositeOperation = 'source-over';
+        ctx.strokeStyle = stroke.color;
+      }
+
+      const pts = stroke.points;
+      ctx.beginPath();
+      if (ptIdx === 0) {
+        ctx.arc(pts[0].x, pts[0].y, stroke.size / 2, 0, Math.PI * 2);
+        ctx.fillStyle = stroke.isEraser ? 'rgba(0,0,0,1)' : stroke.color;
+        ctx.fill();
+      } else {
+        ctx.moveTo(pts[ptIdx - 1].x, pts[ptIdx - 1].y);
+        ctx.lineTo(pts[ptIdx].x, pts[ptIdx].y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function redrawScratchpad(idx) {
+      const canvas = document.getElementById('pad-canvas-' + idx);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const padState = initScratchpadState(idx);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      padState.strokes.forEach(stroke => {
+        for (let i = 0; i < stroke.points.length; i++) {
+          drawSingleSegment(ctx, stroke, i);
+        }
+      });
+    }
+
+    function setPenTool(idx, color, size, isEraser) {
+      const padState = initScratchpadState(idx);
+      padState.currentColor = color;
+      padState.currentSize = size;
+      padState.isEraser = isEraser;
+
+      const btns = [
+        { id: 'pen-blue-' + idx, active: !isEraser && color === '#1d4ed8', cls: 'bg-blue-600 text-white' },
+        { id: 'pen-black-' + idx, active: !isEraser && color === '#1e293b', cls: 'bg-slate-800 text-white' },
+        { id: 'pen-red-' + idx, active: !isEraser && color === '#dc2626', cls: 'bg-red-600 text-white' },
+        { id: 'pen-eraser-' + idx, active: isEraser, cls: 'bg-amber-600 text-white' }
+      ];
+      btns.forEach(b => {
+        const el = document.getElementById(b.id);
+        if (!el) return;
+        el.className = b.active
+          ? 'px-2.5 py-1 rounded text-xs font-bold shadow-sm ' + b.cls
+          : 'px-2.5 py-1 rounded text-xs font-bold bg-slate-200 text-slate-700';
+      });
+    }
+
+    function undoScratchpad(idx) {
+      const padState = initScratchpadState(idx);
+      if (padState.strokes.length > 0) {
+        padState.strokes.pop();
+        redrawScratchpad(idx);
+      }
+    }
+
+    function clearScratchpad(idx) {
+      const padState = initScratchpadState(idx);
+      padState.strokes = [];
+      redrawScratchpad(idx);
+    }
+
+    function expandScratchpad(idx) {
+      const padState = initScratchpadState(idx);
+      padState.height += 120;
+      const canvas = document.getElementById('pad-canvas-' + idx);
+      if (canvas) {
+        canvas.height = padState.height;
+        redrawScratchpad(idx);
+      }
+    }
+
+    function updateTypedMath(idx, val) {
+      const padState = initScratchpadState(idx);
+      padState.typedMath = val;
+    }
+
+    // ==================== 教師批改專區 ====================
+    function renderTeacherReview() {
+      const container = document.getElementById('review-cards-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      let answeredCount = 0;
+      let correctCount = 0;
+      let writtenCount = 0;
+      let gradedCount = 0;
+      const total = currentQuiz.length;
+
+      currentQuiz.forEach((q, idx) => {
+        const padState = initScratchpadState(idx);
+        const uAns = userAnswers[idx];
+        const isAnswered = uAns !== undefined;
+        const isCorrect = uAns === q.ans;
+        const hasWritten = padState.strokes.length > 0 || (padState.typedMath && padState.typedMath.trim() !== '');
+        const hasGraded = (padState.teacherTag && padState.teacherTag !== '') || (padState.teacherComment && padState.teacherComment.trim() !== '');
+
+        if (isAnswered) answeredCount++;
+        if (isCorrect) correctCount++;
+        if (hasWritten) writtenCount++;
+        if (hasGraded) gradedCount++;
+
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4 print-break';
+        card.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b pb-3">
+            <div class="flex items-center gap-2">
+              <span class="bg-indigo-600 text-white font-black px-3 py-1 rounded-lg text-sm">第 ${idx + 1} 題</span>
+              <span class="text-xs font-bold px-2.5 py-1 rounded ${
+                !isAnswered ? 'bg-slate-100 text-slate-600' : isCorrect ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+              }">
+                ${!isAnswered ? '未作答' : isCorrect ? '✅ 選擇題答對' : '❌ 選擇題答錯（學生選 ' + ['A','B','C','D'][uAns] + '，正解為 ' + ['A','B','C','D'][q.ans] + '）'}
+              </span>
+            </div>
+            <div class="text-xs font-bold text-indigo-700">
+              ${padState.teacherTag ? '教師評定：' + padState.teacherTag : '尚未評定計算過程'}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            <div class="lg:col-span-5 space-y-2 text-sm">
+              <div class="font-bold text-slate-800">${q.q}</div>
+              <canvas id="review-geo-canvas-${idx}" width="280" height="175" class="bg-slate-50 rounded border border-slate-200"></canvas>
+              <div class="bg-emerald-50 p-3 rounded-lg border border-emerald-200 text-xs space-y-1">
+                <div class="font-black text-emerald-800">標準觀念引導：</div>
+                ${q.steps.map(s => '<div>• ' + s + '</div>').join('')}
+              </div>
+            </div>
+
+            <div class="lg:col-span-7 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-black text-slate-700">📝 學生手寫算式（老師可直接以紅筆圈註批閱）：</span>
+                <button type="button" onclick="undoTeacherStroke(${idx})" class="text-xs bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded font-bold text-slate-700 no-print">
+                  ↩️ 復原老師紅筆
+                </button>
+              </div>
+              <div class="border-2 border-indigo-200 rounded-xl overflow-hidden bg-white">
+                <canvas id="review-pad-canvas-${idx}" width="920" height="${padState.height}" class="w-full block grid-canvas-bg scratchpad-canvas"></canvas>
+              </div>
+              ${padState.typedMath ? '<div class="bg-amber-50 border border-amber-200 px-3 py-2 rounded-lg text-xs"><span class="font-bold text-amber-800">⌨️ 學生鍵盤補充算式：</span> ' + padState.typedMath + '</div>' : ''}
+
+              <div class="bg-indigo-50/70 p-3 rounded-xl border border-indigo-100 space-y-2 no-print">
+                <div class="flex flex-wrap gap-1.5">
+                  ${['✅ 觀念清楚、幾何空間感佳', '⚠️ 頂點或邊數計算粗心', '💡 柱體與錐體公式需複習', '❓ 垂直與平行觀念需加強'].map(tag => `
+                    <button type="button" onclick="setTeacherTag(${idx}, '${tag}')"
+                      class="px-2.5 py-1 rounded-lg text-xs font-bold border transition ${
+                        padState.teacherTag === tag ? 'bg-indigo-600 text-white border-indigo-600' : 'bg-white text-slate-700 border-slate-300 hover:bg-indigo-100'
+                      }">
+                      ${tag}
+                    </button>
+                  `).join('')}
+                </div>
+                <input type="text" value="${padState.teacherComment}"
+                  oninput="setTeacherComment(${idx}, this.value)"
+                  placeholder="輸入教師個別指導評語..."
+                  class="w-full text-xs border border-indigo-200 rounded-lg px-3 py-1.5 bg-white" />
+              </div>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      setTimeout(() => {
+        currentQuiz.forEach((q, idx) => {
+          const geoC = document.getElementById('review-geo-canvas-' + idx);
+          if (geoC) {
+            const tempC = document.createElement('canvas');
+            tempC.width = 340;
+            tempC.height = 210;
+            drawQuestionCanvas(tempC, q, true);
+            geoC.getContext('2d').drawImage(tempC, 0, 0, 280, 175);
+          }
+          setupTeacherReviewPad(idx);
+        });
+      }, 50);
+
+      const score = total > 0 ? Math.round((correctCount / total) * 100) : 0;
+      document.getElementById('rev-stat-answered').textContent = answeredCount + ' / ' + total + ' 題';
+      document.getElementById('rev-stat-score').textContent = score + ' 分';
+      document.getElementById('rev-stat-written').textContent = writtenCount + ' / ' + total + ' 題';
+      document.getElementById('rev-stat-graded').textContent = gradedCount + ' / ' + total + ' 題';
+    }
+
+    function setupTeacherReviewPad(idx) {
+      const canvas = document.getElementById('review-pad-canvas-' + idx);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const padState = initScratchpadState(idx);
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      padState.strokes.forEach(stroke => {
+        for (let i = 0; i < stroke.points.length; i++) {
+          drawSingleSegment(ctx, stroke, i);
+        }
+      });
+
+      let isDrawing = false;
+      let currentStroke = null;
+
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / (rect.width || 1);
+        const scaleY = canvas.height / (rect.height || 1);
+        let clientX = e.clientX;
+        let clientY = e.clientY;
+        if (e.touches && e.touches.length > 0) {
+          clientX = e.touches[0].clientX;
+          clientY = e.touches[0].clientY;
+        }
+        return {
+          x: (clientX - rect.left) * scaleX,
+          y: (clientY - rect.top) * scaleY
+        };
+      }
+
+      canvas.addEventListener('pointerdown', e => {
+        if (e.cancelable) e.preventDefault();
+        isDrawing = true;
+        const pos = getPos(e);
+        currentStroke = { color: '#dc2626', size: 4, isEraser: false, points: [pos] };
+        padState.strokes.push(currentStroke);
+        drawSingleSegment(ctx, currentStroke, 0);
+      });
+
+      canvas.addEventListener('pointermove', e => {
+        if (!isDrawing || !currentStroke) return;
+        if (e.cancelable) e.preventDefault();
+        const pos = getPos(e);
+        currentStroke.points.push(pos);
+        drawSingleSegment(ctx, currentStroke, currentStroke.points.length - 1);
+      });
+
+      const stop = () => {
+        isDrawing = false;
+        currentStroke = null;
+      };
+      canvas.addEventListener('pointerup', stop);
+      canvas.addEventListener('pointerleave', stop);
+    }
+
+    function undoTeacherStroke(idx) {
+      const padState = initScratchpadState(idx);
+      if (padState.strokes.length > 0) {
+        padState.strokes.pop();
+        renderTeacherReview();
+      }
+    }
+
+    function setTeacherTag(idx, tag) {
+      const padState = initScratchpadState(idx);
+      padState.teacherTag = padState.teacherTag === tag ? '' : tag;
+      renderTeacherReview();
+    }
+
+    function setTeacherComment(idx, comment) {
+      const padState = initScratchpadState(idx);
+      padState.teacherComment = comment;
+    }
+
+    // ==================== 3D 立體幾何 Canvas 動態繪製引擎 ====================
+    function drawQuestionCanvas(canvas, q, showAns) {
+      if (!canvas || !q) return;
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width;
+      const H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
+      ctx.save();
+      ctx.font = 'bold 13px "Noto Sans TC", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const d = q.draw || { type: 'cuboid_labeled' };
+
+      try {
+        if (d.type === 'cuboid_face' || d.type === 'cuboid_check' || d.type === 'cuboid_labeled' || d.type === 'cuboid_shelves') {
+          const p = {
+            A: { x: 90, y: 55 }, D: { x: 230, y: 55 },
+            B: { x: 60, y: 95 }, C: { x: 200, y: 95 },
+            E: { x: 90, y: 145 }, H: { x: 230, y: 145 },
+            F: { x: 60, y: 185 }, G: { x: 200, y: 185 }
+          };
+
+          ctx.setLineDash([4, 4]);
+          ctx.strokeStyle = '#94a3b8';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(p.A.x, p.A.y); ctx.lineTo(p.E.x, p.E.y);
+          ctx.lineTo(p.F.x, p.F.y);
+          ctx.moveTo(p.E.x, p.E.y); ctx.lineTo(p.H.x, p.H.y);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          if (d.highlight === 'adj') {
+            ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
+            ctx.beginPath(); ctx.moveTo(p.A.x, p.A.y); ctx.lineTo(p.D.x, p.D.y); ctx.lineTo(p.C.x, p.C.y); ctx.lineTo(p.B.x, p.B.y); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
+            ctx.beginPath(); ctx.moveTo(p.B.x, p.B.y); ctx.lineTo(p.C.x, p.C.y); ctx.lineTo(p.G.x, p.G.y); ctx.lineTo(p.F.x, p.F.y); ctx.closePath(); ctx.fill();
+          } else if (d.highlight === 'opp') {
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.25)';
+            ctx.beginPath(); ctx.moveTo(p.A.x, p.A.y); ctx.lineTo(p.D.x, p.D.y); ctx.lineTo(p.C.x, p.C.y); ctx.lineTo(p.B.x, p.B.y); ctx.closePath(); ctx.fill();
+            ctx.fillStyle = 'rgba(16, 185, 129, 0.25)';
+            ctx.beginPath(); ctx.moveTo(p.E.x, p.E.y); ctx.lineTo(p.H.x, p.H.y); ctx.lineTo(p.G.x, p.G.y); ctx.lineTo(p.F.x, p.F.y); ctx.closePath(); ctx.fill();
+          }
+
+          ctx.strokeStyle = '#1e293b';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(p.A.x, p.A.y); ctx.lineTo(p.D.x, p.D.y); ctx.lineTo(p.C.x, p.C.y); ctx.lineTo(p.B.x, p.B.y); ctx.closePath();
+          ctx.moveTo(p.B.x, p.B.y); ctx.lineTo(p.F.x, p.F.y); ctx.lineTo(p.G.x, p.G.y); ctx.lineTo(p.C.x, p.C.y);
+          ctx.moveTo(p.D.x, p.D.y); ctx.lineTo(p.H.x, p.H.y); ctx.lineTo(p.G.x, p.G.y);
+          ctx.stroke();
+
+          ctx.fillStyle = '#1e293b';
+          ctx.fillText('A', p.A.x - 8, p.A.y - 8); ctx.fillText('D', p.D.x + 8, p.D.y - 8);
+          ctx.fillText('B', p.B.x - 10, p.B.y); ctx.fillText('C', p.C.x + 10, p.C.y - 4);
+          ctx.fillText('E', p.E.x - 8, p.E.y); ctx.fillText('H', p.H.x + 10, p.H.y);
+          ctx.fillText('F', p.F.x - 10, p.F.y + 4); ctx.fillText('G', p.G.x + 8, p.G.y + 10);
+
+          ctx.fillStyle = '#4f46e5';
+          ctx.fillText(d.highlight === 'opp' ? '相對面（互相平行）' : d.highlight === 'adj' ? '相鄰面（互相垂直）' : '長方體透視圖', W / 2, 20);
+
+        } else if (d.type === 'prism_tri') {
+          ctx.fillStyle = 'rgba(99, 102, 241, 0.15)';
+          ctx.strokeStyle = '#4f46e5';
+          ctx.lineWidth = 2.5;
+
+          ctx.beginPath();
+          ctx.moveTo(170, 35); ctx.lineTo(100, 75); ctx.lineTo(240, 75); ctx.closePath();
+          ctx.fill(); ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(100, 75); ctx.lineTo(100, 165);
+          ctx.moveTo(240, 75); ctx.lineTo(240, 165);
+          ctx.moveTo(170, 35); ctx.lineTo(170, 125);
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(170, 125); ctx.lineTo(100, 165); ctx.lineTo(240, 165); ctx.closePath();
+          ctx.fill(); ctx.stroke();
+
+          ctx.fillStyle = '#0f172a';
+          ctx.fillText('上底面(三角形)', 170, 60);
+          ctx.fillText('長方形側面', 170, 105);
+          ctx.fillText('下底面(三角形)', 170, 185);
+
+        } else if (d.type === 'prism_pent' || d.type === 'prism_hex') {
+          ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+          ctx.strokeStyle = '#059669';
+          ctx.lineWidth = 2.5;
+
+          const cx = 170, cy1 = 55, cy2 = 145, r = 55;
+          const sides = d.type === 'prism_pent' ? 5 : 6;
+
+          ctx.beginPath();
+          for (let i = 0; i < sides; i++) {
+            const ang = (i * 2 * Math.PI) / sides - Math.PI / 2;
+            const x = cx + r * Math.cos(ang);
+            const y = cy1 + (r * 0.45) * Math.sin(ang);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+
+          ctx.beginPath();
+          for (let i = 0; i < sides; i++) {
+            const ang = (i * 2 * Math.PI) / sides - Math.PI / 2;
+            const x = cx + r * Math.cos(ang);
+            const y = cy2 + (r * 0.45) * Math.sin(ang);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+          }
+          ctx.closePath(); ctx.fill(); ctx.stroke();
+
+          for (let i = 0; i < sides; i++) {
+            const ang = (i * 2 * Math.PI) / sides - Math.PI / 2;
+            const x = cx + r * Math.cos(ang);
+            const y1 = cy1 + (r * 0.45) * Math.sin(ang);
+            const y2 = cy2 + (r * 0.45) * Math.sin(ang);
+            if (ang > 0 && ang < Math.PI) {
+              ctx.beginPath(); ctx.moveTo(x, y1); ctx.lineTo(x, y2); ctx.stroke();
+            }
+          }
+
+          ctx.fillStyle = '#065f46';
+          ctx.fillText(d.type === 'prism_pent' ? '五角柱（2底面＋5側面）' : '六角柱（2底面＋6側面）', 170, 190);
+
+        } else if (d.type === 'cylinder' || d.type === 'cylinder_net') {
+          ctx.fillStyle = 'rgba(14, 165, 233, 0.15)';
+          ctx.strokeStyle = '#0284c7';
+          ctx.lineWidth = 2.5;
+
+          ctx.beginPath();
+          ctx.ellipse(170, 50, 65, 22, 0, 0, Math.PI * 2);
+          ctx.fill(); ctx.stroke();
+
+          ctx.beginPath();
+          ctx.ellipse(170, 150, 65, 22, 0, 0, Math.PI * 2);
+          ctx.fill(); ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(105, 50); ctx.lineTo(105, 150);
+          ctx.moveTo(235, 50); ctx.lineTo(235, 150);
+          ctx.stroke();
+
+          ctx.fillStyle = '#0369a1';
+          ctx.fillText('全等圓形底面（互相平行）', 170, 50);
+          ctx.fillText('側面是曲面（展開為長方形）', 170, 100);
+
+        } else if (d.type === 'pyramid_quad' || d.type === 'pyramid_tri' || d.type === 'pyramid_pent' || d.type === 'pyramid_hex') {
+          ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+          ctx.strokeStyle = '#d97706';
+          ctx.lineWidth = 2.5;
+
+          const top = { x: 170, y: 35 };
+          const base = [
+            { x: 90, y: 155 }, { x: 250, y: 155 }, { x: 210, y: 175 }, { x: 120, y: 175 }
+          ];
+
+          ctx.beginPath();
+          ctx.moveTo(base[0].x, base[0].y);
+          ctx.lineTo(base[1].x, base[1].y);
+          ctx.lineTo(base[2].x, base[2].y);
+          ctx.lineTo(base[3].x, base[3].y);
+          ctx.closePath();
+          ctx.fill(); ctx.stroke();
+
+          ctx.beginPath();
+          base.forEach(pt => {
+            ctx.moveTo(top.x, top.y); ctx.lineTo(pt.x, pt.y);
+          });
+          ctx.stroke();
+
+          ctx.beginPath();
+          ctx.arc(top.x, top.y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#b45309';
+          ctx.fill();
+
+          ctx.fillText('尖端頂點 (1個)', top.x, top.y - 12);
+          ctx.fillText('側面全是三角形', top.x, 100);
+          ctx.fillText('只有 1 個底面', top.x, 195);
+
+        } else if (d.type === 'cone' || d.type === 'cone_net') {
+          ctx.fillStyle = 'rgba(236, 72, 153, 0.15)';
+          ctx.strokeStyle = '#db2777';
+          ctx.lineWidth = 2.5;
+
+          const top = { x: 170, y: 35 };
+
+          ctx.beginPath();
+          ctx.ellipse(170, 160, 65, 20, 0, 0, Math.PI * 2);
+          ctx.fill(); ctx.stroke();
+
+          ctx.beginPath();
+          ctx.moveTo(105, 160); ctx.lineTo(top.x, top.y);
+          ctx.lineTo(235, 160);
+          ctx.stroke();
+
+          ctx.fillStyle = '#be185d';
+          ctx.fillText('錐頂頂點', top.x, top.y - 10);
+          ctx.fillText('曲面（展開為扇形）', top.x, 105);
+          ctx.fillText('1個圓形底面', top.x, 190);
+
+        } else if (d.type === 'sphere_cut' || d.type === 'sphere_max_cut' || d.type === 'sphere_radius') {
+          ctx.strokeStyle = '#7c3aed';
+          ctx.fillStyle = 'rgba(124, 58, 237, 0.1)';
+          ctx.lineWidth = 2.5;
+
+          ctx.beginPath();
+          ctx.arc(170, 100, 65, 0, Math.PI * 2);
+          ctx.fill(); ctx.stroke();
+
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.ellipse(170, 100, 65, 20, 0, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          ctx.beginPath();
+          ctx.arc(170, 100, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#6d28d9';
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.moveTo(170, 100); ctx.lineTo(235, 100);
+          ctx.strokeStyle = '#dc2626';
+          ctx.stroke();
+
+          ctx.fillStyle = '#0f172a';
+          ctx.fillText('球心', 150, 100);
+          ctx.fillStyle = '#dc2626';
+          ctx.fillText('半徑 r', 200, 90);
+          ctx.fillStyle = '#6d28d9';
+          ctx.fillText('通過球心的切面是最大的圓', 170, 185);
+
+        } else {
+          ctx.fillStyle = '#475569';
+          ctx.fillText('立體幾何輔助圖形', W / 2, H / 2);
+        }
+      } catch (err) {
+        console.warn('幾何繪製提示:', err);
+      }
+
+      ctx.restore();
+    }
+
+    // ==================== 題庫管理功能 ====================
+    function renderBankList() {
+      const container = document.getElementById('bank-list-container');
+      if (!container) return;
+      const keyword = (document.getElementById('bank-search')?.value || '').trim().toLowerCase();
+      const catFilter = document.getElementById('bank-cat-filter')?.value || 'all';
+
+      const filtered = questionBank.filter(q => {
+        const matchCat = catFilter === 'all' || q.cat === catFilter;
+        const matchKw = !keyword || q.q.toLowerCase().includes(keyword) || q.hint.toLowerCase().includes(keyword);
+        return matchCat && matchKw;
+      });
+
+      container.innerHTML = filtered.map((q) => `
+        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50/60 hover:bg-white transition flex flex-wrap items-start justify-between gap-3">
+          <div class="space-y-1 flex-1 min-w-[260px]">
+            <div class="flex items-center gap-2">
+              <span class="bg-indigo-700 text-white text-xs font-bold px-2 py-0.5 rounded">#${q.id}</span>
+              <span class="bg-indigo-100 text-indigo-800 text-xs font-bold px-2 py-0.5 rounded">${q.cat}</span>
+              <span class="text-xs text-emerald-700 font-bold">正解：(${['A','B','C','D'][q.ans]}) ${q.options[q.ans]}</span>
+            </div>
+            <div class="font-bold text-sm text-slate-800">${q.q}</div>
+            <div class="text-xs text-slate-500">💡 提示：${q.hint}</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="openEditModal(${q.id})" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-sm">
+              ✏️ 編輯
+            </button>
+            <button type="button" onclick="deleteQuestion(${q.id})" class="px-3 py-1.5 rounded-lg bg-rose-100 hover:bg-rose-200 text-rose-700 font-bold text-xs">
+              🗑️ 刪除
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function openEditModal(id) {
+      const q = questionBank.find(item => item.id === id);
+      if (!q) return;
+      document.getElementById('modal-title').textContent = '編輯題目 #' + q.id;
+      document.getElementById('edit-q-id').value = q.id;
+      document.getElementById('edit-q-cat').value = q.cat;
+      document.getElementById('edit-q-ans').value = q.ans;
+      document.getElementById('edit-q-text').value = q.q;
+      document.getElementById('edit-q-opt0').value = q.options[0] || '';
+      document.getElementById('edit-q-opt1').value = q.options[1] || '';
+      document.getElementById('edit-q-opt2').value = q.options[2] || '';
+      document.getElementById('edit-q-opt3').value = q.options[3] || '';
+      document.getElementById('edit-q-hint').value = q.hint || '';
+      document.getElementById('edit-q-step1').value = q.steps[0] || '';
+      document.getElementById('edit-q-step2').value = q.steps[1] || '';
+      document.getElementById('edit-q-step3').value = q.steps[2] || '';
+
+      const modal = document.getElementById('edit-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function openAddQuestionModal() {
+      const nextId = questionBank.length > 0 ? Math.max(...questionBank.map(q => q.id)) + 1 : 1;
+      document.getElementById('modal-title').textContent = '新增題目 #' + nextId;
+      document.getElementById('edit-q-id').value = 'NEW_' + nextId;
+      document.getElementById('edit-q-cat').value = '5-1';
+      document.getElementById('edit-q-ans').value = '0';
+      document.getElementById('edit-q-text').value = '';
+      document.getElementById('edit-q-opt0').value = '';
+      document.getElementById('edit-q-opt1').value = '';
+      document.getElementById('edit-q-opt2').value = '';
+      document.getElementById('edit-q-opt3').value = '';
+      document.getElementById('edit-q-hint').value = '';
+      document.getElementById('edit-q-step1').value = '步驟1：';
+      document.getElementById('edit-q-step2').value = '步驟2：';
+      document.getElementById('edit-q-step3').value = '步驟3：';
+
+      const modal = document.getElementById('edit-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById('edit-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function saveEditedQuestion() {
+      const rawId = document.getElementById('edit-q-id').value;
+      const cat = document.getElementById('edit-q-cat').value;
+      const ans = parseInt(document.getElementById('edit-q-ans').value, 10);
+      const text = document.getElementById('edit-q-text').value.trim();
+      const options = [
+        document.getElementById('edit-q-opt0').value.trim(),
+        document.getElementById('edit-q-opt1').value.trim(),
+        document.getElementById('edit-q-opt2').value.trim(),
+        document.getElementById('edit-q-opt3').value.trim()
+      ];
+      const hint = document.getElementById('edit-q-hint').value.trim();
+      const steps = [
+        document.getElementById('edit-q-step1').value.trim(),
+        document.getElementById('edit-q-step2').value.trim(),
+        document.getElementById('edit-q-step3').value.trim()
+      ].filter(Boolean);
+
+      if (!text) {
+        alert('請輸入題目敘述！');
+        return;
+      }
+
+      if (rawId.startsWith('NEW_')) {
+        const newId = parseInt(rawId.replace('NEW_', ''), 10);
+        questionBank.unshift({
+          id: newId, cat, q: text, options, ans, hint, steps,
+          draw: { type: 'cuboid_labeled' }
+        });
+      } else {
+        const id = parseInt(rawId, 10);
+        const q = questionBank.find(item => item.id === id);
+        if (q) {
+          q.cat = cat;
+          q.q = text;
+          q.options = options;
+          q.ans = ans;
+          q.hint = hint;
+          q.steps = steps;
+        }
+      }
+
+      updateBankCountBadge();
+      renderBankList();
+      closeEditModal();
+      startNewQuiz();
+    }
+
+    function deleteQuestion(id) {
+      if (!confirm('確定要刪除第 #' + id + ' 題嗎？')) return;
+      questionBank = questionBank.filter(q => q.id !== id);
+      updateBankCountBadge();
+      renderBankList();
+    }
+
+    function resetDefaultBank() {
+      if (!confirm('確定要還原為預設題庫嗎？新增或修改的題目將會重設。')) return;
+      questionBank = JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
+      updateBankCountBadge();
+      renderBankList();
+      startNewQuiz();
+    }
+
+    // ==================== 安全下載 HTML 備份 ====================
+    function downloadStandaloneHTML() {
+      let fullSource = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      
+      const jsonBank = JSON.stringify(questionBank);
+      fullSource = fullSource.replace(
+        /const DEFAULT_QUESTIONS = \[[\s\S]*?\];\n\n    let questionBank/,
+        'const DEFAULT_QUESTIONS = ' + jsonBank + ';\n\n    let questionBank'
+      );
+
+      const jsonCfg = JSON.stringify(adminConfig);
+      fullSource = fullSource.replace(
+        /let adminConfig = \{[\s\S]*?\};/,
+        'let adminConfig = ' + jsonCfg + ';'
+      );
+
+      const blob = new Blob([fullSource], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = '五上數學第5單元_立體形體題庫系統_備份.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function bootApp() {
+      try {
+        updateBankCountBadge();
+        startNewQuiz();
+      } catch (err) {
+        console.error('啟動失敗:', err);
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootApp);
+    } else {
+      bootApp();
+    }
+  </script>
+</body>
+</html>
