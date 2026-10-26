@@ -158,12 +158,12 @@
     </footer>
 
     <!-- ================= SCHEDULE / LEVEL SELECT MODAL (課表) ================= -->
-    <div id="schedule-screen" class="absolute inset-0 bg-[#1e3f2c] z-30 flex flex-col p-3 transition-transform duration-300 transform translate-y-0">
+    <div id="schedule-screen" class="absolute inset-0 bg-[#1e3f2c] z-30 flex flex-col p-3 transition-transform duration-300 transform translate-y-full">
       
       <!-- Schedule Header -->
       <div class="flex items-center justify-between pb-2 border-b border-white/20">
         <div class="flex items-center gap-2">
-          <button id="btn-schedule-back" class="bg-amber-100 hover:bg-white text-stone-900 font-bold px-2.5 py-1 rounded text-xs shadow">
+          <button id="btn-schedule-back" class="bg-amber-100 hover:bg-white text-stone-900 font-bold px-2.5 py-1 rounded text-xs shadow active:scale-95 transition">
             返回
           </button>
           <h2 class="text-2xl font-black text-amber-100 tracking-wider">課 表</h2>
@@ -195,7 +195,7 @@
       <!-- Footer Help Chalk Text -->
       <div class="pt-2 border-t border-white/20 text-center">
         <p class="text-[11px] text-white/80 leading-relaxed font-medium">
-          畫一條粉筆線護住小編，撐過倒數就下課。粉筆用得越少，老師蓋的「優」越多。
+          畫一條粉筆線護住金城武，撐過倒數就下課。粉筆用得越少，老師蓋的「優」越多。
         </p>
       </div>
     </div>
@@ -245,28 +245,28 @@
           </button>
         </div>
         <p class="text-[11px] text-neutral-300 leading-relaxed">
-          預設載入 001.jpg (平時)、002.jpg (驚恐)、003.jpg (被叮)。亦可點下方按鈕更換圖片：
+          預設自動讀取同目錄下的 001.jpg、002.jpg、003.jpg。您也可以點下方「換圖」直接選擇檔案：
         </p>
 
         <!-- Preview slots with file inputs -->
         <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
           <div class="flex flex-col items-center gap-1 bg-neutral-800 p-2 rounded-xl border border-neutral-700">
             <span class="font-bold text-amber-200">1. 微笑 (001)</span>
-            <img id="preview-normal" class="w-14 h-18 object-contain rounded bg-black/40 border border-neutral-600" alt="平時">
+            <img id="preview-normal" class="w-14 h-20 object-contain rounded bg-black/40 border border-neutral-600" alt="平時">
             <label class="cursor-pointer bg-amber-600 hover:bg-amber-500 text-white px-2 py-0.5 rounded text-[9px] mt-1 font-bold">
               換圖 <input type="file" id="file-normal" accept="image/*" class="hidden">
             </label>
           </div>
           <div class="flex flex-col items-center gap-1 bg-neutral-800 p-2 rounded-xl border border-neutral-700">
             <span class="font-bold text-amber-200">2. 驚恐 (002)</span>
-            <img id="preview-scared" class="w-14 h-18 object-contain rounded bg-black/40 border border-neutral-600" alt="驚恐">
+            <img id="preview-scared" class="w-14 h-20 object-contain rounded bg-black/40 border border-neutral-600" alt="驚恐">
             <label class="cursor-pointer bg-amber-600 hover:bg-amber-500 text-white px-2 py-0.5 rounded text-[9px] mt-1 font-bold">
               換圖 <input type="file" id="file-scared" accept="image/*" class="hidden">
             </label>
           </div>
           <div class="flex flex-col items-center gap-1 bg-neutral-800 p-2 rounded-xl border border-neutral-700">
             <span class="font-bold text-amber-200">3. 腫包 (003)</span>
-            <img id="preview-hurt" class="w-14 h-18 object-contain rounded bg-black/40 border border-neutral-600" alt="被叮">
+            <img id="preview-hurt" class="w-14 h-20 object-contain rounded bg-black/40 border border-neutral-600" alt="被叮">
             <label class="cursor-pointer bg-amber-600 hover:bg-amber-500 text-white px-2 py-0.5 rounded text-[9px] mt-1 font-bold">
               換圖 <input type="file" id="file-hurt" accept="image/*" class="hidden">
             </label>
@@ -283,13 +283,13 @@
 
   <script>
     // --- MATTER.JS MODULES ---
-    const { Engine, World, Bodies, Body, Composite, Events } = Matter;
+    const { Engine, World, Bodies, Body, Events } = Matter;
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    let engine;
-    let world;
+    let engine = null;
+    let world = null;
 
     // Game lifecycle: 'DRAWING' -> 'DEFENDING' -> 'GAME_OVER'
     let gameState = 'DRAWING';
@@ -315,18 +315,21 @@
     let beeHives = [];
     let bees = [];
     let staticPlatforms = [];
-    let dangerSpikes = []; // 尖刺/危險障礙物
+    let dangerSpikes = [];
     let userDrawnBodies = [];
     let particles = [];
+    let impactTexts = [];
 
     // --- LEVEL PROGRESSION (LOCALSTORAGE) ---
-    // Key: `save_student_progress`, Value: { "1": 3, "2": 2, ... }
     function loadProgress() {
       try {
         const raw = localStorage.getItem('save_student_progress');
-        return raw ? JSON.parse(raw) : { "1": 0 }; // 預設第 1 關解鎖 (0 星)
+        const data = raw ? JSON.parse(raw) : {};
+        if (data["1"] === undefined) data["1"] = 0;   // 上學期第 1 關預設可玩
+        if (data["16"] === undefined) data["16"] = 0; // 下學期大力蜂第 16 關預設可玩
+        return data;
       } catch (e) {
-        return { "1": 0 };
+        return { "1": 0, "16": 0 };
       }
     }
 
@@ -336,7 +339,6 @@
       if (stars > currentBest) {
         progress[levelId] = stars;
       }
-      // 解鎖下一關
       const nextId = levelId + 1;
       if (progress[nextId] === undefined && nextId <= 30) {
         progress[nextId] = 0;
@@ -366,30 +368,34 @@
       { id: 15, sem: 1, name: "放學前蜂王", char: { x: 0.5, y: 0.55 }, hives: [{ x: 0.3, y: 0.18, count: 8 }, { x: 0.7, y: 0.18, count: 8 }], platforms: [{ x: 0.5, y: 0.68, w: 0.34, h: 0.06, label: "大黑板下" }] },
 
       // ====== 下學期・大力蜂 (16 ~ 30) ======
-      { id: 16, sem: 2, name: "新學期下馬威", char: { x: 0.5, y: 0.62 }, hives: [{ x: 0.5, y: 0.18, count: 11, heavy: true }], platforms: [{ x: 0.5, y: 0.74, w: 0.4, h: 0.06, label: "加固講桌" }] },
+      { id: 16, sem: 2, name: "新學期下馬威", char: { x: 0.5, y: 0.62 }, hives: [{ x: 0.5, y: 0.18, count: 10, heavy: true }], platforms: [{ x: 0.5, y: 0.74, w: 0.4, h: 0.06, label: "加固講桌" }] },
       { id: 17, sem: 2, name: "雙重大力蜂", char: { x: 0.5, y: 0.62 }, hives: [{ x: 0.2, y: 0.18, count: 7, heavy: true }, { x: 0.8, y: 0.18, count: 7, heavy: true }], platforms: [{ x: 0.5, y: 0.74, w: 0.34, h: 0.06, label: "水泥墩" }] },
-      { id: 18, sem: 2, name: "體育館高台", char: { x: 0.25, y: 0.42 }, hives: [{ x: 0.78, y: 0.20, count: 12, heavy: true }], platforms: [{ x: 0.25, y: 0.52, w: 0.28, h: 0.05, label: "籃球架" }] },
-      { id: 19, sem: 2, name: "三角夾縫", char: { x: 0.5, y: 0.68 }, hives: [{ x: 0.5, y: 0.20, count: 13, heavy: true }], platforms: [{ x: 0.3, y: 0.62, w: 0.35, h: 0.05, label: "斜角", angle: 0.4 }, { x: 0.7, y: 0.62, w: 0.35, h: 0.05, label: "斜角", angle: -0.4 }] },
-      { id: 20, sem: 2, name: "圖釘階梯", char: { x: 0.75, y: 0.42 }, hives: [{ x: 0.25, y: 0.18, count: 12, heavy: true }], platforms: [{ x: 0.75, y: 0.52, w: 0.24, h: 0.05, label: "頂層" }], spikes: [{ x: 0.3, y: 0.7, w: 0.4, h: 0.04 }] },
-      { id: 21, sem: 2, name: "狂風氣流", char: { x: 0.5, y: 0.50 }, hives: [{ x: 0.15, y: 0.25, count: 14, heavy: true }], platforms: [{ x: 0.5, y: 0.60, w: 0.26, h: 0.05, label: "風口" }] },
-      { id: 22, sem: 2, name: "狹小氣窗", char: { x: 0.5, y: 0.45 }, hives: [{ x: 0.5, y: 0.15, count: 14, heavy: true }], platforms: [{ x: 0.5, y: 0.54, w: 0.18, h: 0.04, label: "窗櫺" }] },
-      { id: 23, sem: 2, name: "滿地圖釘", char: { x: 0.5, y: 0.40 }, hives: [{ x: 0.8, y: 0.16, count: 13, heavy: true }], platforms: [{ x: 0.5, y: 0.48, w: 0.25, h: 0.05, label: "落腳點" }], spikes: [{ x: 0.5, y: 0.85, w: 0.95, h: 0.05 }] },
-      { id: 24, sem: 2, name: "重力大考驗", char: { x: 0.25, y: 0.60 }, hives: [{ x: 0.5, y: 0.18, count: 15, heavy: true }], platforms: [{ x: 0.25, y: 0.72, w: 0.24, h: 0.05, label: "木箱" }] },
-      { id: 25, sem: 2, name: "蜂巢三連星", char: { x: 0.5, y: 0.65 }, hives: [{ x: 0.2, y: 0.16, count: 5, heavy: true }, { x: 0.5, y: 0.14, count: 6, heavy: true }, { x: 0.8, y: 0.16, count: 5, heavy: true }], platforms: [{ x: 0.5, y: 0.76, w: 0.36, h: 0.06, label: "石椅" }] },
-      { id: 26, sem: 2, name: "蹺蹺板平衡", char: { x: 0.5, y: 0.50 }, hives: [{ x: 0.2, y: 0.2, count: 12, heavy: true }], platforms: [{ x: 0.5, y: 0.60, w: 0.45, h: 0.04, label: "蹺蹺板" }] },
-      { id: 27, sem: 2, name: "四面楚歌", char: { x: 0.5, y: 0.55 }, hives: [{ x: 0.2, y: 0.2, count: 7, heavy: true }, { x: 0.8, y: 0.2, count: 7, heavy: true }, { x: 0.5, y: 0.85, count: 5, heavy: true }], platforms: [{ x: 0.5, y: 0.66, w: 0.28, h: 0.05, label: "孤島" }] },
-      { id: 28, sem: 2, name: "無處可逃", char: { x: 0.75, y: 0.62 }, hives: [{ x: 0.25, y: 0.2, count: 16, heavy: true }], platforms: [{ x: 0.75, y: 0.74, w: 0.22, h: 0.05, label: "角落" }] },
-      { id: 29, sem: 2, name: "終極防線", char: { x: 0.5, y: 0.55 }, hives: [{ x: 0.3, y: 0.16, count: 9, heavy: true }, { x: 0.7, y: 0.16, count: 9, heavy: true }], platforms: [{ x: 0.5, y: 0.66, w: 0.26, h: 0.05, label: "核心台" }], spikes: [{ x: 0.5, y: 0.9, w: 0.95, h: 0.05 }] },
-      { id: 30, sem: 2, name: "畢業考・蜂神", char: { x: 0.5, y: 0.50 }, hives: [{ x: 0.2, y: 0.14, count: 9, heavy: true }, { x: 0.5, y: 0.12, count: 9, heavy: true }, { x: 0.8, y: 0.14, count: 9, heavy: true }], platforms: [{ x: 0.5, y: 0.60, w: 0.22, h: 0.05, label: "金城武講台" }] }
+      { id: 18, sem: 2, name: "體育館高台", char: { x: 0.25, y: 0.42 }, hives: [{ x: 0.78, y: 0.20, count: 10, heavy: true }], platforms: [{ x: 0.25, y: 0.52, w: 0.28, h: 0.05, label: "籃球架" }] },
+      { id: 19, sem: 2, name: "三角夾縫", char: { x: 0.5, y: 0.68 }, hives: [{ x: 0.5, y: 0.20, count: 11, heavy: true }], platforms: [{ x: 0.3, y: 0.62, w: 0.35, h: 0.05, label: "斜角", angle: 0.4 }, { x: 0.7, y: 0.62, w: 0.35, h: 0.05, label: "斜角", angle: -0.4 }] },
+      { id: 20, sem: 2, name: "圖釘階梯", char: { x: 0.75, y: 0.42 }, hives: [{ x: 0.25, y: 0.18, count: 10, heavy: true }], platforms: [{ x: 0.75, y: 0.52, w: 0.24, h: 0.05, label: "頂層" }], spikes: [{ x: 0.3, y: 0.7, w: 0.4, h: 0.04 }] },
+      { id: 21, sem: 2, name: "狂風氣流", char: { x: 0.5, y: 0.50 }, hives: [{ x: 0.15, y: 0.25, count: 12, heavy: true }], platforms: [{ x: 0.5, y: 0.60, w: 0.26, h: 0.05, label: "風口" }] },
+      { id: 22, sem: 2, name: "狹小氣窗", char: { x: 0.5, y: 0.45 }, hives: [{ x: 0.5, y: 0.15, count: 12, heavy: true }], platforms: [{ x: 0.5, y: 0.54, w: 0.18, h: 0.04, label: "窗櫺" }] },
+      { id: 23, sem: 2, name: "滿地圖釘", char: { x: 0.5, y: 0.40 }, hives: [{ x: 0.8, y: 0.16, count: 11, heavy: true }], platforms: [{ x: 0.5, y: 0.48, w: 0.25, h: 0.05, label: "落腳點" }], spikes: [{ x: 0.5, y: 0.85, w: 0.95, h: 0.05 }] },
+      { id: 24, sem: 2, name: "重力大考驗", char: { x: 0.25, y: 0.60 }, hives: [{ x: 0.5, y: 0.18, count: 13, heavy: true }], platforms: [{ x: 0.25, y: 0.72, w: 0.24, h: 0.05, label: "木箱" }] },
+      { id: 25, sem: 2, name: "蜂巢三連星", char: { x: 0.5, y: 0.65 }, hives: [{ x: 0.2, y: 0.16, count: 4, heavy: true }, { x: 0.5, y: 0.14, count: 5, heavy: true }, { x: 0.8, y: 0.16, count: 4, heavy: true }], platforms: [{ x: 0.5, y: 0.76, w: 0.36, h: 0.06, label: "石椅" }] },
+      { id: 26, sem: 2, name: "蹺蹺板平衡", char: { x: 0.5, y: 0.50 }, hives: [{ x: 0.2, y: 0.2, count: 10, heavy: true }], platforms: [{ x: 0.5, y: 0.60, w: 0.45, h: 0.04, label: "蹺蹺板" }] },
+      { id: 27, sem: 2, name: "四面楚歌", char: { x: 0.5, y: 0.55 }, hives: [{ x: 0.2, y: 0.2, count: 6, heavy: true }, { x: 0.8, y: 0.2, count: 6, heavy: true }, { x: 0.5, y: 0.85, count: 4, heavy: true }], platforms: [{ x: 0.5, y: 0.66, w: 0.28, h: 0.05, label: "孤島" }] },
+      { id: 28, sem: 2, name: "無處可逃", char: { x: 0.75, y: 0.62 }, hives: [{ x: 0.25, y: 0.2, count: 14, heavy: true }], platforms: [{ x: 0.75, y: 0.74, w: 0.22, h: 0.05, label: "角落" }] },
+      { id: 29, sem: 2, name: "終極防線", char: { x: 0.5, y: 0.55 }, hives: [{ x: 0.3, y: 0.16, count: 8, heavy: true }, { x: 0.7, y: 0.16, count: 8, heavy: true }], platforms: [{ x: 0.5, y: 0.66, w: 0.26, h: 0.05, label: "核心台" }], spikes: [{ x: 0.5, y: 0.9, w: 0.95, h: 0.05 }] },
+      { id: 30, sem: 2, name: "畢業考・蜂神", char: { x: 0.5, y: 0.50 }, hives: [{ x: 0.2, y: 0.14, count: 7, heavy: true }, { x: 0.5, y: 0.12, count: 8, heavy: true }, { x: 0.8, y: 0.14, count: 7, heavy: true }], platforms: [{ x: 0.5, y: 0.60, w: 0.22, h: 0.05, label: "金城武講台" }] }
     ];
 
     // --- AUDIO SYSTEM (Web Audio API Synthesizer) ---
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     let audioCtx = null;
 
     function initAudio() {
-      if (!audioCtx) audioCtx = new AudioContext();
-      if (audioCtx.state === 'suspended') audioCtx.resume();
+      if (!audioCtx && AudioContextClass) {
+        audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
     }
 
     function playTone(freq, type = 'sine', duration = 0.15, vol = 0.12) {
@@ -416,13 +422,30 @@
       playTone(130, 'sawtooth', 0.45, 0.25);
     }
 
+    function playHeavyImpactSound() {
+      if (!audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(90, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.25);
+        gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.25);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.25);
+      } catch (e) {}
+    }
+
     function playWinSound() {
       [523, 659, 784, 1046].forEach((f, idx) => {
         setTimeout(() => playTone(f, 'triangle', 0.25, 0.15), idx * 110);
       });
     }
 
-    // --- CHARACTER IMAGES (001.jpg, 002.jpg, 003.jpg) ---
+    // --- CHARACTER IMAGES ---
     const heroImages = {
       normal: new Image(),
       scared: new Image(),
@@ -482,8 +505,6 @@
           <ellipse cx="100" cy="85" rx="36" ry="34" fill="#fed7aa"/>
           <path d="M72,55 Q77,65 74,70 Q70,72 68,68 Q66,62 72,55 Z" fill="#38bdf8"/>
           <path d="M125,52 Q130,62 127,67 Q123,69 121,65 Q119,59 125,52 Z" fill="#38bdf8"/>
-          <path d="M140,78 Q144,84 142,88 Q138,90 136,86 Z" fill="#38bdf8"/>
-          <path d="M58,78 Q62,84 60,88 Q56,90 54,86 Z" fill="#38bdf8"/>
           <circle cx="86" cy="80" r="7" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
           <circle cx="86" cy="80" r="3.5" fill="#0f172a"/>
           <circle cx="114" cy="80" r="7" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
@@ -509,21 +530,15 @@
             <rect x="-8" y="-3" width="16" height="6" rx="2" fill="#ffffff" stroke="#e2e8f0"/>
             <rect x="-3" y="-8" width="6" height="16" rx="2" fill="#ffffff" stroke="#e2e8f0"/>
           </g>
-          <g transform="translate(125,95) rotate(-20)">
-            <rect x="-10" y="-3" width="20" height="7" rx="2" fill="#fed7aa" stroke="#ca8a04"/>
-          </g>
           <circle cx="86" cy="80" r="10" fill="#a855f7" opacity="0.3"/>
           <path d="M82,76 L90,84 M90,76 L82,84" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
           <path d="M110,82 Q115,76 120,82" stroke="#1e293b" stroke-width="3" fill="none"/>
-          <circle cx="117" cy="87" r="3" fill="#38bdf8"/>
           <g transform="rotate(6, 100, 80)">
             <circle cx="86" cy="80" r="13" fill="none" stroke="#475569" stroke-width="3"/>
             <circle cx="114" cy="80" r="13" fill="none" stroke="#475569" stroke-width="3"/>
             <path d="M99,80 L101,80" stroke="#475569" stroke-width="3"/>
           </g>
           <path d="M93,103 Q100,97 108,103" fill="none" stroke="#b45309" stroke-width="3" stroke-linecap="round"/>
-          <ellipse cx="100" cy="38" rx="35" ry="8" fill="none" stroke="#fcd34d" stroke-width="2.5" stroke-dasharray="6,4" opacity="0.9"/>
-          <text x="145" y="42" font-size="16" fill="#ef4444" font-weight="black">✚</text>
         `;
       }
 
@@ -546,7 +561,7 @@
     function loadAvatarWithFallback(imgObj, primarySrc, secondarySrc, fallbackSvgType) {
       imgObj.onload = () => { updatePreviews(); };
       imgObj.onerror = () => {
-        if (imgObj.src.endsWith(primarySrc)) {
+        if (imgObj.src && imgObj.src.endsWith(primarySrc)) {
           imgObj.src = secondarySrc;
         } else {
           imgObj.onerror = null;
@@ -570,7 +585,9 @@
     }
 
     function setupImageUpload(inputId, typeKey) {
-      document.getElementById(inputId).addEventListener('change', function(e) {
+      const el = document.getElementById(inputId);
+      if (!el) return;
+      el.addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
           const reader = new FileReader();
@@ -603,11 +620,11 @@
 
     function resizeCanvas() {
       const rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = rect.width;
-      canvas.height = rect.height;
+      canvas.width = rect.width || 360;
+      canvas.height = rect.height || 540;
     }
 
-    // --- LOAD SPECIFIC LEVEL ---
+    // --- LOAD LEVEL ---
     function startLevel(levelId) {
       initAudio();
       currentLevelId = levelId;
@@ -625,6 +642,7 @@
       userDrawnBodies = [];
       bees = [];
       particles = [];
+      impactTexts = [];
       dangerSpikes = [];
       clearInterval(timerInterval);
       remainingTime = DEFEND_DURATION;
@@ -639,11 +657,11 @@
       const W = canvas.width;
       const H = canvas.height;
 
-      // Boundaries (Keep lines & hero inside chalkboard)
+      // Outer boundaries
       const wallThick = 60;
-      const leftWall = Bodies.rectangle(-wallThick / 2, H / 2, wallThick, H * 2, { isStatic: true });
-      const rightWall = Bodies.rectangle(W + wallThick / 2, H / 2, wallThick, H * 2, { isStatic: true });
-      const ceiling = Bodies.rectangle(W / 2, -wallThick / 2, W * 2, wallThick, { isStatic: true });
+      const leftWall = Bodies.rectangle(-wallThick / 2, H / 2, wallThick, H * 2, { isStatic: true, label: 'Wall' });
+      const rightWall = Bodies.rectangle(W + wallThick / 2, H / 2, wallThick, H * 2, { isStatic: true, label: 'Wall' });
+      const ceiling = Bodies.rectangle(W / 2, -wallThick / 2, W * 2, wallThick, { isStatic: true, label: 'Wall' });
       World.add(world, [leftWall, rightWall, ceiling]);
 
       // Platforms
@@ -751,28 +769,29 @@
     }
 
     // --- BEE SPAWN & SMOOTH HOVERING AIR-FLIGHT PHYSICS ---
-    function spawnBee(hive) {
+    function spawnBee(hive, isLeader = false) {
       const angle = Math.random() * Math.PI * 2;
       const bx = hive.x + Math.cos(angle) * 14;
       const by = hive.y + Math.sin(angle) * 14;
 
-      const beeRadius = hive.heavy ? 11 : 8;
+      // 只有蜂王是大隻的 (半徑 18px，質量倍增)；其餘皆為標準大小 (半徑 8px)
+      const beeRadius = isLeader ? 18 : 8;
       const beeBody = Bodies.circle(bx, by, beeRadius, {
         label: 'Bee',
-        frictionAir: hive.heavy ? 0.09 : 0.12,
+        frictionAir: isLeader ? 0.09 : 0.12,
         friction: 0.1,
-        restitution: 0.45,
-        density: hive.heavy ? 0.0025 : 0.0012
+        restitution: isLeader ? 0.35 : 0.45,
+        density: isLeader ? 0.006 : 0.0012
       });
 
       World.add(world, beeBody);
       bees.push({
         body: beeBody,
-        heavy: hive.heavy,
+        heavy: isLeader,
         buzzSeed: Math.random() * 1000,
         wingPhase: Math.random() * 10,
         floatFreq: 1.8 + Math.random() * 1.2,
-        floatAmp: (hive.heavy ? 0.00045 : 0.00035) + Math.random() * 0.0002
+        floatAmp: (isLeader ? 0.0005 : 0.00035) + Math.random() * 0.0002
       });
 
       createSparks(hive.x, hive.y, '#f59e0b', 3);
@@ -790,11 +809,11 @@
         const dy = targetPos.y - pos.y;
         const dist = Math.hypot(dx, dy) || 1;
 
-        // Counteract world gravity to ensure floating
+        // Counteract world gravity to ensure hovering in the air
         const antiGravity = -world.gravity.y * world.gravity.scale * bee.body.mass;
 
         // Controlled pursuit thrust
-        const gentleSpeed = bee.heavy ? 0.0009 : 0.00065;
+        const gentleSpeed = bee.heavy ? 0.0018 : 0.00065;
         let fx = (dx / dist) * gentleSpeed;
         let fy = (dy / dist) * gentleSpeed + antiGravity;
 
@@ -803,7 +822,7 @@
         fy += hoverWave * bee.floatAmp;
         fx += Math.cos(now * 1.5 + bee.buzzSeed) * 0.00025;
 
-        // Separation so bees fly as an organic swarm
+        // Swarm Separation
         for (let j = 0; j < bees.length; j++) {
           if (i === j) continue;
           const otherPos = bees[j].body.position;
@@ -819,7 +838,7 @@
         Body.applyForce(bee.body, pos, { x: fx, y: fy });
 
         // Clamp speed
-        const MAX_BEE_SPEED = bee.heavy ? 3.0 : 2.5;
+        const MAX_BEE_SPEED = bee.heavy ? 3.6 : 2.5;
         const currentSpeed = Math.hypot(bee.body.velocity.x, bee.body.velocity.y);
         if (currentSpeed > MAX_BEE_SPEED) {
           Body.setVelocity(bee.body, {
@@ -849,7 +868,11 @@
       beeHives.forEach(hive => {
         for (let i = 0; i < hive.count; i++) {
           setTimeout(() => {
-            if (gameState === 'DEFENDING') spawnBee(hive);
+            if (gameState === 'DEFENDING') {
+              // 下學期關卡中，僅第一隻蜂 (i === 0) 為巨型大力蜂首領，其餘皆為普通大小
+              const isLeader = hive.heavy && (i === 0);
+              spawnBee(hive, isLeader);
+            }
           }, i * 200);
         }
       });
@@ -866,6 +889,22 @@
         }
         document.getElementById('timer-text').innerText = Math.max(0, remainingTime).toFixed(1) + 's';
       }, 100);
+    }
+
+    // --- IMPACT POPUP TEXT ---
+    function spawnImpactText(x, y, word) {
+      const words = ["💥 咚！", "💢 碰！", "⚡ 匡！", "💥 轟！"];
+      const text = word || words[Math.floor(Math.random() * words.length)];
+      impactTexts.push({
+        x: x,
+        y: y,
+        text: text,
+        vy: -1.5,
+        life: 1.0,
+        decay: 0.04,
+        scale: 1.4,
+        rot: (Math.random() - 0.5) * 0.3
+      });
     }
 
     // --- COLLISION & RULES ---
@@ -890,11 +929,22 @@
           return;
         }
 
-        // Bee hits chalk barrier spark
-        if ((bodyA.label === 'Bee' && bodyB.label === 'ChalkBarrier') ||
-            (bodyA.label === 'ChalkBarrier' && bodyB.label === 'Bee')) {
-          const contact = pairs[i].collision.supports[0] || bodyA.position;
-          createSparks(contact.x, contact.y, '#ffffff', 2);
+        // Bee hits chalk barrier or walls
+        const isChalkA = bodyA.label === 'ChalkBarrier' || bodyA.label === 'Platform' || bodyA.label === 'Wall';
+        const isChalkB = bodyB.label === 'ChalkBarrier' || bodyB.label === 'Platform' || bodyB.label === 'Wall';
+
+        if ((bodyA.label === 'Bee' && isChalkB) || (isChalkA && bodyB.label === 'Bee')) {
+          const beeBody = bodyA.label === 'Bee' ? bodyA : bodyB;
+          const beeData = bees.find(b => b.body === beeBody);
+          const contact = pairs[i].collision.supports[0] || beeBody.position;
+
+          if (beeData && beeData.heavy) {
+            playHeavyImpactSound();
+            spawnImpactText(contact.x, contact.y);
+            createSparks(contact.x, contact.y, '#f97316', 8);
+          } else {
+            createSparks(contact.x, contact.y, '#ffffff', 2);
+          }
         }
       }
     }
@@ -912,7 +962,9 @@
       clearInterval(timerInterval);
       playStingSound();
 
-      createSparks(characterBody.position.x, characterBody.position.y, '#ef4444', 30);
+      if (characterBody) {
+        createSparks(characterBody.position.x, characterBody.position.y, '#ef4444', 30);
+      }
 
       setTimeout(() => {
         showResultModal(false, reason);
@@ -1112,6 +1164,7 @@
     }
 
     function updateAndDrawParticles() {
+      // Particles
       for (let i = particles.length - 1; i >= 0; i--) {
         const p = particles[i];
         p.x += p.vx;
@@ -1131,6 +1184,36 @@
         ctx.translate(p.x, p.y);
         if (p.rot) ctx.rotate((p.rot * Math.PI) / 180);
         ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        ctx.restore();
+      }
+
+      // Impact pop-up comic texts
+      for (let i = impactTexts.length - 1; i >= 0; i--) {
+        const t = impactTexts[i];
+        t.y += t.vy;
+        t.life -= t.decay;
+        t.scale = Math.max(1.0, t.scale - 0.02);
+
+        if (t.life <= 0) {
+          impactTexts.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = t.life;
+        ctx.translate(t.x, t.y);
+        ctx.rotate(t.rot);
+        ctx.scale(t.scale, t.scale);
+
+        ctx.font = '900 18px "Zen Maru Gothic", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 4;
+        ctx.strokeText(t.text, 0, 0);
+        ctx.fillStyle = '#facc15';
+        ctx.fillText(t.text, 0, 0);
+
         ctx.restore();
       }
     }
@@ -1185,7 +1268,7 @@
         ctx.restore();
       });
 
-      // Draw dangerous spikes (圖釘陷阱)
+      // Spikes
       dangerSpikes.forEach(s => {
         const pos = s.body.position;
         const w = s.w;
@@ -1196,7 +1279,7 @@
 
         ctx.fillStyle = '#b91c1c';
         ctx.beginPath();
-        const count = Math.floor(w / 14);
+        const count = Math.max(1, Math.floor(w / 14));
         const step = w / count;
         const startX = -w / 2;
 
@@ -1240,6 +1323,15 @@
         ctx.arc(0, 6, 7, 0, Math.PI * 2);
         ctx.fill();
 
+        // 大力蜂巢標記
+        if (hive.heavy) {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 9px "Zen Maru Gothic", sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText("⚡力", 0, -8);
+        }
+
         ctx.restore();
       });
     }
@@ -1260,49 +1352,96 @@
         // Flapping wings
         ctx.fillStyle = 'rgba(224, 242, 254, 0.9)';
         const wingFlap = Math.sin(b.wingPhase) * 6;
+        const wingScale = b.heavy ? 1.8 : 1.0;
+
         ctx.beginPath();
-        ctx.ellipse(-2, -9 + wingFlap * 0.3, 5, 8, -0.3, 0, Math.PI * 2);
-        ctx.ellipse(2, -9 - wingFlap * 0.3, 5, 8, 0.3, 0, Math.PI * 2);
+        ctx.ellipse(-2 * wingScale, -9 * wingScale + wingFlap * 0.3, 5 * wingScale, 8 * wingScale, -0.3, 0, Math.PI * 2);
+        ctx.ellipse(2 * wingScale, -9 * wingScale - wingFlap * 0.3, 5 * wingScale, 8 * wingScale, 0.3, 0, Math.PI * 2);
         ctx.fill();
 
         // Soft hovering shadow
         ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
         ctx.beginPath();
-        ctx.ellipse(0, 11 - hoverOffsetY * 0.5, 6, 2, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, (b.heavy ? 20 : 11) - hoverOffsetY * 0.5, b.heavy ? 12 : 6, b.heavy ? 4 : 2, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Body (大力蜂顏色更深，帶有紅條紋)
-        const scale = b.heavy ? 1.3 : 1.0;
-        ctx.scale(scale, scale);
+        // 巨型大力蜂首領渲染
+        if (b.heavy) {
+          ctx.fillStyle = '#ea580c';
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 24, 18, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#7c2d12';
+          ctx.lineWidth = 3;
+          ctx.stroke();
 
-        ctx.fillStyle = b.heavy ? '#f97316' : '#facc15';
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 11, 8, 0, 0, Math.PI * 2);
-        ctx.fill();
+          // Stripes
+          ctx.fillStyle = '#18181b';
+          ctx.fillRect(-6, -16, 7, 32);
+          ctx.fillRect(7, -15, 7, 30);
 
-        // Stripes
-        ctx.fillStyle = '#18181b';
-        ctx.fillRect(-3, -7, 3, 14);
-        ctx.fillRect(3, -7, 3, 14);
+          // Giant Stinger
+          ctx.fillStyle = '#09090b';
+          ctx.beginPath();
+          ctx.moveTo(-24, 0);
+          ctx.lineTo(-34, -5);
+          ctx.lineTo(-34, 5);
+          ctx.closePath();
+          ctx.fill();
 
-        // Stinger
-        ctx.fillStyle = '#09090b';
-        ctx.beginPath();
-        ctx.moveTo(-11, 0);
-        ctx.lineTo(-16, -2.5);
-        ctx.lineTo(-16, 2.5);
-        ctx.closePath();
-        ctx.fill();
+          // Angry Eyes
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(12, -4, 5.5, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#dc2626';
+          ctx.beginPath();
+          ctx.arc(14, -4, 3, 0, Math.PI * 2);
+          ctx.fill();
 
-        // Eye
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath();
-        ctx.arc(6, -2, 3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#000000';
-        ctx.beginPath();
-        ctx.arc(7, -2, 1.5, 0, Math.PI * 2);
-        ctx.fill();
+          // Angry Eyebrow
+          ctx.strokeStyle = '#000000';
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.moveTo(7, -11);
+          ctx.lineTo(17, -7);
+          ctx.stroke();
+
+          // Crown mark
+          ctx.fillStyle = '#facc15';
+          ctx.font = 'bold 11px sans-serif';
+          ctx.fillText('👑', 2, -18);
+        } else {
+          // 普通蜜蜂渲染
+          ctx.fillStyle = '#facc15';
+          ctx.beginPath();
+          ctx.ellipse(0, 0, 11, 8, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Stripes
+          ctx.fillStyle = '#18181b';
+          ctx.fillRect(-3, -7, 3, 14);
+          ctx.fillRect(3, -7, 3, 14);
+
+          // Stinger
+          ctx.fillStyle = '#09090b';
+          ctx.beginPath();
+          ctx.moveTo(-11, 0);
+          ctx.lineTo(-16, -2.5);
+          ctx.lineTo(-16, 2.5);
+          ctx.closePath();
+          ctx.fill();
+
+          // Eye
+          ctx.fillStyle = '#ffffff';
+          ctx.beginPath();
+          ctx.arc(6, -2, 3, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#000000';
+          ctx.beginPath();
+          ctx.arc(7, -2, 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
         ctx.restore();
       });
@@ -1369,6 +1508,7 @@
       ctx.shadowBlur = 6;
 
       userDrawnBodies.forEach(compound => {
+        if (!compound.parts) return;
         compound.parts.forEach((part, index) => {
           if (index === 0) return;
           ctx.beginPath();
@@ -1406,7 +1546,9 @@
 
     // --- GAME ENGINE & RENDER LOOP ---
     function gameLoop() {
-      Engine.update(engine, 1000 / 60);
+      if (engine) {
+        Engine.update(engine, 1000 / 60);
+      }
 
       if (gameState === 'DEFENDING') {
         checkFallBoundary();
@@ -1526,10 +1668,14 @@
     });
 
     window.onload = function() {
-      resizeCanvas();
-      renderSchedule();
-      startLevel(1);
-      gameLoop();
+      try {
+        resizeCanvas();
+        renderSchedule();
+        startLevel(1);
+        gameLoop();
+      } catch (err) {
+        console.error("Initialization error:", err);
+      }
     };
   </script>
 </body>
