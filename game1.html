@@ -94,8 +94,12 @@
           <button id="btn-open-schedule" class="bg-amber-100 hover:bg-white text-stone-900 font-black px-2.5 py-1 rounded text-xs shadow flex items-center gap-1 active:scale-95 transition">
             <i class="fa-solid fa-calendar-days text-amber-700"></i> 課表
           </button>
-          <span class="text-xs text-amber-200 font-extrabold truncate max-w-[130px]" id="level-title-display">
-            第 1 關：第一堂課
+          <!-- Class Badge & Game Title -->
+          <span class="bg-amber-400/90 text-amber-950 font-black text-[10px] px-2 py-0.5 rounded-full shadow flex items-center gap-0.5">
+            🌻 向日葵班
+          </span>
+          <span class="text-xs text-amber-200 font-extrabold truncate max-w-[150px]" id="level-title-display">
+            救救金城武：第 1 關
           </span>
         </div>
 
@@ -166,7 +170,12 @@
           <button id="btn-schedule-back" class="bg-amber-100 hover:bg-white text-stone-900 font-bold px-2.5 py-1 rounded text-xs shadow active:scale-95 transition">
             返回
           </button>
-          <h2 class="text-2xl font-black text-amber-100 tracking-wider">課 表</h2>
+          <div>
+            <div class="text-[10px] font-black text-amber-300 flex items-center gap-1">
+              🌻 向日葵班・救救金城武
+            </div>
+            <h2 class="text-2xl font-black text-amber-100 tracking-wider">課 表</h2>
+          </div>
         </div>
         <!-- Total Stars Count -->
         <div class="flex items-center gap-1 bg-black/40 px-3 py-1 rounded-lg border border-amber-400/30">
@@ -648,7 +657,7 @@
       remainingTime = DEFEND_DURATION;
 
       // Update HUD
-      document.getElementById('level-title-display').innerText = `第 ${level.id} 關：${level.name}`;
+      document.getElementById('level-title-display').innerText = `救救金城武：第 ${level.id} 關・${level.name}`;
       document.getElementById('timer-text').innerText = DEFEND_DURATION.toFixed(1) + 's';
       document.getElementById('guide-overlay').style.opacity = '1';
       document.getElementById('result-modal').classList.add('hidden');
