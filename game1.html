@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>救救東勢金城武 - 物理畫線大作戰</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Matter.js 2D Physics Engine -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap');
+
+    * {
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+      font-family: 'Zen Maru Gothic', 'Noto Sans TC', sans-serif;
+    }
+
+    /* Blackboard border & wooden classroom frame */
+    .chalkboard-frame {
+      background: #1b3826;
+      background-image: 
+        radial-gradient(circle at 50% 35%, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.4) 100%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 2px, transparent 2px, transparent 10px);
+      box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.8), 0 15px 35px -5px rgba(0, 0, 0, 0.6);
+      border: 14px solid #78350f;
+      border-image: linear-gradient(135deg, #a16207, #451a03 40%, #78350f 70%, #92400e) 14;
+    }
+
+    /* Chalk dust look */
+    .chalk-glow {
+      text-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
+    }
+  </style>
+</head>
+<body class="bg-stone-900 min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 overflow-hidden select-none">
+
+  <!-- Main Game Blackboard Container -->
+  <div class="relative w-full max-w-[500px] h-[94vh] max-h-[860px] flex flex-col rounded-2xl chalkboard-frame shadow-2xl overflow-hidden">
+    
+    <!-- Top HUD / Blackboard Header -->
+    <header class="w-full bg-black/50 backdrop-blur-md px-3.5 py-2 border-b border-white/20 flex flex-col gap-1.5 z-10 text-white">
+      <div class="flex items-center justify-between">
+        <!-- Level Badge -->
+        <div class="flex items-center gap-2">
+          <span class="bg-amber-600/90 text-amber-100 font-extrabold px-2.5 py-0.5 rounded-full text-xs shadow-inner flex items-center gap-1">
+            <i class="fa-solid fa-chalkboard-user"></i> 第 <span id="level-display">1</span> 關
+          </span>
+          <span id="level-title" class="text-xs text-amber-200 font-bold truncate max-w-[120px]">拯救帥氣金城武</span>
+        </div>
+
+        <!-- Countdown Timer -->
+        <div id="timer-box" class="flex items-center gap-1.5 font-mono text-sm font-black text-amber-300 bg-black/60 px-2.5 py-0.5 rounded-lg border border-amber-500/40">
+          <i class="fa-solid fa-stopwatch text-amber-400 animate-pulse"></i>
+          <span id="timer-text">10.0s</span>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex items-center gap-1.5">
+          <!-- Picture Settings / Customizer -->
+          <button id="btn-custom-faces" title="更換頭像" class="p-1.5 bg-sky-700/80 hover:bg-sky-600 text-white text-xs font-bold rounded-lg shadow active:scale-95 transition">
+            <i class="fa-solid fa-camera"></i>
+          </button>
+          <!-- Restart Button -->
+          <button id="btn-restart" class="p-1.5 px-2 bg-rose-700/80 hover:bg-rose-600 text-white text-xs font-bold rounded-lg shadow active:scale-95 transition flex items-center gap-1">
+            <i class="fa-solid fa-rotate-right"></i> 重來
+          </button>
+        </div>
+      </div>
+
+      <!-- Ink (Chalk) Gauge with 3-Star Grading Markers -->
+      <div class="relative flex flex-col gap-0.5">
+        <div class="flex justify-between items-center text-[10px] text-white/90 font-bold px-1">
+          <span><i class="fa-solid fa-pen mr-1"></i>粉筆消耗</span>
+          <div class="flex gap-1.5 text-xs font-black" id="star-indicators">
+            <span id="star-1" class="text-rose-400">優</span>
+            <span id="star-2" class="text-rose-400">優</span>
+            <span id="star-3" class="text-rose-400">優</span>
+          </div>
+        </div>
+
+        <!-- Chalk Progress Bar -->
+        <div class="relative w-full h-3.5 bg-black/70 rounded-full overflow-hidden border border-white/30 p-0.5">
+          <div id="ink-fill" class="h-full bg-gradient-to-r from-emerald-400 via-amber-300 to-rose-400 rounded-full transition-all duration-75 w-full"></div>
+          <!-- 3-Star Dividers -->
+          <div class="absolute top-0 bottom-0 left-[35%] w-0.5 bg-white/40 pointer-events-none"></div>
+          <div class="absolute top-0 bottom-0 left-[70%] w-0.5 bg-white/40 pointer-events-none"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Canvas Play Area -->
+    <div class="relative flex-1 w-full h-full overflow-hidden bg-transparent">
+      <canvas id="gameCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+
+      <!-- Draw Instruction Overlay -->
+      <div id="guide-overlay" class="absolute top-4 left-0 right-0 pointer-events-none flex justify-center items-center transition-opacity duration-300">
+        <span class="bg-black/70 text-amber-200 px-3.5 py-1.5 rounded-full text-xs font-bold border border-amber-400/30 shadow-xl animate-bounce flex items-center gap-1.5">
+          ✍️ 一筆畫出防護罩！放開後蜜蜂傾巢而出！
+        </span>
+      </div>
+    </div>
+
+    <!-- Classroom Chalk Tray Footer -->
+    <footer class="h-6 bg-[#3a1d0b] border-t-2 border-[#1e0e05] flex items-center justify-around px-4 shadow-inner">
+      <div class="w-12 h-2 bg-white rounded-sm opacity-90 -rotate-2"></div>
+      <div class="w-10 h-2 bg-yellow-200 rounded-sm opacity-90 rotate-1"></div>
+      <div class="w-14 h-2 bg-sky-200 rounded-sm opacity-90"></div>
+      <div class="w-8 h-2 bg-rose-300 rounded-sm opacity-80 -rotate-3"></div>
+      <div class="w-16 h-3 bg-neutral-800 rounded-sm border border-neutral-700 flex items-center justify-center text-[9px] text-neutral-400 font-bold">板擦</div>
+    </footer>
+
+    <!-- Result Modal (聯絡簿結算) -->
+    <div id="result-modal" class="absolute inset-0 bg-black/80 backdrop-blur-sm z-30 hidden flex items-center justify-center p-6">
+      <div class="w-full max-w-xs bg-amber-50 rounded-2xl p-5 shadow-2xl border-4 border-amber-800 flex flex-col items-center text-center transform scale-95 transition-all duration-200" id="modal-card">
+        
+        <div id="modal-icon-badge" class="w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-lg -mt-10 mb-2 border-2 border-white">
+          🎉
+        </div>
+
+        <h3 id="modal-title" class="text-xl font-black text-amber-950 mb-1">順利下課！</h3>
+        <p id="modal-desc" class="text-xs text-amber-800/90 mb-3 font-medium">金城武帥氣依舊，沒被叮到！</p>
+
+        <!-- Evaluation Stamps -->
+        <div id="modal-stars-container" class="flex gap-2 text-2xl font-black mb-4 bg-amber-100 px-4 py-1.5 rounded-full border border-amber-300">
+          <span class="text-rose-600">優</span>
+          <span class="text-rose-600">優</span>
+          <span class="text-rose-600">優</span>
+        </div>
+
+        <!-- Modal Controls -->
+        <div class="flex gap-3 w-full">
+          <button id="modal-btn-retry" class="flex-1 py-2.5 px-3 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 font-bold rounded-xl text-xs active:scale-95 transition shadow">
+            <i class="fa-solid fa-redo mr-1"></i> 再試一次
+          </button>
+          <button id="modal-btn-next" class="flex-1 py-2.5 px-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs active:scale-95 transition shadow">
+            下一關 <i class="fa-solid fa-arrow-right ml-1"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Image Upload / Switcher Modal -->
+    <div id="face-modal" class="absolute inset-0 bg-black/85 backdrop-blur-md z-40 hidden flex items-center justify-center p-4">
+      <div class="w-full max-w-sm bg-stone-900 border-2 border-amber-500/60 rounded-2xl p-4 text-white flex flex-col gap-3 shadow-2xl">
+        <div class="flex justify-between items-center border-b border-white/20 pb-2">
+          <h4 class="font-black text-sm text-amber-300 flex items-center gap-1.5">
+            <i class="fa-solid fa-images"></i> 設定角色三種表情
+          </h4>
+          <button id="btn-close-face-modal" class="text-neutral-400 hover:text-white text-base">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <p class="text-[11px] text-neutral-300 leading-relaxed">
+          系統已預設讀取你的 3 張「紙雕東勢金城武」圖片（001.jpg、002.jpg、003.jpg）！若需手動選檔替換，可點擊下方按鈕：
+        </p>
+
+        <!-- Preview slots with file inputs -->
+        <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
+          <!-- 1. Normal -->
+          <div class="flex flex-col items-center gap-1 bg-neutral-800 p-2 rounded-xl border border-neutral-700">
+            <span class="font-bold text-amber-200">1. 平時微笑 (001)</span>
+            <img id="preview-normal" class="w-16 h-20 object-contain rounded-md bg-black/40 border border-neutral-600" alt="平時">
+            <label class="cursor-pointer bg-amber-600 hover:bg-amber-500 text-white px-2 py-0.5 rounded text-[9px] mt-1 font-bold">
+              換圖 <input type="file" id="file-normal" accept="image/*" class="hidden">
+            </label>
+          </div>
+          <!-- 2. Scared -->
+          <div class="flex flex-col items-center gap-1 bg-neutral-800 p-2 rounded-xl border border-neutral-700">
+            <span class="font-bold text-amber-200">2. 冷汗驚恐 (002)</span>
+            <img id="preview-scared" class="w-16 h-20 object-contain rounded-md bg-black/40 border border-neutral-600" alt="驚恐">
+            <label class="cursor-pointer bg-amber-600 hover:bg-amber-500 text-white px-2 py-0.5 rounded text-[9px] mt-1 font-bold">
+              換圖 <input type="file" id="file-scared" accept="image/*" class="hidden">
+            </label>
+          </div>
+          <!-- 3. Hurt -->
+          <div class="flex flex-col items-center gap-1 bg-neutral-800 p-2 rounded-xl border border-neutral-700">
+            <span class="font-bold text-amber-200">3. 腫包眩暈 (003)</span>
+            <img id="preview-hurt" class="w-16 h-20 object-contain rounded-md bg-black/40 border border-neutral-600" alt="被叮">
+            <label class="cursor-pointer bg-amber-600 hover:bg-amber-500 text-white px-2 py-0.5 rounded text-[9px] mt-1 font-bold">
+              換圖 <input type="file" id="file-hurt" accept="image/*" class="hidden">
+            </label>
+          </div>
+        </div>
+
+        <button id="btn-save-face-modal" class="w-full py-2 bg-amber-500 hover:bg-amber-400 text-amber-950 font-black rounded-xl text-xs transition mt-1 shadow-lg">
+          確定完成
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- MATTER.JS SETUP ---
+    const { Engine, World, Bodies, Body, Composite, Events, Vector } = Matter;
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let engine;
+    let world;
+
+    // Game lifecycle: 'DRAWING' -> 'DEFENDING' -> 'GAME_OVER'
+    let gameState = 'DRAWING';
+    let currentLevelIndex = 0;
+
+    // Drawing & Ink Configuration
+    const MAX_INK_LENGTH = 1500;
+    let currentInkRemaining = MAX_INK_LENGTH;
+    let isDrawing = false;
+    let rawStrokePoints = [];
+
+    // Defend duration
+    const DEFEND_DURATION = 10.0;
+    let remainingTime = DEFEND_DURATION;
+    let timerInterval = null;
+
+    // Entities
+    let characterBody = null;
+    let characterMood = 'normal'; // 'normal' (001), 'scared' (002), 'hurt' (003), 'victory' (001)
+    const CHAR_RADIUS = 30;
+
+    let beeHives = [];
+    let bees = [];
+    let staticPlatforms = [];
+    let userDrawnBodies = [];
+    let particles = [];
+
+    // --- AUDIO SYSTEM (Web Audio API Synthesizer) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) audioCtx = new AudioContext();
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(freq, type = 'sine', duration = 0.15, vol = 0.12) {
+      if (!audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function playChalkSound() {
+      if (Math.random() < 0.25) playTone(500 + Math.random() * 250, 'triangle', 0.04, 0.02);
+    }
+
+    function playStingSound() {
+      playTone(130, 'sawtooth', 0.45, 0.25);
+    }
+
+    function playWinSound() {
+      [523, 659, 784, 1046].forEach((f, idx) => {
+        setTimeout(() => playTone(f, 'triangle', 0.25, 0.15), idx * 110);
+      });
+    }
+
+    // --- CHARACTER TEXTURE GENERATOR & USER IMAGES (001.jpg, 002.jpg, 003.jpg) ---
+    function createPaperCutSVG(type) {
+      const baseBody = `
+        <path d="M72,185 L72,215 L88,215 L95,190 L105,190 L112,215 L128,215 L128,185 Z" fill="#2d4263"/>
+        <ellipse cx="80" cy="217" rx="12" ry="5" fill="#1b2a47"/>
+        <ellipse cx="120" cy="217" rx="12" ry="5" fill="#1b2a47"/>
+        <path d="M50,135 C50,110 150,110 150,135 L145,188 C145,192 55,192 55,188 Z" fill="#2563eb"/>
+        <path d="M78,118 Q100,140 122,118 Q100,126 78,118 Z" fill="#1d4ed8"/>
+        <text x="100" y="160" font-family="Arial Black, Impact, sans-serif" font-weight="900" font-size="20" fill="#ffffff" text-anchor="middle" letter-spacing="2">DEFI</text>
+      `;
+
+      let headContent = '';
+      let armsContent = '';
+
+      if (type === 'normal') {
+        armsContent = `
+          <path d="M52,135 L32,175 L52,185 L56,170" fill="none" stroke="#1d4ed8" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+          <ellipse cx="58" cy="180" rx="9" ry="7" fill="#fed7aa"/>
+          <path d="M148,135 L170,80" fill="none" stroke="#2563eb" stroke-width="16" stroke-linecap="round"/>
+          <g transform="translate(170, 72) scale(0.9)">
+            <ellipse cx="0" cy="0" rx="8" ry="8" fill="#fed7aa"/>
+            <rect x="-6" y="-22" width="5" height="18" rx="2.5" fill="#fed7aa"/>
+            <rect x="2" y="-24" width="5" height="20" rx="2.5" fill="#fed7aa"/>
+          </g>
+        `;
+        headContent = `
+          <ellipse cx="100" cy="85" rx="36" ry="34" fill="#fde047"/>
+          <ellipse cx="100" cy="88" rx="32" ry="30" fill="#fed7aa"/>
+          <circle cx="86" cy="80" r="5" fill="#1e293b"/><circle cx="85" cy="78" r="1.5" fill="#ffffff"/>
+          <circle cx="114" cy="80" r="5" fill="#1e293b"/><circle cx="113" cy="78" r="1.5" fill="#ffffff"/>
+          <circle cx="86" cy="80" r="13" fill="none" stroke="#475569" stroke-width="3"/>
+          <circle cx="114" cy="80" r="13" fill="none" stroke="#475569" stroke-width="3"/>
+          <path d="M99,80 L101,80" stroke="#475569" stroke-width="3"/>
+          <ellipse cx="76" cy="92" rx="7" ry="4" fill="#f43f5e" opacity="0.4"/>
+          <ellipse cx="124" cy="92" rx="7" ry="4" fill="#f43f5e" opacity="0.4"/>
+          <path d="M93,98 Q100,105 110,96" fill="none" stroke="#b45309" stroke-width="3" stroke-linecap="round"/>
+        `;
+      } else if (type === 'scared') {
+        armsContent = `
+          <path d="M50,140 Q65,115 76,96" fill="none" stroke="#2563eb" stroke-width="16" stroke-linecap="round"/>
+          <path d="M150,140 Q135,115 124,96" fill="none" stroke="#2563eb" stroke-width="16" stroke-linecap="round"/>
+          <g transform="translate(73,95)">
+            <ellipse cx="0" cy="0" rx="8" ry="12" fill="#fed7aa"/>
+            <path d="M-4,-10 L-4,8 M0,-12 L0,10 M4,-10 L4,8" stroke="#f59e0b" stroke-width="1.5"/>
+          </g>
+          <g transform="translate(127,95)">
+            <ellipse cx="0" cy="0" rx="8" ry="12" fill="#fed7aa"/>
+            <path d="M-4,-10 L-4,8 M0,-12 L0,10 M4,-10 L4,8" stroke="#f59e0b" stroke-width="1.5"/>
+          </g>
+        `;
+        headContent = `
+          <ellipse cx="100" cy="85" rx="36" ry="34" fill="#fed7aa"/>
+          <path d="M72,55 Q77,65 74,70 Q70,72 68,68 Q66,62 72,55 Z" fill="#38bdf8"/>
+          <path d="M125,52 Q130,62 127,67 Q123,69 121,65 Q119,59 125,52 Z" fill="#38bdf8"/>
+          <path d="M140,78 Q144,84 142,88 Q138,90 136,86 Z" fill="#38bdf8"/>
+          <path d="M58,78 Q62,84 60,88 Q56,90 54,86 Z" fill="#38bdf8"/>
+          <circle cx="86" cy="80" r="7" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+          <circle cx="86" cy="80" r="3.5" fill="#0f172a"/>
+          <circle cx="114" cy="80" r="7" fill="#ffffff" stroke="#1e293b" stroke-width="2"/>
+          <circle cx="114" cy="80" r="3.5" fill="#0f172a"/>
+          <circle cx="86" cy="80" r="13" fill="none" stroke="#475569" stroke-width="3"/>
+          <circle cx="114" cy="80" r="13" fill="none" stroke="#475569" stroke-width="3"/>
+          <path d="M99,80 L101,80" stroke="#475569" stroke-width="3"/>
+          <path d="M90,100 Q95,95 100,99 Q105,95 110,100 Q105,108 95,108 Z" fill="#dc2626" stroke="#991b1b" stroke-width="1.5"/>
+        `;
+      } else {
+        armsContent = `
+          <path d="M52,135 L40,175 L52,185" fill="none" stroke="#2563eb" stroke-width="15" stroke-linecap="round"/>
+          <ellipse cx="53" cy="183" rx="7" ry="7" fill="#fed7aa"/>
+          <path d="M148,135 L145,178 L140,185" fill="none" stroke="#2563eb" stroke-width="15" stroke-linecap="round"/>
+          <ellipse cx="140" cy="183" rx="7" ry="7" fill="#fed7aa"/>
+        `;
+        headContent = `
+          <ellipse cx="98" cy="88" rx="38" ry="36" fill="#fed7aa"/>
+          <ellipse cx="78" cy="96" rx="14" ry="10" fill="#f43f5e" opacity="0.6"/>
+          <ellipse cx="115" cy="62" rx="9" ry="6" fill="#9333ea" opacity="0.5"/>
+          <ellipse cx="100" cy="86" rx="8" ry="6" fill="#ef4444" opacity="0.8"/>
+          <g transform="translate(80,62) rotate(25)">
+            <rect x="-8" y="-3" width="16" height="6" rx="2" fill="#ffffff" stroke="#e2e8f0"/>
+            <rect x="-3" y="-8" width="6" height="16" rx="2" fill="#ffffff" stroke="#e2e8f0"/>
+          </g>
+          <g transform="translate(125,95) rotate(-20)">
+            <rect x="-10" y="-3" width="20" height="7" rx="2" fill="#fed7aa" stroke="#ca8a04"/>
+          </g>
+          <circle cx="86" cy="80" r="10" fill="#a855f7" opacity="0.3"/>
+          <path d="M82,76 L90,84 M90,76 L82,84" stroke="#1e293b" stroke-width="3" stroke-linecap="round"/>
+          <path d="M110,82 Q115,76 120,82" stroke="#1e293b" stroke-width="3" fill="none"/>
+          <circle cx="117" cy="87" r="3" fill="#38bdf8"/>
+          <g transform="rotate(6, 100, 80)">
+            <circle cx="86" cy="80" r="13" fill="none" stroke="#475569" stroke-width="3"/>
+            <circle cx="114" cy="80" r="13" fill="none" stroke="#475569" stroke-width="3"/>
+            <path d="M99,80 L101,80" stroke="#475569" stroke-width="3"/>
+          </g>
+          <path d="M93,103 Q100,97 108,103" fill="none" stroke="#b45309" stroke-width="3" stroke-linecap="round"/>
+          <ellipse cx="100" cy="38" rx="35" ry="8" fill="none" stroke="#fcd34d" stroke-width="2.5" stroke-dasharray="6,4" opacity="0.9"/>
+          <text x="145" y="42" font-size="16" fill="#ef4444" font-weight="black">✚</text>
+        `;
+      }
+
+      const hair = `
+        <path d="M62,82 C55,45 80,32 100,32 C125,32 145,45 138,82 C148,68 140,42 120,30 C100,24 75,28 60,50 C52,62 58,75 62,82 Z" fill="#451a03"/>
+        <path d="M68,55 C78,35 118,34 132,58 C120,44 85,42 68,55 Z" fill="#78350f"/>
+        <path d="M60,65 C62,80 65,95 72,105 C66,95 62,80 60,65 Z" fill="#451a03"/>
+      `;
+
+      const rawSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 230" width="200" height="230">
+        ${armsContent}
+        ${baseBody}
+        ${headContent}
+        ${hair}
+      </svg>`;
+
+      return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(rawSvg)}`;
+    }
+
+    // Avatar image objects
+    const heroImages = {
+      normal: new Image(),
+      scared: new Image(),
+      hurt: new Image()
+    };
+
+    // Load user images (001.jpg, 002.jpg, 003.jpg) with automatic PNG fallback and SVG fallback
+    function loadAvatarWithFallback(imgObj, primarySrc, secondarySrc, fallbackSvgType) {
+      imgObj.onload = () => { updatePreviews(); };
+      imgObj.onerror = () => {
+        if (imgObj.src.endsWith(primarySrc)) {
+          imgObj.src = secondarySrc; // Try .png if .jpg fails
+        } else {
+          imgObj.onerror = null;
+          imgObj.src = createPaperCutSVG(fallbackSvgType); // Safe fallback
+        }
+      };
+      imgObj.src = primarySrc;
+    }
+
+    loadAvatarWithFallback(heroImages.normal, '001.jpg', '001.png', 'normal');
+    loadAvatarWithFallback(heroImages.scared, '002.jpg', '002.png', 'scared');
+    loadAvatarWithFallback(heroImages.hurt, '003.jpg', '003.png', 'hurt');
+
+    // Update modal preview thumbs
+    function updatePreviews() {
+      const pNormal = document.getElementById('preview-normal');
+      const pScared = document.getElementById('preview-scared');
+      const pHurt = document.getElementById('preview-hurt');
+      if (pNormal && heroImages.normal.src) pNormal.src = heroImages.normal.src;
+      if (pScared && heroImages.scared.src) pScared.src = heroImages.scared.src;
+      if (pHurt && heroImages.hurt.src) pHurt.src = heroImages.hurt.src;
+    }
+
+    // Image replacement handlers (Supports manual file uploads)
+    function setupImageUpload(inputId, typeKey) {
+      document.getElementById(inputId).addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            heroImages[typeKey].src = evt.target.result;
+            updatePreviews();
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+    setupImageUpload('file-normal', 'normal');
+    setupImageUpload('file-scared', 'scared');
+    setupImageUpload('file-hurt', 'hurt');
+
+    // --- LEVEL DEFINITIONS ---
+    const LEVELS = [
+      {
+        title: "第 1 課：新手講台防守",
+        characterPos: { x: 0.5, y: 0.65 },
+        hives: [{ x: 0.5, y: 0.22, beeCount: 8 }],
+        platforms: [
+          { x: 0.5, y: 0.77, w: 0.55, h: 0.08, label: "講台" }
+        ]
+      },
+      {
+        title: "第 2 課：雙翼蜂巢夾擊",
+        characterPos: { x: 0.5, y: 0.65 },
+        hives: [
+          { x: 0.2, y: 0.22, beeCount: 7 },
+          { x: 0.8, y: 0.22, beeCount: 7 }
+        ],
+        platforms: [
+          { x: 0.5, y: 0.76, w: 0.38, h: 0.07, label: "課桌" }
+        ]
+      },
+      {
+        title: "第 3 課：高空跳箱懸崖",
+        characterPos: { x: 0.28, y: 0.45 },
+        hives: [
+          { x: 0.78, y: 0.22, beeCount: 10 }
+        ],
+        platforms: [
+          { x: 0.26, y: 0.55, w: 0.36, h: 0.08, label: "體育跳箱" },
+          { x: 0.78, y: 0.68, w: 0.26, h: 0.12, label: "器材箱" }
+        ]
+      },
+      {
+        title: "第 4 課：平衡木終極大考驗",
+        characterPos: { x: 0.5, y: 0.40 },
+        hives: [
+          { x: 0.5, y: 0.16, beeCount: 13 }
+        ],
+        platforms: [
+          { x: 0.5, y: 0.50, w: 0.22, h: 0.05, label: "平衡木" },
+          { x: 0.16, y: 0.78, w: 0.24, h: 0.06, label: "軟墊" },
+          { x: 0.84, y: 0.78, w: 0.24, h: 0.06, label: "軟墊" }
+        ]
+      }
+    ];
+
+    // --- SETUP ENGINE & WORLD ---
+    function setupPhysics() {
+      if (engine) {
+        World.clear(world);
+        Engine.clear(engine);
+      }
+      engine = Engine.create({
+        gravity: { x: 0, y: 1.0, scale: 0.001 }
+      });
+      world = engine.world;
+
+      Events.on(engine, 'collisionStart', handleCollisions);
+      Events.on(engine, 'beforeUpdate', updateBeeFlightPhysics);
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    }
+
+    // --- LOAD LEVEL ---
+    function loadLevel(index) {
+      initAudio();
+      currentLevelIndex = (index + LEVELS.length) % LEVELS.length;
+      const level = LEVELS[currentLevelIndex];
+
+      setupPhysics();
+
+      gameState = 'DRAWING';
+      characterMood = 'normal';
+      currentInkRemaining = MAX_INK_LENGTH;
+      rawStrokePoints = [];
+      userDrawnBodies = [];
+      bees = [];
+      particles = [];
+      clearInterval(timerInterval);
+      remainingTime = DEFEND_DURATION;
+
+      document.getElementById('level-display').innerText = currentLevelIndex + 1;
+      document.getElementById('level-title').innerText = level.title;
+      document.getElementById('timer-text').innerText = DEFEND_DURATION.toFixed(1) + 's';
+      document.getElementById('guide-overlay').style.opacity = '1';
+      document.getElementById('result-modal').classList.add('hidden');
+      updateInkDisplay();
+
+      const W = canvas.width;
+      const H = canvas.height;
+
+      const wallThick = 60;
+      const leftWall = Bodies.rectangle(-wallThick / 2, H / 2, wallThick, H * 2, { isStatic: true });
+      const rightWall = Bodies.rectangle(W + wallThick / 2, H / 2, wallThick, H * 2, { isStatic: true });
+      const ceiling = Bodies.rectangle(W / 2, -wallThick / 2, W * 2, wallThick, { isStatic: true });
+      World.add(world, [leftWall, rightWall, ceiling]);
+
+      staticPlatforms = [];
+      level.platforms.forEach(p => {
+        const px = p.x * W;
+        const py = p.y * H;
+        const pw = p.w * W;
+        const ph = p.h * H;
+        const platformBody = Bodies.rectangle(px, py, pw, ph, {
+          isStatic: true,
+          label: 'Platform',
+          chamfer: { radius: 6 },
+          friction: 0.9,
+          restitution: 0.1
+        });
+        World.add(world, platformBody);
+        staticPlatforms.push({ body: platformBody, w: pw, h: ph, label: p.label });
+      });
+
+      const cx = level.characterPos.x * W;
+      const cy = level.characterPos.y * H;
+      characterBody = Bodies.circle(cx, cy, CHAR_RADIUS, {
+        label: 'Character',
+        friction: 0.85,
+        restitution: 0.05,
+        density: 0.003
+      });
+      World.add(world, characterBody);
+
+      beeHives = level.hives.map(h => ({
+        x: h.x * W,
+        y: h.y * H,
+        beeCount: h.beeCount,
+        spawned: 0
+      }));
+    }
+
+    // --- CONVERT DRAWN CHALK LINE TO RIGID BODY ---
+    function convertPointsToRigidBody(points) {
+      if (points.length < 2) return;
+
+      const simplified = [points[0]];
+      for (let i = 1; i < points.length; i++) {
+        const last = simplified[simplified.length - 1];
+        if (Math.hypot(points[i].x - last.x, points[i].y - last.y) > 7) {
+          simplified.push(points[i]);
+        }
+      }
+      if (simplified.length < 2) return;
+
+      const segments = [];
+      const CHALK_THICKNESS = 14;
+
+      for (let i = 0; i < simplified.length - 1; i++) {
+        const p1 = simplified[i];
+        const p2 = simplified[i + 1];
+        const midX = (p1.x + p2.x) / 2;
+        const midY = (p1.y + p2.y) / 2;
+        const len = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+        const ang = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+
+        const segment = Bodies.rectangle(midX, midY, len + 2, CHALK_THICKNESS, {
+          angle: ang,
+          label: 'ChalkBarrier',
+          friction: 0.9,
+          restitution: 0.05,
+          density: 0.0028,
+          chamfer: { radius: CHALK_THICKNESS / 2 }
+        });
+        segments.push(segment);
+      }
+
+      const chalkCompound = Body.create({
+        parts: segments,
+        label: 'ChalkBarrier',
+        friction: 0.9,
+        restitution: 0.05,
+        density: 0.0028
+      });
+
+      World.add(world, chalkCompound);
+      userDrawnBodies.push(chalkCompound);
+    }
+
+    // --- BEE SPAWN & SMOOTH HOVERING AIR-FLIGHT PHYSICS ---
+    function spawnBee(hive) {
+      const angle = Math.random() * Math.PI * 2;
+      const bx = hive.x + Math.cos(angle) * 12;
+      const by = hive.y + Math.sin(angle) * 12;
+
+      const beeRadius = 8;
+      const beeBody = Bodies.circle(bx, by, beeRadius, {
+        label: 'Bee',
+        frictionAir: 0.12,   // Increased air dampening for floating feel
+        friction: 0.1,
+        restitution: 0.45,   // Bouncy, smooth collision
+        density: 0.0012
+      });
+
+      World.add(world, beeBody);
+      bees.push({
+        body: beeBody,
+        buzzSeed: Math.random() * 1000,
+        wingPhase: Math.random() * 10,
+        floatFreq: 1.8 + Math.random() * 1.2,
+        floatAmp: 0.00035 + Math.random() * 0.0002
+      });
+
+      createSparks(hive.x, hive.y, '#f59e0b', 3);
+    }
+
+    // Physics Engine hook: gentle hover, organic buzzing, and low-speed pursuit
+    function updateBeeFlightPhysics() {
+      if (gameState !== 'DEFENDING' || !characterBody) return;
+
+      const targetPos = characterBody.position;
+      const now = Date.now() * 0.001;
+
+      bees.forEach((bee, i) => {
+        const pos = bee.body.position;
+        const dx = targetPos.x - pos.x;
+        const dy = targetPos.y - pos.y;
+        const dist = Math.hypot(dx, dy) || 1;
+
+        // Counteract world gravity so bees remain floating
+        const antiGravity = -world.gravity.y * world.gravity.scale * bee.body.mass;
+
+        // 1. Controlled Gentle Pursuit (Reduced speed)
+        const gentleSpeed = 0.00065;
+        let fx = (dx / dist) * gentleSpeed;
+        let fy = (dy / dist) * gentleSpeed + antiGravity;
+
+        // 2. Smooth Floating & Hovering Bobbing Motion (Sine wave levitation)
+        const hoverWave = Math.sin(now * bee.floatFreq * Math.PI * 2 + bee.buzzSeed);
+        fy += hoverWave * bee.floatAmp;
+        fx += Math.cos(now * 1.5 + bee.buzzSeed) * 0.00025;
+
+        // 3. Swarm separation: prevent clumping so they look like a flying swarm
+        for (let j = 0; j < bees.length; j++) {
+          if (i === j) continue;
+          const otherPos = bees[j].body.position;
+          const sepX = pos.x - otherPos.x;
+          const sepY = pos.y - otherPos.y;
+          const sepDist = Math.hypot(sepX, sepY);
+          if (sepDist < 28 && sepDist > 0) {
+            fx += (sepX / sepDist) * 0.0003;
+            fy += (sepY / sepDist) * 0.0003;
+          }
+        }
+
+        // Apply physical thrust force
+        Body.applyForce(bee.body, pos, { x: fx, y: fy });
+
+        // Clamp maximum speed so bees never zip or launch too fast
+        const MAX_BEE_SPEED = 2.6;
+        const currentSpeed = Math.hypot(bee.body.velocity.x, bee.body.velocity.y);
+        if (currentSpeed > MAX_BEE_SPEED) {
+          Body.setVelocity(bee.body, {
+            x: (bee.body.velocity.x / currentSpeed) * MAX_BEE_SPEED,
+            y: (bee.body.velocity.y / currentSpeed) * MAX_BEE_SPEED
+          });
+        }
+
+        bee.wingPhase += 0.8;
+      });
+    }
+
+    // --- START DEFENDING & COUNTDOWN ---
+    function finishDrawingAndStartDefend() {
+      if (rawStrokePoints.length < 2) {
+        rawStrokePoints = [];
+        return;
+      }
+
+      convertPointsToRigidBody(rawStrokePoints);
+      rawStrokePoints = [];
+
+      gameState = 'DEFENDING';
+      characterMood = 'scared';
+      document.getElementById('guide-overlay').style.opacity = '0';
+
+      beeHives.forEach(hive => {
+        for (let i = 0; i < hive.beeCount; i++) {
+          setTimeout(() => {
+            if (gameState === 'DEFENDING') spawnBee(hive);
+          }, i * 220);
+        }
+      });
+
+      remainingTime = DEFEND_DURATION;
+      document.getElementById('timer-text').innerText = remainingTime.toFixed(1) + 's';
+
+      timerInterval = setInterval(() => {
+        remainingTime -= 0.1;
+        if (remainingTime <= 0) {
+          remainingTime = 0;
+          clearInterval(timerInterval);
+          triggerVictory();
+        }
+        document.getElementById('timer-text').innerText = Math.max(0, remainingTime).toFixed(1) + 's';
+      }, 100);
+    }
+
+    // --- WIN / FAIL CONDITIONS ---
+    function handleCollisions(event) {
+      if (gameState !== 'DEFENDING') return;
+
+      const pairs = event.pairs;
+      for (let i = 0; i < pairs.length; i++) {
+        const { bodyA, bodyB } = pairs[i];
+
+        if ((bodyA.label === 'Bee' && bodyB.label === 'Character') ||
+            (bodyA.label === 'Character' && bodyB.label === 'Bee')) {
+          triggerFail("啊！金城武帥氣的臉被蜜蜂叮成了豬頭！");
+          return;
+        }
+
+        if ((bodyA.label === 'Bee' && bodyB.label === 'ChalkBarrier') ||
+            (bodyA.label === 'ChalkBarrier' && bodyB.label === 'Bee')) {
+          const contact = pairs[i].collision.supports[0] || bodyA.position;
+          createSparks(contact.x, contact.y, '#ffffff', 2);
+        }
+      }
+    }
+
+    function checkFallBoundary() {
+      if (!characterBody) return;
+      if (characterBody.position.y > canvas.height + 60) {
+        triggerFail("哎呀！金城武失足摔落出黑板了！");
+      }
+    }
+
+    function triggerFail(reason) {
+      gameState = 'GAME_OVER';
+      characterMood = 'hurt';
+      clearInterval(timerInterval);
+      playStingSound();
+
+      createSparks(characterBody.position.x, characterBody.position.y, '#ef4444', 30);
+
+      setTimeout(() => {
+        showResultModal(false, reason);
+      }, 700);
+    }
+
+    function triggerVictory() {
+      gameState = 'GAME_OVER';
+      characterMood = 'victory';
+      playWinSound();
+
+      for (let i = 0; i < 45; i++) {
+        particles.push({
+          x: canvas.width / 2 + (Math.random() - 0.5) * 180,
+          y: canvas.height * 0.45,
+          vx: (Math.random() - 0.5) * 8,
+          vy: -Math.random() * 8 - 4,
+          color: ['#fbbf24', '#f472b6', '#34d399', '#60a5fa', '#f87171'][Math.floor(Math.random() * 5)],
+          size: Math.random() * 7 + 4,
+          rot: Math.random() * 360,
+          rotSpeed: (Math.random() - 0.5) * 12,
+          life: 1.0,
+          decay: 0.012
+        });
+      }
+
+      setTimeout(() => {
+        showResultModal(true, "安全撐過 10 秒！下課鐘響啦！");
+      }, 700);
+    }
+
+    // --- SCORE & MODAL DISPLAY ---
+    function calculateStars() {
+      const usedPct = 1 - (currentInkRemaining / MAX_INK_LENGTH);
+      if (usedPct <= 0.35) return 3;
+      if (usedPct <= 0.70) return 2;
+      return 1;
+    }
+
+    function updateInkDisplay() {
+      const pct = Math.max(0, (currentInkRemaining / MAX_INK_LENGTH) * 100);
+      document.getElementById('ink-fill').style.width = pct + '%';
+
+      const stars = calculateStars();
+      document.getElementById('star-1').className = stars >= 1 ? 'text-rose-400 font-black' : 'text-neutral-500 opacity-40';
+      document.getElementById('star-2').className = stars >= 2 ? 'text-rose-400 font-black' : 'text-neutral-500 opacity-40';
+      document.getElementById('star-3').className = stars >= 3 ? 'text-rose-400 font-black' : 'text-neutral-500 opacity-40';
+    }
+
+    function showResultModal(isSuccess, message) {
+      const modal = document.getElementById('result-modal');
+      const badge = document.getElementById('modal-icon-badge');
+      const title = document.getElementById('modal-title');
+      const desc = document.getElementById('modal-desc');
+      const starsContainer = document.getElementById('modal-stars-container');
+      const nextBtn = document.getElementById('modal-btn-next');
+
+      modal.classList.remove('hidden');
+
+      if (isSuccess) {
+        badge.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-lg -mt-10 mb-2 border-2 border-white bg-emerald-500 text-white";
+        badge.innerHTML = "🏆";
+        title.innerText = "下課過關！";
+        title.className = "text-xl font-black text-emerald-900 mb-1";
+        desc.innerText = message;
+
+        const stars = calculateStars();
+        let starHTML = '';
+        for (let i = 1; i <= 3; i++) {
+          starHTML += i <= stars ? '<span class="text-rose-600 font-black">優</span>' : '<span class="text-neutral-300 font-bold">缺</span>';
+        }
+        starsContainer.innerHTML = starHTML;
+        starsContainer.classList.remove('hidden');
+        nextBtn.classList.remove('hidden');
+      } else {
+        badge.className = "w-16 h-16 rounded-full flex items-center justify-center text-3xl shadow-lg -mt-10 mb-2 border-2 border-white bg-rose-500 text-white";
+        badge.innerHTML = "🐝";
+        title.innerText = "挑戰失敗！";
+        title.className = "text-xl font-black text-rose-950 mb-1";
+        desc.innerText = message;
+        starsContainer.classList.add('hidden');
+        nextBtn.classList.add('hidden');
+      }
+    }
+
+    // --- PARTICLES ---
+    function createSparks(x, y, color = '#ffffff', count = 5) {
+      for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = Math.random() * 3 + 1;
+        particles.push({
+          x: x, y: y,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd,
+          color: color,
+          size: Math.random() * 3 + 2,
+          life: 1.0,
+          decay: 0.035
+        });
+      }
+    }
+
+    function updateAndDrawParticles() {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.15;
+        p.life -= p.decay;
+        if (p.rot !== undefined) p.rot += p.rotSpeed;
+
+        if (p.life <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.translate(p.x, p.y);
+        if (p.rot) ctx.rotate((p.rot * Math.PI) / 180);
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+        ctx.restore();
+      }
+    }
+
+    // --- RENDERING ROUTINES ---
+    function drawBackgroundGrid() {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.035)';
+      ctx.lineWidth = 1;
+      const step = 34;
+      for (let x = 0; x < canvas.width; x += step) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += step) {
+        ctx.beginPath();
+        ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawPlatforms() {
+      ctx.save();
+      staticPlatforms.forEach(p => {
+        const pos = p.body.position;
+        const w = p.w;
+        const h = p.h;
+
+        ctx.fillStyle = '#451a03';
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([7, 4]);
+
+        ctx.beginPath();
+        ctx.roundRect(pos.x - w / 2, pos.y - h / 2, w, h, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        ctx.font = 'bold 12px "Zen Maru Gothic", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.label, pos.x, pos.y);
+      });
+      ctx.restore();
+    }
+
+    function drawBeeHives() {
+      beeHives.forEach(hive => {
+        ctx.save();
+        ctx.translate(hive.x, hive.y);
+
+        ctx.strokeStyle = '#5c2b09';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.moveTo(-25, -20);
+        ctx.lineTo(25, -20);
+        ctx.stroke();
+
+        ctx.fillStyle = '#f59e0b';
+        ctx.strokeStyle = '#78350f';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.ellipse(0, -8, 16, 11, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 2, 22, 13, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 14, 18, 11, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.fillStyle = '#3f1a04';
+        ctx.beginPath();
+        ctx.arc(0, 6, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      });
+    }
+
+    function drawBees() {
+      const now = Date.now() * 0.005;
+      bees.forEach(b => {
+        const pos = b.body.position;
+        const vel = b.body.velocity;
+        const headingAngle = Math.atan2(vel.y, vel.x);
+
+        // Visual hover bobbing: subtle visual offset for extra lightness
+        const hoverOffsetY = Math.sin(now * b.floatFreq * 4 + b.buzzSeed) * 2;
+
+        ctx.save();
+        ctx.translate(pos.x, pos.y + hoverOffsetY);
+        ctx.rotate(headingAngle);
+
+        // Flapping Wings with transparency & blurred fluttering
+        ctx.fillStyle = 'rgba(224, 242, 254, 0.9)';
+        const wingFlap = Math.sin(b.wingPhase) * 6;
+        ctx.beginPath();
+        ctx.ellipse(-2, -9 + wingFlap * 0.3, 5, 8, -0.3, 0, Math.PI * 2);
+        ctx.ellipse(2, -9 - wingFlap * 0.3, 5, 8, 0.3, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Soft hovering shadow beneath bee
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+        ctx.beginPath();
+        ctx.ellipse(0, 11 - hoverOffsetY * 0.5, 6, 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Bee Body
+        ctx.fillStyle = '#facc15';
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 11, 8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Stripes
+        ctx.fillStyle = '#18181b';
+        ctx.fillRect(-3, -7, 3, 14);
+        ctx.fillRect(3, -7, 3, 14);
+
+        // Stinger
+        ctx.fillStyle = '#09090b';
+        ctx.beginPath();
+        ctx.moveTo(-11, 0);
+        ctx.lineTo(-16, -2.5);
+        ctx.lineTo(-16, 2.5);
+        ctx.closePath();
+        ctx.fill();
+
+        // Eye
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(6, -2, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#000000';
+        ctx.beginPath();
+        ctx.arc(7, -2, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      });
+    }
+
+    // --- DRAW CHARACTER WITH DYNAMIC 3 EMOTION SPRITES ---
+    function drawCharacter() {
+      if (!characterBody) return;
+      const pos = characterBody.position;
+      const angle = characterBody.angle;
+
+      ctx.save();
+      ctx.translate(pos.x, pos.y);
+      ctx.rotate(angle);
+
+      let currentImg = heroImages.normal;
+      if (characterMood === 'scared') {
+        currentImg = heroImages.scared;
+      } else if (characterMood === 'hurt') {
+        currentImg = heroImages.hurt;
+      } else if (characterMood === 'victory') {
+        currentImg = heroImages.normal;
+      }
+
+      const targetWidth = CHAR_RADIUS * 2.8; 
+      const targetHeight = targetWidth * 1.15;
+
+      if (currentImg && currentImg.complete && currentImg.naturalWidth > 0) {
+        try {
+          ctx.drawImage(currentImg, -targetWidth / 2, -targetHeight / 2 - 4, targetWidth, targetHeight);
+        } catch (e) {
+          drawFallbackCharacter();
+        }
+      } else {
+        drawFallbackCharacter();
+      }
+
+      function drawFallbackCharacter() {
+        ctx.fillStyle = '#fde047';
+        ctx.beginPath();
+        ctx.arc(0, 0, CHAR_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#451a03';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.strokeStyle = '#334155';
+        ctx.beginPath();
+        ctx.arc(-10, -3, 8, 0, Math.PI * 2);
+        ctx.arc(10, -3, 8, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.beginPath();
+        if (characterMood === 'scared') {
+          ctx.arc(0, 14, 5, 0, Math.PI * 2);
+        } else if (characterMood === 'hurt') {
+          ctx.arc(0, 18, 7, Math.PI, 0);
+        } else {
+          ctx.arc(0, 8, 7, 0, Math.PI);
+        }
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function drawChalkBodies() {
+      ctx.save();
+      ctx.fillStyle = '#f8fafc';
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
+      ctx.shadowBlur = 6;
+
+      userDrawnBodies.forEach(compound => {
+        compound.parts.forEach((part, index) => {
+          if (index === 0) return;
+          ctx.beginPath();
+          const vertices = part.vertices;
+          ctx.moveTo(vertices[0].x, vertices[0].y);
+          for (let v = 1; v < vertices.length; v++) {
+            ctx.lineTo(vertices[v].x, vertices[v].y);
+          }
+          ctx.closePath();
+          ctx.fill();
+        });
+      });
+      ctx.restore();
+    }
+
+    function drawCurrentDrawingStroke() {
+      if (rawStrokePoints.length < 2) return;
+
+      ctx.save();
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 14;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+      ctx.shadowBlur = 8;
+
+      ctx.beginPath();
+      ctx.moveTo(rawStrokePoints[0].x, rawStrokePoints[0].y);
+      for (let i = 1; i < rawStrokePoints.length; i++) {
+        ctx.lineTo(rawStrokePoints[i].x, rawStrokePoints[i].y);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // --- MAIN ENGINE & RENDER LOOP ---
+    function gameLoop() {
+      Engine.update(engine, 1000 / 60);
+
+      if (gameState === 'DEFENDING') {
+        checkFallBoundary();
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawBackgroundGrid();
+      drawPlatforms();
+      drawBeeHives();
+      drawChalkBodies();
+      drawCharacter();
+      drawBees();
+      drawCurrentDrawingStroke();
+      updateAndDrawParticles();
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // --- INPUT EVENT HANDLING (TOUCH & MOUSE) ---
+    function getPointerPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      return {
+        x: clientX - rect.left,
+        y: clientY - rect.top
+      };
+    }
+
+    function onPointerDown(e) {
+      if (gameState !== 'DRAWING') return;
+      initAudio();
+      isDrawing = true;
+      const pt = getPointerPos(e);
+      rawStrokePoints = [pt];
+    }
+
+    function onPointerMove(e) {
+      if (!isDrawing || gameState !== 'DRAWING') return;
+      const pt = getPointerPos(e);
+      const last = rawStrokePoints[rawStrokePoints.length - 1];
+      const dist = Math.hypot(pt.x - last.x, pt.y - last.y);
+
+      if (dist >= 4) {
+        if (currentInkRemaining - dist <= 0) {
+          isDrawing = false;
+          currentInkRemaining = 0;
+          updateInkDisplay();
+          finishDrawingAndStartDefend();
+          return;
+        }
+
+        currentInkRemaining -= dist;
+        updateInkDisplay();
+        rawStrokePoints.push(pt);
+        playChalkSound();
+      }
+    }
+
+    function onPointerUp() {
+      if (!isDrawing || gameState !== 'DRAWING') return;
+      isDrawing = false;
+      if (rawStrokePoints.length >= 2) {
+        finishDrawingAndStartDefend();
+      } else {
+        rawStrokePoints = [];
+      }
+    }
+
+    canvas.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+
+    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); onPointerDown(e); }, { passive: false });
+    window.addEventListener('touchmove', (e) => { onPointerMove(e); }, { passive: false });
+    window.addEventListener('touchend', onPointerUp);
+
+    document.getElementById('btn-restart').addEventListener('click', () => loadLevel(currentLevelIndex));
+    document.getElementById('modal-btn-retry').addEventListener('click', () => loadLevel(currentLevelIndex));
+    document.getElementById('modal-btn-next').addEventListener('click', () => loadLevel(currentLevelIndex + 1));
+
+    document.getElementById('btn-custom-faces').addEventListener('click', () => {
+      document.getElementById('face-modal').classList.remove('hidden');
+    });
+    document.getElementById('btn-close-face-modal').addEventListener('click', () => {
+      document.getElementById('face-modal').classList.add('hidden');
+    });
+    document.getElementById('btn-save-face-modal').addEventListener('click', () => {
+      document.getElementById('face-modal').classList.add('hidden');
+    });
+
+    window.addEventListener('resize', () => {
+      resizeCanvas();
+      loadLevel(currentLevelIndex);
+    });
+
+    window.onload = function() {
+      resizeCanvas();
+      loadLevel(0);
+      gameLoop();
+    };
+  </script>
+</body>
+</html>
