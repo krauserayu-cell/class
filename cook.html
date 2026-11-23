@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>春日部防衛隊：我的家鄉味創作工坊(雙主廚版)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --shin-red: #FF4757;
+            --shin-yellow: #FFD32A;
+            --shin-blue: #1E90FF;
+            --shin-green: #2ED573;
+            --comic-black: #222222;
+            --bg-cream: #FFFDF5;
+            --dish-a: #FFEAA7; /* 第一道菜底色 */
+            --dish-b: #E1F5FE; /* 第二道菜底色 */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: #3a3f47;
+            font-family: 'Zen Maru Gothic', 'Noto Sans TC', sans-serif;
+            color: var(--comic-black);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0 60px 0;
+        }
+
+        /* 控制列 */
+        .toolbar {
+            background: var(--comic-black);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 3px solid var(--shin-yellow);
+            z-index: 100;
+        }
+
+        .tool-btn {
+            border: 2px solid #fff;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .tool-btn:hover { transform: translateY(-2px); }
+        .btn-demo { background: var(--shin-yellow); color: var(--comic-black); border-color: var(--comic-black); }
+        .btn-clear { background: #666; color: #fff; }
+        .btn-print { background: var(--shin-red); color: #fff; }
+
+        /* 主容器 */
+        .container {
+            width: 95%;
+            max-width: 1000px;
+            background-color: var(--bg-cream);
+            background-image: radial-gradient(#e6dfc8 1px, transparent 1px);
+            background-size: 15px 15px;
+            border: 5px solid var(--comic-black);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.5);
+        }
+
+        /* 標題 */
+        .header-banner {
+            background: linear-gradient(135deg, var(--shin-yellow) 0%, #FFA502 100%);
+            border: 4px solid var(--comic-black);
+            border-radius: 16px;
+            padding: 15px 20px;
+            box-shadow: 4px 4px 0px var(--comic-black);
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        .header-banner h1 { font-size: 26px; font-weight: 900; text-shadow: 2px 2px 0px #fff; margin-bottom: 10px; }
+        
+        .student-info {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        .comic-input {
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            background: #fff;
+            border: 2.5px solid var(--comic-black);
+            border-radius: 8px;
+            padding: 6px 10px;
+            outline: none;
+            width: 100%;
+        }
+        .comic-input:focus { border-color: var(--shin-red); box-shadow: 0 0 5px var(--shin-red); }
+
+        /* 關卡區塊 */
+        .step-card {
+            background: #fff;
+            border: 4px solid var(--comic-black);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 35px;
+            box-shadow: 5px 5px 0px var(--comic-black);
+            position: relative;
+        }
+        .step-badge {
+            position: absolute;
+            top: -16px;
+            left: 20px;
+            background: var(--comic-black);
+            color: var(--shin-yellow);
+            padding: 5px 15px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 900;
+            border: 2px solid #fff;
+        }
+        .step-card.c1 { border-top-color: var(--shin-red); }
+        .step-card.c2 { border-top-color: var(--shin-green); }
+        .step-card.c3 { border-top-color: var(--shin-yellow); }
+        .step-card.c4 { border-top-color: var(--shin-blue); }
+
+        .dialogue {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            background: #f0f0f0;
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 2px dashed #999;
+        }
+        .dialogue-avatar { font-size: 30px; }
+        .dialogue-text { font-size: 14px; font-weight: 700; color: #444; }
+
+        /* 雙主廚網格 (左右並排) */
+        .split-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .split-grid { grid-template-columns: 1fr; }
+        }
+
+        .dish-box {
+            border: 3px solid var(--comic-black);
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .dish-box.dish-a { background-color: var(--dish-a); box-shadow: 3px 3px 0px #F39C12; }
+        .dish-box.dish-b { background-color: var(--dish-b); box-shadow: 3px 3px 0px #2980B9; }
+        
+        .dish-title {
+            font-weight: 900;
+            font-size: 16px;
+            border-bottom: 2px dashed var(--comic-black);
+            padding-bottom: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .input-group label { font-weight: 900; font-size: 13px; color: #333; display: block; margin-bottom: 3px;}
+
+        /* 生成與預覽區 */
+        .generate-btn {
+            width: 100%;
+            background: var(--shin-red);
+            color: #fff;
+            font-size: 20px;
+            font-weight: 900;
+            padding: 15px;
+            border: 4px solid var(--comic-black);
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 4px 4px 0px var(--comic-black);
+            margin-bottom: 20px;
+            transition: all 0.1s;
+        }
+        .generate-btn:active { transform: translate(4px, 4px); box-shadow: 0px 0px 0px var(--comic-black); }
+
+        .poem-preview {
+            width: 100%;
+            height: 450px;
+            font-family: inherit;
+            font-size: 17px;
+            font-weight: 700;
+            line-height: 2;
+            padding: 20px;
+            border: 4px dashed #666;
+            border-radius: 15px;
+            background: #fff;
+            resize: vertical;
+            outline: none;
+        }
+        .poem-preview:focus { border-color: var(--shin-blue); }
+
+        @media print {
+            .toolbar, .generate-btn { display: none !important; }
+            body { background: none; padding: 0; }
+            .container { border: none; box-shadow: none; width: 100%; max-width: 100%; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 頂部控制列 -->
+    <div class="toolbar">
+        <span style="font-weight:900; color:var(--shin-yellow);">🌻 雙主廚・童詩仿寫工坊</span>
+        <button class="tool-btn btn-demo" onclick="loadDemo()">✨ 帶入範例(珍奶＋臭豆腐)</button>
+        <button class="tool-btn btn-clear" onclick="clearAll()">🗑️ 清空重寫</button>
+        <button class="tool-btn btn-print" onclick="window.print()">🖨️ 列印 / 存檔</button>
+    </div>
+
+    <div class="container">
+        <!-- 標題 -->
+        <div class="header-banner">
+            <h1>🧑‍🍳 春日部防衛隊：雙主廚家鄉味創作工坊</h1>
+            <div class="student-info">
+                <input type="text" id="stuSeat" class="comic-input" placeholder="座號" style="width: 70px; text-align: center;">
+                <input type="text" id="stuName" class="comic-input" placeholder="姓名" style="width: 150px;">
+            </div>
+        </div>
+
+        <!-- 步驟 1：選主角 -->
+        <div class="step-card c1">
+            <div class="step-badge">STEP 1. 妮妮的家家酒廚房 (選菜單)</div>
+            <div class="dialogue">
+                <div class="dialogue-avatar">🐰</div>
+                <div class="dialogue-text">「只有一道菜怎麼夠招待客人？這次我們要選兩道『風格完全不一樣』的料理喔！例如一甜一鹹！」</div>
+            </div>
+            
+            <div class="split-grid">
+                <!-- 第一道菜 -->
+                <div class="dish-box dish-a">
+                    <div class="dish-title">🧋 第一道菜 (例如：甜點/飲料)</div>
+                    <div class="input-group">
+                        <label>🎯 料理名稱：</label>
+                        <input type="text" id="a_foodName" class="comic-input" placeholder="例：珍珠奶茶">
+                    </div>
+                    <div class="input-group">
+                        <label>🥬 主要食材：</label>
+                        <input type="text" id="a_ingredients" class="comic-input" placeholder="例：Ｑ彈珍珠、冰涼奶茶">
+                    </div>
+                </div>
+                <!-- 第二道菜 -->
+                <div class="dish-box dish-b">
+                    <div class="dish-title">🍲 第二道菜 (例如：鹹食/熱湯)</div>
+                    <div class="input-group">
+                        <label>🎯 料理名稱：</label>
+                        <input type="text" id="b_foodName" class="comic-input" placeholder="例：臭豆腐">
+                    </div>
+                    <div class="input-group">
+                        <label>🥬 主要食材：</label>
+                        <input type="text" id="b_ingredients" class="comic-input" placeholder="例：金黃豆腐、酸甜泡菜">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步驟 2：五覺摹寫 -->
+        <div class="step-card c2">
+            <div class="step-badge">STEP 2. 阿呆的五覺雷達 (加味道)</div>
+            <div class="dialogue">
+                <div class="dialogue-avatar">💧</div>
+                <div class="dialogue-text">「呆～左右兩邊都要仔細把看到的、聞到的、聽到的感覺寫出來喔……」</div>
+            </div>
+            
+            <div class="split-grid">
+                <!-- 第一道菜五覺 -->
+                <div class="dish-box dish-a">
+                    <div class="dish-title">🧋 第一道菜的五覺</div>
+                    <div class="input-group">
+                        <label>👀 視覺 (顏色、形狀)：</label>
+                        <input type="text" id="a_senseSight" class="comic-input" placeholder="例：黑黑亮亮、圓滾滾">
+                    </div>
+                    <div class="input-group">
+                        <label>👃 味覺/嗅覺 (吃起來/聞起來)：</label>
+                        <input type="text" id="a_senseTaste" class="comic-input" placeholder="例：濃郁的奶香與甜蜜">
+                    </div>
+                    <div class="input-group">
+                        <label>👂 聽覺/觸覺 (咬下去的聲音感覺)：</label>
+                        <input type="text" id="a_senseSound" class="comic-input" placeholder="例：吸管發出呼嚕聲、咬起來Ｑ軟">
+                    </div>
+                </div>
+                <!-- 第二道菜五覺 -->
+                <div class="dish-box dish-b">
+                    <div class="dish-title">🍲 第二道菜的五覺</div>
+                    <div class="input-group">
+                        <label>👀 視覺 (顏色、形狀)：</label>
+                        <input type="text" id="b_senseSight" class="comic-input" placeholder="例：外表金黃酥脆">
+                    </div>
+                    <div class="input-group">
+                        <label>👃 味覺/嗅覺 (吃起來/聞起來)：</label>
+                        <input type="text" id="b_senseTaste" class="comic-input" placeholder="例：聞起來奇臭無比，吃起來香氣四溢">
+                    </div>
+                    <div class="input-group">
+                        <label>👂 聽覺/觸覺 (咬下去的聲音感覺)：</label>
+                        <input type="text" id="b_senseSound" class="comic-input" placeholder="例：咬下去喀滋喀滋作響">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步驟 3：擬人魔法 -->
+        <div class="step-card c3">
+            <div class="step-badge">STEP 3. 正男的擬人魔法 (變活潑)</div>
+            <div class="dialogue">
+                <div class="dialogue-avatar">🍙</div>
+                <div class="dialogue-text">「嗚嗚，用『轉化法』讓食物活過來吧！給他們動作和情緒！」</div>
+            </div>
+            
+            <div class="split-grid">
+                <!-- 第一道菜擬人 -->
+                <div class="dish-box dish-a">
+                    <div class="dish-title">🧋 第一道菜：如果它是活的？</div>
+                    <div class="input-group">
+                        <label>🏃 食材在做什麼動作？</label>
+                        <input type="text" id="a_action1" class="comic-input" placeholder="例：在冰塊間溜滑梯">
+                    </div>
+                    <div class="input-group">
+                        <label>😄 它有什麼情緒或表情？</label>
+                        <input type="text" id="a_action2" class="comic-input" placeholder="例：調皮地玩捉迷藏">
+                    </div>
+                </div>
+                <!-- 第二道菜擬人 -->
+                <div class="dish-box dish-b">
+                    <div class="dish-title">🍲 第二道菜：如果它是活的？</div>
+                    <div class="input-group">
+                        <label>🏃 食材在做什麼動作？</label>
+                        <input type="text" id="b_action1" class="comic-input" placeholder="例：在熱油鍋裡快樂跳舞">
+                    </div>
+                    <div class="input-group">
+                        <label>😄 它有什麼情緒或表情？</label>
+                        <input type="text" id="b_action2" class="comic-input" placeholder="例：驕傲地展現魅力">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 步驟 4：自動組合 -->
+        <div class="step-card c4">
+            <div class="step-badge">STEP 4. 風間的菁英寫作桌</div>
+            <div class="dialogue">
+                <div class="dialogue-avatar">👦</div>
+                <div class="dialogue-text">「哼，最厲害的來了！看我用課文的『並列反覆句型』，把它們無縫組合成一首有兩大段落的現代詩！」</div>
+            </div>
+            
+            <button class="generate-btn" onclick="generatePoem()">✨ 動感光波！雙主廚上菜！</button>
+            
+            <textarea id="finalPoem" class="poem-preview" placeholder="點擊上面的按鈕，你的專屬家鄉味童詩就會出現在這裡喔！"></textarea>
+        </div>
+    </div>
+
+    <script>
+        function loadDemo() {
+            // 第一道菜：珍珠奶茶
+            document.getElementById('a_foodName').value = '珍珠奶茶';
+            document.getElementById('a_ingredients').value = 'Ｑ彈的黑珍珠與冰涼的奶茶';
+            document.getElementById('a_senseSight').value = '黑黑亮亮、圓滾滾';
+            document.getElementById('a_senseTaste').value = '濃郁的奶茶香與甜蜜滋味';
+            document.getElementById('a_senseSound').value = '吸管發出呼嚕呼嚕的聲音，咬起來ＱＱ軟軟';
+            document.getElementById('a_action1').value = '在冰塊間溜滑梯';
+            document.getElementById('a_action2').value = '調皮地在杯底玩捉迷藏';
+
+            // 第二道菜：臭豆腐
+            document.getElementById('b_foodName').value = '臭豆腐';
+            document.getElementById('b_ingredients').value = '炸得金黃的豆腐與酸甜的泡菜';
+            document.getElementById('b_senseSight').value = '外表金黃酥脆';
+            document.getElementById('b_senseTaste').value = '聞起來奇臭無比，吃起來卻香氣四溢';
+            document.getElementById('b_senseSound').value = '咬下去喀滋喀滋作響';
+            document.getElementById('b_action1').value = '在熱油鍋裡快樂地跳舞';
+            document.getElementById('b_action2').value = '驕傲地展現自己的獨特魅力';
+        }
+
+        function clearAll() {
+            if(confirm('確定要清空所有的靈感嗎？')) {
+                const inputs = document.querySelectorAll('input:not(#stuSeat):not(#stuName), textarea');
+                inputs.forEach(input => input.value = '');
+            }
+        }
+
+        function generatePoem() {
+            const v = (id, fallback) => document.getElementById(id).value.trim() || `【${fallback}】`;
+
+            const name = document.getElementById('stuName').value.trim() || '春日部特派員';
+
+            // 抓取 第一道菜
+            const a_food = v('a_foodName', '家鄉味A');
+            const a_ing = v('a_ingredients', '食材A');
+            const a_sight = v('a_senseSight', '視覺描寫');
+            const a_taste = v('a_senseTaste', '味覺描寫');
+            const a_sound = v('a_senseSound', '聽覺/觸覺');
+            const a_act1 = v('a_action1', '擬人動作');
+            const a_act2 = v('a_action2', '擬人情緒');
+
+            // 抓取 第二道菜
+            const b_food = v('b_foodName', '家鄉味B');
+            const b_ing = v('b_ingredients', '食材B');
+            const b_sight = v('b_senseSight', '視覺描寫');
+            const b_taste = v('b_senseTaste', '味覺描寫');
+            const b_sound = v('b_senseSound', '聽覺/觸覺');
+            const b_act1 = v('b_action1', '擬人動作');
+            const b_act2 = v('b_action2', '擬人情緒');
+
+            // 組合多段落現代詩 (完美模仿課文架構)
+            const poem = `《嘗嘗我的家鄉味：${a_food}與${b_food}》 
+作者：${name}
+
+來，讓我用家鄉味招待你
+先請${a_ing}出場
+他們${a_act1}
+${a_sight}的身影
+正${a_act2}
+一入口
+${a_taste}在嘴巴中漫開
+${a_sound}
+讓甜蜜的感覺瞬間包圍你！
+
+來，讓我用家鄉味招待你
+換${b_ing}上陣
+他們${b_act1}
+帶著${b_sight}的模樣
+${b_act2}
+一咬下
+${b_taste}立刻撲鼻而來
+伴隨著${b_sound}
+
+啊！這些奇妙的感受
+將在你口中化作多采多姿的讚美！`;
+
+            document.getElementById('finalPoem').value = poem;
+            
+            // 自動滾動到成品區
+            document.getElementById('finalPoem').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    </script>
+</body>
+</html>
