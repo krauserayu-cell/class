@@ -1,0 +1,1816 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>向日葵班：分數披薩屋 — 擴分、約分與異分母分數加減</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 自訂字體與向日葵班溫馨活潑配色樣式 */
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+
+    :root {
+      --sunflower-bg: #FFFBEB;
+      --sunflower-primary: #F59E0B;
+      --sunflower-dark: #B45309;
+      --sky-primary: #0EA5E9;
+      --sky-dark: #0369A1;
+      --leaf-primary: #10B981;
+      --crust-color: #EAB308;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Noto Sans TC', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--sunflower-bg);
+      background-image: radial-gradient(#FDE68A 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+      color: #334155;
+      overflow-x: hidden;
+    }
+
+    /* 畫布防止觸控捲動 */
+    canvas.pizza-canvas {
+      touch-action: none;
+      cursor: crosshair;
+      border-radius: 50%;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    canvas.pizza-canvas:active {
+      transform: scale(0.995);
+    }
+
+    /* 數學分數垂直排版 */
+    .frac {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      vertical-align: middle;
+      margin: 0 4px;
+      font-weight: 800;
+      line-height: 1.1;
+    }
+    .frac > span.num {
+      border-bottom: 2.5px solid currentColor;
+      padding: 0 5px 2px 5px;
+      display: block;
+      text-align: center;
+    }
+    .frac > span.den {
+      padding: 2px 5px 0 5px;
+      display: block;
+      text-align: center;
+    }
+
+    /* 彈跳與閃爍動畫 */
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      70% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.45); }
+      50% { box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+    }
+    .pulse-hint {
+      animation: pulseGlow 2s infinite;
+    }
+
+    /* 3D 遊戲化按鈕效果 */
+    .btn-3d {
+      transition: all 0.12s ease;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.18);
+    }
+    .btn-3d:active:not(:disabled) {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.18);
+    }
+    .btn-3d:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    /* 飛入動畫層 */
+    #flying-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 50;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- 飛入動畫專用透明覆蓋層 -->
+  <canvas id="flying-layer"></canvas>
+
+  <!-- 頂部導覽列：向日葵班品牌與模式切換 -->
+  <header class="bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-amber-950 shadow-md sticky top-0 z-30 border-b-4 border-amber-600/30">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2">
+      <!-- 標題區 -->
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 sm:w-11 sm:h-11 bg-white rounded-full flex items-center justify-center shadow-inner border-2 border-amber-600 text-2xl">
+          🌻
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-black tracking-tight text-amber-950 leading-tight">
+            向日葵班：分數披薩屋
+          </h1>
+          <p class="text-xs font-bold text-amber-900/80 hidden sm:block">
+            國小五年級數學 • 擴分、約分與異分母分數加減
+          </p>
+        </div>
+      </div>
+
+      <!-- 三大核心模式切換 -->
+      <nav class="flex items-center bg-amber-900/15 p-1 rounded-2xl gap-1 overflow-x-auto max-w-full">
+        <button onclick="switchMode('equiv')" id="tab-equiv" class="mode-tab px-3 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold whitespace-nowrap transition-all bg-white text-amber-900 shadow">
+          🍕 1. 等值分數(擴/約分)
+        </button>
+        <button onclick="switchMode('add')" id="tab-add" class="mode-tab px-3 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold whitespace-nowrap transition-all text-amber-950 hover:bg-white/60">
+          ➕ 2. 異分母加法
+        </button>
+        <button onclick="switchMode('sub')" id="tab-sub" class="mode-tab px-3 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold whitespace-nowrap transition-all text-amber-950 hover:bg-white/60">
+          ➖ 3. 異分母減法
+        </button>
+      </nav>
+
+      <!-- 右側工具：出題設定、星星計分、音效開關 -->
+      <div class="flex items-center gap-2">
+        <div class="bg-white/90 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-sm border border-amber-300" title="獲得的通關星星">
+          <span class="text-base">⭐</span>
+          <span id="star-count" class="font-black text-amber-700 text-sm">0</span>
+        </div>
+        <button onclick="openCustomModal()" class="btn-3d bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-1">
+          <span>✏️</span><span class="hidden md:inline">自訂題目</span>
+        </button>
+        <button onclick="toggleMute()" id="btn-mute" class="bg-white/90 hover:bg-white text-amber-900 p-2 rounded-xl shadow-sm border border-amber-300 text-sm font-bold" title="切換音效">
+          🔊
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主內容區 -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 flex flex-col gap-4">
+
+    <!-- 題庫快速選擇條 & 當前題目看板 -->
+    <section class="bg-white rounded-3xl shadow-sm border-2 border-amber-200 p-3 sm:p-4 flex flex-col lg:flex-row items-center justify-between gap-3">
+      <!-- 經典題庫按鈕列 -->
+      <div class="flex flex-wrap items-center gap-1.5 w-full lg:w-auto justify-center lg:justify-start">
+        <span class="text-xs font-extrabold text-amber-800 bg-amber-100 px-2.5 py-1 rounded-lg mr-1">📚 經典題庫：</span>
+        <div id="preset-buttons" class="flex flex-wrap gap-1.5 justify-center"></div>
+      </div>
+
+      <!-- 當前題目目標算式顯示 -->
+      <div class="flex items-center gap-3 bg-amber-50 border-2 border-amber-300 px-4 py-2 rounded-2xl shadow-inner">
+        <span class="text-xs sm:text-sm font-bold text-amber-800">本題任務：</span>
+        <div id="problem-display" class="text-xl sm:text-2xl font-black text-slate-800 flex items-center"></div>
+        <button onclick="resetCurrentProblem()" class="ml-2 text-xs bg-white hover:bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-1.5 rounded-xl font-bold shadow-sm transition" title="重新開始這一題">
+          🔄 重來
+        </button>
+      </div>
+    </section>
+
+    <!-- 4步驟進度條 -->
+    <section class="bg-white rounded-2xl shadow-sm border border-amber-200 p-2.5 sm:p-3">
+      <div class="grid grid-cols-4 gap-1.5 sm:gap-3" id="step-bar">
+        <div id="step-pill-1" class="step-pill flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs sm:text-sm font-extrabold bg-amber-500 text-white shadow">
+          <span class="w-5 h-5 rounded-full bg-white text-amber-600 flex items-center justify-center text-xs font-black">1</span>
+          <span class="truncate">切等份</span>
+        </div>
+        <div id="step-pill-2" class="step-pill flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-400">
+          <span class="w-5 h-5 rounded-full bg-slate-300 text-white flex items-center justify-center text-xs font-black">2</span>
+          <span class="truncate">塗顏色</span>
+        </div>
+        <div id="step-pill-3" class="step-pill flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-400">
+          <span class="w-5 h-5 rounded-full bg-slate-300 text-white flex items-center justify-center text-xs font-black">3</span>
+          <span class="truncate" id="step3-label">擴分/約分通分</span>
+        </div>
+        <div id="step-pill-4" class="step-pill flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-400">
+          <span class="w-5 h-5 rounded-full bg-slate-300 text-white flex items-center justify-center text-xs font-black">4</span>
+          <span class="truncate" id="step4-label">加減合併計算</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 小老師引導提示框 -->
+    <section class="bg-gradient-to-r from-sky-50 to-amber-50 border-2 border-sky-200 rounded-2xl p-3 sm:p-4 flex items-start sm:items-center gap-3 shadow-sm">
+      <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-amber-400 border-2 border-amber-600 flex items-center justify-center text-2xl shrink-0 shadow">
+        👩‍🏫
+      </div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-0.5">
+          <span class="text-xs font-black uppercase tracking-wider bg-sky-500 text-white px-2 py-0.5 rounded-md">小老師提示</span>
+          <span id="teacher-badge" class="text-xs font-bold text-amber-800">步驟 1：手繪切披薩</span>
+        </div>
+        <p id="teacher-message" class="text-sm sm:text-base font-bold text-slate-800 leading-relaxed">
+          請用手指或滑鼠在披薩上畫線，將圓形切成指定的等份吧！
+        </p>
+      </div>
+      <!-- 下一步引導按鈕（當步驟達成時高亮出現） -->
+      <button id="btn-next-step" onclick="goNextStep()" class="hidden btn-3d bg-amber-500 hover:bg-amber-600 text-white px-4 py-2.5 rounded-2xl font-black text-sm sm:text-base whitespace-nowrap pulse-hint">
+        下一步 ➡️
+      </button>
+    </section>
+
+    <!-- 互動披薩工作區（依據模式動態調整 1 圓、2 圓或 3 圓佈局） -->
+    <section id="workspace-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch">
+
+      <!-- 圓形 A 卡片 -->
+      <div id="card-A" class="bg-white rounded-3xl shadow-md border-2 border-amber-300 p-4 flex flex-col items-center justify-between relative transition-all">
+        <div class="w-full flex items-center justify-between mb-2">
+          <span class="bg-amber-100 text-amber-900 font-black px-3 py-1 rounded-xl text-sm flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded-full bg-amber-500 inline-block"></span>
+            <span id="title-A">第一個披薩 (A)</span>
+          </span>
+          <span id="status-A" class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+            目標：分成 2 等份
+          </span>
+        </div>
+
+        <!-- 畫布容器 -->
+        <div class="relative w-full max-w-[270px] aspect-square my-1 flex items-center justify-center">
+          <canvas id="canvas-A" class="pizza-canvas w-full h-full shadow-inner bg-amber-50/40"></canvas>
+          <!-- 觸控手勢提示浮標 -->
+          <div id="gesture-hint-A" class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-amber-900/60 font-bold text-xs">
+            <span class="text-2xl mb-1">✂️</span>
+            <span>畫線切開披薩</span>
+          </div>
+        </div>
+
+        <!-- 圓形 A 數據與操作按鈕區 -->
+        <div class="w-full mt-2 flex flex-col items-center gap-2">
+          <div id="readout-A" class="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-1.5 text-center w-full flex items-center justify-center gap-3">
+            <span class="text-xs font-bold text-slate-500">目前狀態：</span>
+            <span id="frac-text-A" class="text-lg font-black text-amber-700">尚未切分</span>
+          </div>
+
+          <!-- 步驟 1 & 2 輔助按鈕 -->
+          <div id="tools-step12-A" class="flex flex-wrap justify-center gap-1.5 w-full">
+            <button onclick="autoSlice('A')" id="btn-autoslice-A" class="bg-amber-100 hover:bg-amber-200 text-amber-900 px-3 py-1.5 rounded-xl text-xs font-extrabold transition">
+              ✨ 一鍵輔助等分線
+            </button>
+            <button onclick="autoShade('A')" id="btn-autoshade-A" class="hidden bg-amber-100 hover:bg-amber-200 text-amber-900 px-3 py-1.5 rounded-xl text-xs font-extrabold transition">
+              🎨 自動塗好分子
+            </button>
+            <button onclick="clearCircle('A')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-xl text-xs font-bold transition">
+              清除重畫
+            </button>
+          </div>
+
+          <!-- 步驟 3 擴分與約分控制面板 -->
+          <div id="tools-step3-A" class="hidden w-full bg-amber-50/80 border border-amber-200 rounded-2xl p-2.5 flex flex-col gap-2">
+            <div class="text-xs font-extrabold text-amber-900 text-center">
+              🔍 擴分（細切）或 約分（合併）
+            </div>
+            <div class="flex flex-wrap justify-center gap-1.5" id="expand-btns-A">
+              <!-- 由 JS 動態生成擴分 ×2, ×3, ×4 與約分 ÷2, ÷3 按鈕 -->
+            </div>
+            <p class="text-[11px] text-center text-amber-800/80 font-medium">
+              💡 也可以直接在披薩上畫「虛線」再細切喔！
+            </p>
+          </div>
+
+          <!-- 步驟 4 飛入合併按鈕 -->
+          <div id="tools-step4-A" class="hidden w-full">
+            <button onclick="flySlicesToResult('A')" id="btn-fly-A" class="btn-3d w-full bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-xl text-sm font-black">
+              🚀 把黃色果醬移入結果盤
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 中間運算符號與圓形 B 卡片（在模式二、三顯示） -->
+      <div id="card-B" class="bg-white rounded-3xl shadow-md border-2 border-sky-300 p-4 flex flex-col items-center justify-between relative transition-all">
+        <div class="w-full flex items-center justify-between mb-2">
+          <span class="bg-sky-100 text-sky-900 font-black px-3 py-1 rounded-xl text-sm flex items-center gap-1.5">
+            <span class="w-3 h-3 rounded-full bg-sky-500 inline-block"></span>
+            <span id="title-B">第二個披薩 (B)</span>
+          </span>
+          <span id="status-B" class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-sky-50 text-sky-700 border border-sky-200">
+            目標：分成 3 等份
+          </span>
+        </div>
+
+        <!-- 畫布容器 -->
+        <div class="relative w-full max-w-[270px] aspect-square my-1 flex items-center justify-center">
+          <canvas id="canvas-B" class="pizza-canvas w-full h-full shadow-inner bg-sky-50/40"></canvas>
+          <div id="gesture-hint-B" class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-sky-900/60 font-bold text-xs">
+            <span class="text-2xl mb-1">✂️</span>
+            <span>畫線切開披薩</span>
+          </div>
+        </div>
+
+        <!-- 圓形 B 數據與操作按鈕區 -->
+        <div class="w-full mt-2 flex flex-col items-center gap-2">
+          <div id="readout-B" class="bg-sky-50 border border-sky-200 rounded-2xl px-4 py-1.5 text-center w-full flex items-center justify-center gap-3">
+            <span class="text-xs font-bold text-slate-500">目前狀態：</span>
+            <span id="frac-text-B" class="text-lg font-black text-sky-700">尚未切分</span>
+          </div>
+
+          <!-- 步驟 1 & 2 輔助按鈕 -->
+          <div id="tools-step12-B" class="flex flex-wrap justify-center gap-1.5 w-full">
+            <button onclick="autoSlice('B')" id="btn-autoslice-B" class="bg-sky-100 hover:bg-sky-200 text-sky-900 px-3 py-1.5 rounded-xl text-xs font-extrabold transition">
+              ✨ 一鍵輔助等分線
+            </button>
+            <button onclick="autoShade('B')" id="btn-autoshade-B" class="hidden bg-sky-100 hover:bg-sky-200 text-sky-900 px-3 py-1.5 rounded-xl text-xs font-extrabold transition">
+              🎨 自動塗好分子
+            </button>
+            <button onclick="clearCircle('B')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-2.5 py-1.5 rounded-xl text-xs font-bold transition">
+              清除重畫
+            </button>
+          </div>
+
+          <!-- 步驟 3 擴分與約分控制面板 -->
+          <div id="tools-step3-B" class="hidden w-full bg-sky-50/80 border border-sky-200 rounded-2xl p-2.5 flex flex-col gap-2">
+            <div class="text-xs font-extrabold text-sky-900 text-center">
+              🔍 擴分（細切）或 約分（合併）
+            </div>
+            <div class="flex flex-wrap justify-center gap-1.5" id="expand-btns-B">
+              <!-- 由 JS 動態生成 -->
+            </div>
+            <p class="text-[11px] text-center text-sky-800/80 font-medium">
+              💡 讓兩個披薩切成「一樣多等份」就能通分囉！
+            </p>
+          </div>
+
+          <!-- 步驟 4 飛入合併/抵銷按鈕 -->
+          <div id="tools-step4-B" class="hidden w-full">
+            <button onclick="flySlicesToResult('B')" id="btn-fly-B" class="btn-3d w-full bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-xl text-sm font-black">
+              🚀 把藍色果醬移入結果盤
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 結果圓形 C 卡片（步驟 4 出現，支援單圓或雙圓假分數/帶分數） -->
+      <div id="card-C" class="hidden bg-white rounded-3xl shadow-md border-2 border-emerald-400 p-4 flex flex-col items-center justify-between relative transition-all md:col-span-2 lg:col-span-1">
+        <div class="w-full flex items-center justify-between mb-2">
+          <span class="bg-emerald-100 text-emerald-900 font-black px-3 py-1 rounded-xl text-sm flex items-center gap-1.5">
+            <span>🍽️</span>
+            <span id="title-C">結果披薩盤</span>
+          </span>
+          <span id="status-C" class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+            同分母合併區
+          </span>
+        </div>
+
+        <!-- 結果畫布容器（若超過 1 個圓自動並排顯示第二個圓） -->
+        <div class="w-full my-1 flex items-center justify-center gap-2 min-h-[230px]">
+          <div class="relative w-full max-w-[230px] aspect-square flex items-center justify-center" id="wrap-C1">
+            <canvas id="canvas-C1" class="pizza-canvas w-full h-full shadow-inner bg-emerald-50/30"></canvas>
+          </div>
+          <div class="hidden relative w-full max-w-[200px] aspect-square flex items-center justify-center animate-pop" id="wrap-C2">
+            <canvas id="canvas-C2" class="pizza-canvas w-full h-full shadow-inner bg-emerald-50/30"></canvas>
+          </div>
+        </div>
+
+        <!-- 結果區說明與算式填空驗證 -->
+        <div class="w-full mt-2 flex flex-col gap-2">
+          <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-2.5 text-center">
+            <div class="text-xs font-bold text-emerald-800 mb-1" id="result-guide-text">
+              點擊 A 和 B 的按鈕，或直接點擊披薩上的色塊飛入合併！
+            </div>
+            <div id="merged-visual-readout" class="text-base font-black text-emerald-900">
+              目前盤中有：0 份
+            </div>
+          </div>
+
+          <!-- 最終作答填空表單 -->
+          <div id="answer-box" class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3 flex flex-col items-center gap-2">
+            <div class="text-xs font-black text-amber-900 flex items-center gap-1">
+              <span>✍️ 請輸入最終計算結果：</span>
+              <button onclick="toggleMixedMode()" id="btn-mixed-toggle" class="ml-1 text-[11px] bg-white border border-amber-400 px-2 py-0.5 rounded-lg text-amber-800 hover:bg-amber-100">
+                切換為帶分數輸入
+              </button>
+            </div>
+
+            <div class="flex items-center justify-center gap-2 my-1">
+              <div id="equation-preview" class="text-base sm:text-lg font-black text-slate-700 flex items-center"></div>
+              <span class="text-xl font-black text-slate-700">=</span>
+
+              <!-- 帶分數整數部分（預設隱藏） -->
+              <input type="number" id="ans-whole" min="0" max="20" placeholder="整數"
+                class="hidden w-14 h-12 text-center text-xl font-black border-2 border-amber-400 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
+
+              <!-- 分數分子與分母輸入框 -->
+              <div class="flex flex-col items-center gap-1">
+                <input type="number" id="ans-num" min="0" max="99" placeholder="分子"
+                  class="w-16 h-10 text-center text-lg font-black border-2 border-amber-400 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                <div class="w-16 h-1 bg-slate-800 rounded-full"></div>
+                <input type="number" id="ans-den" min="1" max="99" placeholder="分母"
+                  class="w-16 h-10 text-center text-lg font-black border-2 border-amber-400 rounded-xl bg-white focus:outline-none focus:ring-2 focus:ring-amber-500" />
+              </div>
+            </div>
+
+            <button onclick="checkFinalAnswer()" class="btn-3d w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 rounded-xl font-black text-sm sm:text-base">
+              ✅ 送出答案檢查
+            </button>
+            <div id="feedback-banner" class="hidden w-full text-center text-xs sm:text-sm font-extrabold p-2 rounded-xl"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 模式一專用：等值分數記錄與驗證面板（當模式為 equiv 時取代 B 與 C 的右側空間） -->
+      <div id="card-equiv-panel" class="hidden bg-white rounded-3xl shadow-md border-2 border-emerald-300 p-4 flex flex-col justify-between gap-3">
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <span class="bg-emerald-100 text-emerald-900 font-black px-3 py-1 rounded-xl text-sm">
+              📊 等值分數變身紀錄表
+            </span>
+            <span class="text-xs font-bold text-emerald-700">觀察分子與分母的倍數關係</span>
+          </div>
+
+          <div class="bg-amber-50/70 border border-amber-200 rounded-2xl p-3 mb-3">
+            <p class="text-xs sm:text-sm font-bold text-slate-700 leading-relaxed">
+              在左邊的披薩完成切分與塗色後，試著進行<span class="text-amber-700 font-black">「擴分（細切）」</span>或<span class="text-sky-700 font-black">「約分（合併）」</span>，看看披薩上的果醬面積有沒有改變？
+            </p>
+          </div>
+
+          <!-- 變身歷程卡片牆 -->
+          <div id="equiv-history-list" class="flex flex-wrap items-center justify-center gap-2 min-h-[110px] bg-slate-50 border border-slate-200 rounded-2xl p-3">
+            <span class="text-xs text-slate-400 font-bold">完成步驟 1 與步驟 2 後，這裡會記錄你的等值分數算式喔！</span>
+          </div>
+        </div>
+
+        <!-- 等值分數任務達成區 -->
+        <div id="equiv-goal-box" class="bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-3 text-center flex flex-col gap-2">
+          <div class="text-sm font-black text-emerald-900" id="equiv-task-desc">
+            目標：將披薩變成指定等值分數！
+          </div>
+          <div id="equiv-feedback" class="hidden text-xs sm:text-sm font-extrabold p-2 rounded-xl bg-white border border-emerald-300 text-emerald-800"></div>
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <!-- 自訂題目彈窗 Modal -->
+  <div id="custom-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl border-4 border-amber-400 animate-pop">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-black text-amber-950 flex items-center gap-2">
+          <span>✏️</span> 自訂分數題目
+        </h2>
+        <button onclick="closeCustomModal()" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 font-black text-slate-600">✕</button>
+      </div>
+
+      <div class="flex flex-col gap-4">
+        <div>
+          <label class="block text-xs font-extrabold text-slate-600 mb-1">1. 選擇題型模式</label>
+          <select id="custom-mode" onchange="updateCustomModalFields()" class="w-full border-2 border-amber-300 rounded-xl px-3 py-2 font-bold text-slate-800 bg-amber-50">
+            <option value="equiv">模式一：等值分數（擴分 / 約分）</option>
+            <option value="add" selected>模式二：異分母分數加法 (A + B)</option>
+            <option value="sub">模式三：異分母分數減法 (A - B)</option>
+          </select>
+        </div>
+
+        <!-- 分數 A 輸入 -->
+        <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200">
+          <div class="text-xs font-black text-amber-900 mb-2">第一個分數 (A) — 分母支援 2 ~ 16</div>
+          <div class="flex items-center justify-center gap-3">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-500 text-center">分子</label>
+              <input type="number" id="custom-n1" value="1" min="1" max="15" class="w-20 h-10 text-center font-black text-lg border-2 border-amber-400 rounded-xl bg-white" />
+            </div>
+            <span class="text-2xl font-black text-amber-700 mt-4">/</span>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-500 text-center">分母</label>
+              <input type="number" id="custom-d1" value="2" min="2" max="16" class="w-20 h-10 text-center font-black text-lg border-2 border-amber-400 rounded-xl bg-white" />
+            </div>
+          </div>
+        </div>
+
+        <!-- 分數 B 或 目標分母 輸入 -->
+        <div id="custom-b-group" class="bg-sky-50 p-3 rounded-2xl border border-sky-200">
+          <div class="text-xs font-black text-sky-900 mb-2">第二個分數 (B) — 分母支援 2 ~ 16</div>
+          <div class="flex items-center justify-center gap-3">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-500 text-center">分子</label>
+              <input type="number" id="custom-n2" value="1" min="1" max="15" class="w-20 h-10 text-center font-black text-lg border-2 border-sky-400 rounded-xl bg-white" />
+            </div>
+            <span class="text-2xl font-black text-sky-700 mt-4">/</span>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-500 text-center">分母</label>
+              <input type="number" id="custom-d2" value="3" min="2" max="16" class="w-20 h-10 text-center font-black text-lg border-2 border-sky-400 rounded-xl bg-white" />
+            </div>
+          </div>
+        </div>
+
+        <div id="custom-equiv-target-group" class="hidden bg-emerald-50 p-3 rounded-2xl border border-emerald-200">
+          <div class="text-xs font-black text-emerald-900 mb-1">目標等值分母（例如 2 變 6，或 8 變 4）</div>
+          <input type="number" id="custom-target-d" value="6" min="2" max="24" class="w-full h-10 text-center font-black text-lg border-2 border-emerald-400 rounded-xl bg-white" />
+        </div>
+
+        <div id="custom-error" class="hidden text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 p-2 rounded-xl text-center"></div>
+
+        <button onclick="applyCustomProblem()" class="btn-3d w-full bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-2xl font-black text-base">
+          🚀 開始挑戰這道題目！
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 頁尾版權與操作提示 -->
+  <footer class="text-center text-xs text-amber-900/60 py-3 font-medium">
+    🌻 向日葵班數位數學教具 • 支援觸控手繪切分、果醬塗抹與通分視覺動畫
+  </footer>
+
+  <script>
+    /**
+     * ============================================================================
+     * 向日葵班：分數披薩屋 — 核心互動邏輯與 Web Audio 音效引擎
+     * ============================================================================
+     */
+
+    // 1. Web Audio API 溫和音效合成器（無外部依賴）
+    const SoundFX = (() => {
+      let ctx = null;
+      let muted = false;
+
+      function ensureCtx() {
+        if (!ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) ctx = new AudioCtx();
+        }
+        if (ctx && ctx.state === 'suspended') {
+          ctx.resume();
+        }
+      }
+
+      function playTone(freq, type = 'sine', duration = 0.15, vol = 0.18, delay = 0) {
+        if (muted) return;
+        try {
+          ensureCtx();
+          if (!ctx) return;
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, ctx.currentTime + delay);
+          gain.gain.setValueAtTime(vol, ctx.currentTime + delay);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(ctx.currentTime + delay);
+          osc.stop(ctx.currentTime + delay + duration);
+        } catch (e) {
+          // 忽略瀏覽器自動播放限制錯誤
+        }
+      }
+
+      return {
+        toggleMute() {
+          muted = !muted;
+          return muted;
+        },
+        slice() {
+          // 清脆切披薩音效
+          playTone(620, 'triangle', 0.12, 0.2, 0);
+          playTone(880, 'sine', 0.14, 0.15, 0.05);
+        },
+        paint() {
+          // 塗果醬柔和泡泡音
+          playTone(440 + Math.random() * 160, 'sine', 0.1, 0.15, 0);
+        },
+        expand() {
+          // 擴分/約分變身音效
+          playTone(523.25, 'triangle', 0.12, 0.18, 0);
+          playTone(659.25, 'triangle', 0.12, 0.18, 0.08);
+          playTone(783.99, 'triangle', 0.18, 0.2, 0.16);
+        },
+        fly() {
+          // 色塊飛入盤中
+          playTone(587.33, 'sine', 0.16, 0.18, 0);
+          playTone(880, 'sine', 0.2, 0.16, 0.07);
+        },
+        cancelOut() {
+          // 減法抵銷音效
+          playTone(480, 'sawtooth', 0.12, 0.1, 0);
+          playTone(340, 'sine', 0.18, 0.15, 0.08);
+        },
+        success() {
+          // 過關歡樂和弦
+          [523.25, 659.25, 783.99, 1046.5].forEach((f, idx) => {
+            playTone(f, 'triangle', 0.28, 0.2, idx * 0.09);
+          });
+        },
+        error() {
+          // 溫和提醒音
+          playTone(260, 'triangle', 0.18, 0.16, 0);
+          playTone(220, 'triangle', 0.22, 0.16, 0.12);
+        }
+      };
+    })();
+
+    // 2. 經典題庫定義（符合台灣國小五年級數學課程進度）
+    const PRESETS = {
+      equiv: [
+        { label: '1/2 擴分成 6 份', n1: 1, d1: 2, targetD: 6, hint: '把 1/2 的每一份再切成 3 小份，分子和分母同時乘以 3！' },
+        { label: '2/3 擴分成 9 份', n1: 2, d1: 3, targetD: 9, hint: '把 2/3 的每一份再切成 3 小份，看看會變成幾個 1/9？' },
+        { label: '6/8 約分成 4 份', n1: 6, d1: 8, targetD: 4, hint: '每 2 小份合併成 1 大份，分子和分母同時除以 2！' },
+        { label: '4/12 約分成 3 份', n1: 4, d1: 12, targetD: 3, hint: '每 4 小份合併成 1 大份，找出最簡分數！' }
+      ],
+      add: [
+        { label: '1/2 + 1/3', n1: 1, d1: 2, n2: 1, d2: 3, hint: '2 和 3 的公倍數是 6，把兩個披薩都擴分成 6 等份吧！' },
+        { label: '1/2 + 1/4', n1: 1, d1: 2, n2: 1, d2: 4, hint: '只要把 1/2 擴分成 2/4，分母就一樣囉！' },
+        { label: '2/3 + 1/4', n1: 2, d1: 3, n2: 1, d2: 4, hint: '3 和 4 的最小公倍數是 12，試試擴分成 12 等份！' },
+        { label: '3/4 + 2/3 (超過1)', n1: 3, d1: 4, n2: 2, d2: 3, hint: '合起來會超過 1 個完整的披薩喔！觀察假分數與帶分數！' }
+      ],
+      sub: [
+        { label: '3/4 - 1/2', n1: 3, d1: 4, n2: 1, d2: 2, hint: '把 1/2 擴分成 2/4，就能從 3/4 裡面扣掉 2/4 囉！' },
+        { label: '2/3 - 1/6', n1: 2, d1: 3, n2: 1, d2: 6, hint: '把 2/3 擴分成 4/6，再減去 1/6！' },
+        { label: '4/5 - 1/2', n1: 4, d1: 5, n2: 1, d2: 2, hint: '5 和 2 的公倍數是 10，先通分成十分之幾吧！' },
+        { label: '5/6 - 1/4', n1: 5, d1: 6, n2: 1, d2: 4, hint: '6 和 4 的最小公倍數是 12，通分成 12 等份來相減！' }
+      ]
+    };
+
+    // 3. 應用程式全域狀態
+    const state = {
+      mode: 'add', // 'equiv' | 'add' | 'sub'
+      step: 1,     // 1:切等份, 2:塗顏色, 3:擴分約分通分, 4:加減合併計算
+      stars: 0,
+      mixedInput: false,
+      problem: {
+        n1: 1, d1: 2,
+        n2: 1, d2: 3,
+        targetD: 6,
+        hint: ''
+      },
+      // 兩個操作圓形的即時狀態
+      circles: {
+        A: createCircleState(1, 2, '#F59E0B', '#FEF3C7'),
+        B: createCircleState(1, 3, '#0EA5E9', '#E0F2FE')
+      },
+      // 等值分數模式歷史紀錄
+      equivHistory: [],
+      // 結果盤狀態（步驟 4）
+      result: {
+        den: 6,
+        aMoved: false,
+        bMoved: false,
+        aCount: 0,
+        bCount: 0,
+        finalCount: 0,
+        solved: false
+      }
+    };
+
+    function createCircleState(targetNum, targetDen, fillColor, lightColor) {
+      return {
+        targetNum,
+        targetDen,
+        baseDen: targetDen,    // 最初切分的等份數
+        currentDen: 0,         // 目前畫布上的等份數（0 表示尚未切分）
+        sliced: false,         // 是否已完成步驟1切分
+        shaded: [],            // 每個扇形是否塗色 (boolean array)
+        subdivideFactor: 1,    // 擴分倍數（用於繪製虛線細分視覺效果）
+        fillColor,
+        lightColor,
+        strokePoints: [],      // 正在手繪的軌跡點
+        isDrawing: false
+      };
+    }
+
+    // 4. 數學小工具函數
+    function gcd(a, b) {
+      a = Math.abs(a);
+      b = Math.abs(b);
+      while (b !== 0) {
+        const t = b;
+        b = a % b;
+        a = t;
+      }
+      return a || 1;
+    }
+
+    function lcm(a, b) {
+      return (a * b) / gcd(a, b);
+    }
+
+    function renderFracHTML(num, den, extraClass = '') {
+      return `<span class="frac ${extraClass}"><span class="num">${num}</span><span class="den">${den}</span></span>`;
+    }
+
+    // 5. 初始化與模式切換
+    window.addEventListener('DOMContentLoaded', () => {
+      initCanvasEvents('A');
+      initCanvasEvents('B');
+      initResultCanvasClick();
+      window.addEventListener('resize', () => {
+        redrawAll();
+      });
+      switchMode('add');
+    });
+
+    function switchMode(newMode) {
+      state.mode = newMode;
+
+      // 更新頂部頁籤樣式
+      document.querySelectorAll('.mode-tab').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-amber-900', 'shadow');
+        btn.classList.add('text-amber-950');
+      });
+      const activeTab = document.getElementById(`tab-${newMode}`);
+      if (activeTab) {
+        activeTab.classList.add('bg-white', 'text-amber-900', 'shadow');
+      }
+
+      // 渲染該模式的經典題庫按鈕
+      const presetContainer = document.getElementById('preset-buttons');
+      presetContainer.innerHTML = '';
+      PRESETS[newMode].forEach((p, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'px-2.5 py-1 rounded-xl text-xs font-extrabold bg-amber-50 hover:bg-amber-200 text-amber-900 border border-amber-300 transition';
+        btn.textContent = p.label;
+        btn.onclick = () => loadPreset(newMode, idx);
+        presetContainer.appendChild(btn);
+      });
+
+      // 載入該模式第一題
+      loadPreset(newMode, 0);
+    }
+
+    function loadPreset(mode, index) {
+      const p = PRESETS[mode][index];
+      state.problem = { ...p };
+      resetCurrentProblem();
+    }
+
+    function resetCurrentProblem() {
+      const p = state.problem;
+      state.step = 1;
+      state.equivHistory = [];
+      state.mixedInput = false;
+
+      // 重設輸入框
+      document.getElementById('ans-whole').value = '';
+      document.getElementById('ans-whole').classList.add('hidden');
+      document.getElementById('btn-mixed-toggle').textContent = '切換為帶分數輸入';
+      document.getElementById('ans-num').value = '';
+      document.getElementById('ans-den').value = '';
+      document.getElementById('feedback-banner').classList.add('hidden');
+      document.getElementById('equiv-feedback').classList.add('hidden');
+
+      // 初始化圓形 A 與 B
+      state.circles.A = createCircleState(p.n1, p.d1, '#F59E0B', '#FEF3C7');
+      state.circles.B = createCircleState(p.n2 || 1, p.d2 || 3, '#0EA5E9', '#E0F2FE');
+
+      state.result = {
+        den: p.d1,
+        aMoved: false,
+        bMoved: false,
+        aCount: 0,
+        bCount: 0,
+        finalCount: 0,
+        solved: false
+      };
+
+      // 更新題目看板與版面配置
+      updateLayoutForMode();
+      updateStepUI();
+      redrawAll();
+    }
+
+    function updateLayoutForMode() {
+      const p = state.problem;
+      const probEl = document.getElementById('problem-display');
+      const cardB = document.getElementById('card-B');
+      const cardC = document.getElementById('card-C');
+      const cardEquiv = document.getElementById('card-equiv-panel');
+      const grid = document.getElementById('workspace-grid');
+
+      if (state.mode === 'equiv') {
+        probEl.innerHTML = `將 ${renderFracHTML(p.n1, p.d1, 'text-amber-700')} 變成 <span class="text-emerald-700 mx-1">分母為 ${p.targetD}</span> 的等值分數`;
+        cardB.classList.add('hidden');
+        cardC.classList.add('hidden');
+        cardEquiv.classList.remove('hidden');
+        grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch';
+        document.getElementById('title-A').textContent = '主角披薩';
+        document.getElementById('step3-label').textContent = '擴分或約分變身';
+        document.getElementById('step4-label').textContent = '完成等值確認';
+        document.getElementById('equiv-task-desc').innerHTML = `🎯 任務目標：把 ${renderFracHTML(p.n1, p.d1)} 變成分母為 <span class="underline text-amber-700">${p.targetD}</span> 的等值分數！`;
+      } else {
+        const opSign = state.mode === 'add' ? '+' : '−';
+        probEl.innerHTML = `${renderFracHTML(p.n1, p.d1, 'text-amber-700')} <span class="mx-1.5 text-slate-600">${opSign}</span> ${renderFracHTML(p.n2, p.d2, 'text-sky-700')} <span class="ml-1.5 text-slate-400">= ?</span>`;
+        cardB.classList.remove('hidden');
+        cardEquiv.classList.add('hidden');
+        document.getElementById('title-A').textContent = '第一個披薩 (A)';
+        document.getElementById('title-B').textContent = '第二個披薩 (B)';
+        document.getElementById('step3-label').textContent = '擴分/約分通分';
+        document.getElementById('step4-label').textContent = state.mode === 'add' ? '加法合併計算' : '減法抵銷計算';
+
+        if (state.step === 4) {
+          cardC.classList.remove('hidden');
+          grid.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch';
+        } else {
+          cardC.classList.add('hidden');
+          grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch';
+        }
+      }
+    }
+
+    // 6. 步驟流程控制與小老師提示系統
+    function updateStepUI() {
+      const s = state.step;
+      const p = state.problem;
+      const cA = state.circles.A;
+      const cB = state.circles.B;
+
+      // 更新 4 步驟進度條視覺
+      for (let i = 1; i <= 4; i++) {
+        const pill = document.getElementById(`step-pill-${i}`);
+        const badge = pill.querySelector('span:first-child');
+        if (i < s) {
+          pill.className = 'step-pill flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs sm:text-sm font-extrabold bg-emerald-500 text-white shadow-xs';
+          badge.className = 'w-5 h-5 rounded-full bg-white text-emerald-600 flex items-center justify-center text-xs font-black';
+          badge.textContent = '✓';
+        } else if (i === s) {
+          pill.className = 'step-pill flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs sm:text-sm font-extrabold bg-amber-500 text-white shadow scale-[1.02] transition';
+          badge.className = 'w-5 h-5 rounded-full bg-white text-amber-600 flex items-center justify-center text-xs font-black';
+          badge.textContent = i;
+        } else {
+          pill.className = 'step-pill flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl text-xs sm:text-sm font-extrabold bg-slate-100 text-slate-400';
+          badge.className = 'w-5 h-5 rounded-full bg-slate-300 text-white flex items-center justify-center text-xs font-black';
+          badge.textContent = i;
+        }
+      }
+
+      // 控制工具按鈕顯示狀態
+      ['A', 'B'].forEach(id => {
+        if (id === 'B' && state.mode === 'equiv') return;
+        const c = state.circles[id];
+        const statusEl = document.getElementById(`status-${id}`);
+        const hintEl = document.getElementById(`gesture-hint-${id}`);
+        const tools12 = document.getElementById(`tools-step12-${id}`);
+        const tools3 = document.getElementById(`tools-step3-${id}`);
+        const tools4 = document.getElementById(`tools-step4-${id}`);
+        const btnAutoSlice = document.getElementById(`btn-autoslice-${id}`);
+        const btnAutoShade = document.getElementById(`btn-autoshade-${id}`);
+
+        tools12.classList.toggle('hidden', s > 2);
+        tools3.classList.toggle('hidden', s !== 3);
+        tools4.classList.toggle('hidden', s !== 4);
+
+        if (s === 1) {
+          statusEl.textContent = `目標：分成 ${c.targetDen} 等份`;
+          hintEl.classList.toggle('hidden', c.sliced);
+          btnAutoSlice.classList.remove('hidden');
+          btnAutoShade.classList.add('hidden');
+        } else if (s === 2) {
+          statusEl.textContent = `目標：塗出 ${c.targetNum}/${c.targetDen}`;
+          hintEl.classList.add('hidden');
+          btnAutoSlice.classList.add('hidden');
+          btnAutoShade.classList.remove('hidden');
+        } else if (s === 3) {
+          const shadedCount = c.shaded.filter(Boolean).length;
+          statusEl.textContent = `目前：${shadedCount}/${c.currentDen}`;
+          hintEl.classList.add('hidden');
+          buildExpandButtons(id);
+        } else if (s === 4) {
+          const shadedCount = c.shaded.filter(Boolean).length;
+          statusEl.textContent = `已通分：${shadedCount}/${c.currentDen}`;
+          hintEl.classList.add('hidden');
+        }
+      });
+
+      updateLayoutForMode();
+      evaluateStepCompletion();
+    }
+
+    function evaluateStepCompletion() {
+      const s = state.step;
+      const p = state.problem;
+      const cA = state.circles.A;
+      const cB = state.circles.B;
+      const btnNext = document.getElementById('btn-next-step');
+      const teacherBadge = document.getElementById('teacher-badge');
+      const teacherMsg = document.getElementById('teacher-message');
+
+      btnNext.classList.add('hidden');
+
+      if (s === 1) {
+        teacherBadge.textContent = '步驟 1：手繪切披薩（建立分母概念）';
+        const doneA = cA.sliced;
+        const doneB = state.mode === 'equiv' ? true : cB.sliced;
+
+        if (doneA && doneB) {
+          teacherMsg.textContent = '太棒了！披薩都精準切成指定的等份了！點擊「下一步」開始塗上美味果醬吧！';
+          btnNext.classList.remove('hidden');
+          btnNext.textContent = '下一步：塗顏色 ➡️';
+        } else if (state.mode === 'equiv') {
+          teacherMsg.textContent = `請用手指或滑鼠在披薩上畫一條線，將圓形切成 ${p.d1} 等份（分母表示平分成幾份）。`;
+        } else {
+          teacherMsg.textContent = `請分別在左邊披薩切出 ${p.d1} 等份、右邊披薩切出 ${p.d2} 等份！也可以按「一鍵輔助等分線」。`;
+        }
+      } else if (s === 2) {
+        teacherBadge.textContent = '步驟 2：手繪塗果醬（建立分子概念）';
+        const countA = cA.shaded.filter(Boolean).length;
+        const countB = state.mode === 'equiv' ? 0 : cB.shaded.filter(Boolean).length;
+        const okA = countA === p.n1;
+        const okB = state.mode === 'equiv' ? true : countB === p.n2;
+
+        if (okA && okB) {
+          if (state.mode === 'equiv' && state.equivHistory.length === 0) {
+            state.equivHistory.push({ num: countA, den: cA.currentDen, label: '原始分數' });
+            renderEquivHistory();
+          }
+          teacherMsg.textContent = '塗色數量完全正確！點擊「下一步」來體驗擴分與約分的魔法吧！';
+          btnNext.classList.remove('hidden');
+          btnNext.textContent = '下一步：擴分/約分 ➡️';
+        } else if (state.mode === 'equiv') {
+          teacherMsg.textContent = `請在披薩上點擊或塗抹出 ${p.n1} 份（表示 ${p.n1}/${p.d1}），目前塗了 ${countA} 份。`;
+        } else {
+          teacherMsg.textContent = `請在 A 披薩塗出 ${p.n1} 份（黃色），在 B 披薩塗出 ${p.n2} 份（藍色）！`;
+        }
+      } else if (s === 3) {
+        teacherBadge.textContent = '步驟 3：擴分與約分（通分視覺化）';
+        if (state.mode === 'equiv') {
+          const curNum = cA.shaded.filter(Boolean).length;
+          const curDen = cA.currentDen;
+          if (curDen === p.targetD) {
+            teacherMsg.innerHTML = `🎉 太厲害了！你成功把 ${p.n1}/${p.d1} 變成了等值分數 <span class="text-emerald-700 font-black">${curNum}/${curDen}</span>！果醬面積完全一樣喔！`;
+            const fb = document.getElementById('equiv-feedback');
+            fb.classList.remove('hidden');
+            fb.innerHTML = `⭐ 任務完成！${renderFracHTML(p.n1, p.d1)} = ${renderFracHTML(curNum, curDen)}（面積完全相等）`;
+            if (!state.result.solved) {
+              state.result.solved = true;
+              addStar();
+              SoundFX.success();
+            }
+          } else {
+            teacherMsg.textContent = p.hint || `觀察分母 ${curDen} 和目標分母 ${p.targetD} 的關係，點擊下方的「擴分」或「約分」按鈕！`;
+          }
+        } else {
+          // 異分母加減：檢查兩圓分母是否相同（通分成功）
+          if (cA.currentDen === cB.currentDen) {
+            const commonDen = cA.currentDen;
+            const numA = cA.shaded.filter(Boolean).length;
+            const numB = cB.shaded.filter(Boolean).length;
+            teacherMsg.innerHTML = `🎊 <span class="text-emerald-700 font-black">通分成功！</span>兩個披薩都切成 <span class="text-amber-700 font-black">${commonDen}</span> 等份了（${numA}/${commonDen} 與 ${numB}/${commonDen}）！點擊下一步進行計算！`;
+            btnNext.classList.remove('hidden');
+            btnNext.textContent = '下一步：合併計算 ➡️';
+          } else {
+            teacherMsg.textContent = p.hint || `目前 A 是 ${cA.currentDen} 等份、B 是 ${cB.currentDen} 等份。使用擴分讓兩個披薩的等份數變成一樣多！`;
+          }
+        }
+      } else if (s === 4) {
+        teacherBadge.textContent = state.mode === 'add' ? '步驟 4：同分母分數加法合併' : '步驟 4：同分母分數減法抵銷';
+        if (state.mode === 'add') {
+          teacherMsg.textContent = '分母相同就能直接相加！請點擊 A 和 B 的「移入結果盤」按鈕（或直接點披薩色塊），再填入最終答案！';
+        } else {
+          teacherMsg.textContent = '先將 A 的色塊移入結果盤，再移入 B 的色塊觀察「一對一抵銷扣除」的過程，最後填入答案！';
+        }
+      }
+    }
+
+    function goNextStep() {
+      SoundFX.expand();
+      if (state.step < 4) {
+        state.step++;
+        if (state.step === 4 && state.mode !== 'equiv') {
+          prepareStep4Result();
+        }
+        updateStepUI();
+        redrawAll();
+      }
+    }
+
+    // 7. 步驟 3：動態生成擴分與約分按鈕
+    function buildExpandButtons(id) {
+      const container = document.getElementById(`expand-btns-${id}`);
+      container.innerHTML = '';
+      const c = state.circles[id];
+      const curNum = c.shaded.filter(Boolean).length;
+      const curDen = c.currentDen;
+
+      // 擴分選項（分母上限 24）
+      [2, 3, 4, 5, 6].forEach(mult => {
+        if (curDen * mult <= 24) {
+          const btn = document.createElement('button');
+          btn.className = 'btn-3d bg-amber-400 hover:bg-amber-500 text-amber-950 px-2.5 py-1.5 rounded-xl text-xs font-black';
+          btn.innerHTML = `擴分 ×${mult} <span class="opacity-75">(${curDen * mult}份)</span>`;
+          btn.onclick = () => applyScale(id, mult, 'expand');
+          container.appendChild(btn);
+        }
+      });
+
+      // 約分選項（尋找分子與分母的公因數 > 1）
+      const commonDiv = gcd(curNum, curDen);
+      if (commonDiv > 1) {
+        for (let div = 2; div <= commonDiv; div++) {
+          if (curNum % div === 0 && curDen % div === 0) {
+            const btn = document.createElement('button');
+            btn.className = 'btn-3d bg-emerald-400 hover:bg-emerald-500 text-emerald-950 px-2.5 py-1.5 rounded-xl text-xs font-black';
+            btn.innerHTML = `約分 ÷${div} <span class="opacity-75">(${curDen / div}份)</span>`;
+            btn.onclick = () => applyScale(id, div, 'reduce');
+            container.appendChild(btn);
+          }
+        }
+      }
+    }
+
+    // 執行擴分或約分（包含重組扇形陣列與動畫過渡）
+    function applyScale(id, factor, type) {
+      const c = state.circles[id];
+      const oldNum = c.shaded.filter(Boolean).length;
+      const oldDen = c.currentDen;
+
+      if (type === 'expand') {
+        const newDen = oldDen * factor;
+        if (newDen > 24) return;
+        const newShaded = [];
+        // 每個原本的扇形一分為 factor 份，保持塗色位置與面積完全一致
+        for (let i = 0; i < oldDen; i++) {
+          for (let k = 0; k < factor; k++) {
+            newShaded.push(c.shaded[i]);
+          }
+        }
+        c.currentDen = newDen;
+        c.shaded = newShaded;
+        c.subdivideFactor = factor;
+        SoundFX.expand();
+      } else if (type === 'reduce') {
+        if (oldNum % factor !== 0 || oldDen % factor !== 0) return;
+        const newDen = oldDen / factor;
+        const newNum = oldNum / factor;
+        // 合併相鄰扇形，保持連續塗色區塊整齊呈現
+        const newShaded = Array(newDen).fill(false).map((_, idx) => idx < newNum);
+        c.currentDen = newDen;
+        c.shaded = newShaded;
+        c.subdivideFactor = 1;
+        SoundFX.expand();
+      }
+
+      // 若為模式一，記錄到等值分數歷程表
+      if (state.mode === 'equiv') {
+        const newNum = c.shaded.filter(Boolean).length;
+        const opText = type === 'expand' ? `分子分母 ×${factor}` : `分子分母 ÷${factor}`;
+        state.equivHistory.push({ num: newNum, den: c.currentDen, label: opText });
+        renderEquivHistory();
+      }
+
+      updateReadout(id);
+      updateStepUI();
+      redrawAll();
+    }
+
+    function renderEquivHistory() {
+      const list = document.getElementById('equiv-history-list');
+      list.innerHTML = '';
+      state.equivHistory.forEach((item, idx) => {
+        if (idx > 0) {
+          const eq = document.createElement('div');
+          eq.className = 'flex flex-col items-center mx-1';
+          eq.innerHTML = `<span class="text-[10px] font-bold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">${item.label}</span><span class="text-lg font-black text-slate-500">=</span>`;
+          list.appendChild(eq);
+        }
+        const card = document.createElement('div');
+        card.className = 'bg-white border-2 border-amber-300 rounded-2xl px-3 py-1.5 shadow-xs animate-pop text-center';
+        card.innerHTML = renderFracHTML(item.num, item.den, 'text-lg text-amber-800');
+        list.appendChild(card);
+      });
+    }
+
+    // 8. 畫布繪圖與手繪觸控/滑鼠互動（切披薩 + 塗果醬 + 虛線細切）
+    function initCanvasEvents(id) {
+      const canvas = document.getElementById(`canvas-${id}`);
+      const c = state.circles[id];
+
+      function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        return {
+          x: clientX - rect.left,
+          y: clientY - rect.top,
+          w: rect.width,
+          h: rect.height
+        };
+      }
+
+      function handleStart(e) {
+        e.preventDefault();
+        const pos = getPos(e);
+        c.isDrawing = true;
+        c.strokePoints = [pos];
+
+        if (state.step === 2) {
+          // 步驟 2：點擊或滑過扇形即塗色
+          shadeAtPoint(id, pos, true);
+        } else if (state.step === 4) {
+          // 步驟 4：點擊披薩直接觸發色塊飛入結果盤
+          flySlicesToResult(id);
+        }
+      }
+
+      function handleMove(e) {
+        if (!c.isDrawing) return;
+        e.preventDefault();
+        const pos = getPos(e);
+        c.strokePoints.push(pos);
+
+        if (state.step === 1 || state.step === 3) {
+          // 即時繪製手繪切割線條
+          drawCircle(id);
+        } else if (state.step === 2) {
+          // 塗抹模式：滑過的扇形連續塗上果醬
+          shadeAtPoint(id, pos, false);
+        }
+      }
+
+      function handleEnd(e) {
+        if (!c.isDrawing) return;
+        c.isDrawing = false;
+
+        if (state.step === 1 && !c.sliced) {
+          // 判斷筆跡長度是否足夠切割圓形
+          if (isValidCutGesture(c.strokePoints)) {
+            autoSlice(id);
+          }
+        } else if (state.step === 3) {
+          // 步驟 3：若學生在圓上畫線，自動進行擴分 ×2（再細切）
+          if (isValidCutGesture(c.strokePoints) && c.currentDen * 2 <= 24) {
+            applyScale(id, 2, 'expand');
+          }
+        }
+
+        c.strokePoints = [];
+        drawCircle(id);
+      }
+
+      canvas.addEventListener('mousedown', handleStart);
+      canvas.addEventListener('mousemove', handleMove);
+      window.addEventListener('mouseup', handleEnd);
+
+      canvas.addEventListener('touchstart', handleStart, { passive: false });
+      canvas.addEventListener('touchmove', handleMove, { passive: false });
+      window.addEventListener('touchend', handleEnd);
+    }
+
+    function isValidCutGesture(points) {
+      if (points.length < 2) return false;
+      const first = points[0];
+      const last = points[points.length - 1];
+      const dist = Math.hypot(last.x - first.x, last.y - first.y);
+      return dist > 35; // 滑動超過 35px 即智慧吸附為精準等分切割
+    }
+
+    // 計算點擊位置落在第幾個扇形並切換塗色
+    let lastShadedSector = { A: -1, B: -1 };
+    function shadeAtPoint(id, pos, isClick) {
+      const c = state.circles[id];
+      if (!c.sliced || c.currentDen <= 0) return;
+
+      const cx = pos.w / 2;
+      const cy = pos.h / 2;
+      const dx = pos.x - cx;
+      const dy = pos.y - cy;
+      const dist = Math.hypot(dx, dy);
+      const radius = Math.min(cx, cy) * 0.86;
+
+      if (dist > radius) return;
+
+      // 從正上方 (-Math.PI / 2) 順時針計算角度 [0, 2π)
+      let angle = Math.atan2(dy, dx) + Math.PI / 2;
+      if (angle < 0) angle += Math.PI * 2;
+
+      const sectorAngle = (Math.PI * 2) / c.currentDen;
+      const index = Math.floor(angle / sectorAngle) % c.currentDen;
+
+      if (isClick) {
+        c.shaded[index] = !c.shaded[index];
+        lastShadedSector[id] = index;
+        SoundFX.paint();
+      } else if (lastShadedSector[id] !== index) {
+        // 拖曳塗抹時一律塗上顏色（不反覆閃爍取消）
+        if (!c.shaded[index]) {
+          c.shaded[index] = true;
+          SoundFX.paint();
+        }
+        lastShadedSector[id] = index;
+      }
+
+      updateReadout(id);
+      drawCircle(id);
+      evaluateStepCompletion();
+    }
+
+    // 一鍵或手繪觸發精準 N 等分
+    function autoSlice(id) {
+      const c = state.circles[id];
+      c.sliced = true;
+      c.currentDen = c.targetDen;
+      c.shaded = Array(c.targetDen).fill(false);
+      c.subdivideFactor = 1;
+      SoundFX.slice();
+      updateReadout(id);
+      updateStepUI();
+      drawCircle(id);
+    }
+
+    // 一鍵塗好分子（方便老師課堂快速演示）
+    function autoShade(id) {
+      const c = state.circles[id];
+      if (!c.sliced) autoSlice(id);
+      c.shaded = Array(c.currentDen).fill(false).map((_, i) => i < c.targetNum);
+      SoundFX.paint();
+      updateReadout(id);
+      updateStepUI();
+      drawCircle(id);
+    }
+
+    function clearCircle(id) {
+      const c = state.circles[id];
+      if (state.step === 1) {
+        c.sliced = false;
+        c.currentDen = 0;
+        c.shaded = [];
+      } else if (state.step === 2) {
+        c.shaded = Array(c.currentDen).fill(false);
+      }
+      updateReadout(id);
+      updateStepUI();
+      drawCircle(id);
+    }
+
+    function updateReadout(id) {
+      const c = state.circles[id];
+      const el = document.getElementById(`frac-text-${id}`);
+      if (!c.sliced) {
+        el.innerHTML = '尚未切分';
+        return;
+      }
+      const num = c.shaded.filter(Boolean).length;
+      const den = c.currentDen;
+      const pct = Math.round((num / den) * 100);
+      el.innerHTML = `${renderFracHTML(num, den)} <span class="text-xs font-bold text-slate-500 ml-1">(${pct}%)</span>`;
+    }
+
+    // 繪製單一披薩圓形畫布
+    function drawCircle(id) {
+      const canvas = document.getElementById(`canvas-${id}`);
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const outerR = Math.min(cx, cy) * 0.9;
+      const innerR = outerR * 0.88;
+
+      const c = state.circles[id];
+
+      // 1. 畫披薩金黃外餅皮
+      ctx.beginPath();
+      ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+      ctx.fillStyle = '#FDE047';
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#CA8A04';
+      ctx.stroke();
+
+      // 2. 畫起司底盤
+      ctx.beginPath();
+      ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFFDF5';
+      ctx.fill();
+
+      // 3. 若已切分，繪製扇形填色與等分線
+      if (c.sliced && c.currentDen > 0) {
+        const stepAngle = (Math.PI * 2) / c.currentDen;
+        const startOffset = -Math.PI / 2;
+
+        // 繪製塗色果醬扇形
+        for (let i = 0; i < c.currentDen; i++) {
+          const a1 = startOffset + i * stepAngle;
+          const a2 = a1 + stepAngle;
+
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, innerR, a1, a2);
+          ctx.closePath();
+
+          if (c.shaded[i]) {
+            ctx.fillStyle = c.fillColor;
+            ctx.fill();
+          }
+        }
+
+        // 繪製分割輻射線（區分原始主線與擴分細切虛線）
+        for (let i = 0; i < c.currentDen; i++) {
+          const angle = startOffset + i * stepAngle;
+          const isSubLine = c.subdivideFactor > 1 && (i % c.subdivideFactor !== 0);
+
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(angle) * innerR, cy + Math.sin(angle) * innerR);
+
+          if (isSubLine) {
+            ctx.setLineDash([5, 5]);
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = '#DC2626'; // 紅色虛線清楚凸顯「擴分細切」的痕跡
+          } else {
+            ctx.setLineDash([]);
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#78350F';
+          }
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // 圓心小圓點
+        ctx.beginPath();
+        ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#78350F';
+        ctx.fill();
+      }
+
+      // 4. 繪製學生手指/滑鼠即時手繪軌跡
+      if (c.isDrawing && c.strokePoints.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(c.strokePoints[0].x, c.strokePoints[0].y);
+        for (let i = 1; i < c.strokePoints.length; i++) {
+          ctx.lineTo(c.strokePoints[i].x, c.strokePoints[i].y);
+        }
+        ctx.strokeStyle = state.step === 3 ? '#DC2626' : '#EA580C';
+        ctx.lineWidth = 4;
+        ctx.lineCap = 'round';
+        if (state.step === 3) ctx.setLineDash([6, 6]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+    }
+
+    // 9. 步驟 4：結果圓形合併與抵銷動畫
+    function prepareStep4Result() {
+      const cA = state.circles.A;
+      const cB = state.circles.B;
+      const den = cA.currentDen;
+      const aCount = cA.shaded.filter(Boolean).length;
+      const bCount = cB.shaded.filter(Boolean).length;
+
+      state.result = {
+        den,
+        aMoved: false,
+        bMoved: false,
+        aCount,
+        bCount,
+        finalCount: 0,
+        solved: false
+      };
+
+      const btnA = document.getElementById('btn-fly-A');
+      const btnB = document.getElementById('btn-fly-B');
+      btnA.disabled = false;
+      btnA.textContent = `🚀 把黃色 ${aCount}/${den} 移入結果盤`;
+
+      btnB.disabled = false;
+      if (state.mode === 'add') {
+        btnB.textContent = `🚀 把藍色 ${bCount}/${den} 移入結果盤`;
+      } else {
+        btnB.textContent = `✂️ 用藍色 ${bCount}/${den} 抵銷扣掉`;
+      }
+
+      // 預設填入通分後的分母提示，減輕輸入負擔
+      document.getElementById('ans-den').value = den;
+      document.getElementById('ans-num').value = '';
+      document.getElementById('ans-whole').value = '';
+      document.getElementById('feedback-banner').classList.add('hidden');
+
+      updateResultDisplay();
+    }
+
+    function initResultCanvasClick() {
+      ['C1', 'C2'].forEach(cid => {
+        const el = document.getElementById(`canvas-${cid}`);
+        if (el) {
+          el.addEventListener('click', () => {
+            if (state.step !== 4) return;
+            if (!state.result.aMoved) flySlicesToResult('A');
+            else if (!state.result.bMoved) flySlicesToResult('B');
+          });
+        }
+      });
+    }
+
+    function flySlicesToResult(sourceId) {
+      if (state.step !== 4) return;
+      const r = state.result;
+
+      if (sourceId === 'A' && r.aMoved) return;
+      if (sourceId === 'B' && r.bMoved) return;
+
+      // 減法模式下引導先移入被減數 A
+      if (state.mode === 'sub' && sourceId === 'B' && !r.aMoved) {
+        flySlicesToResult('A');
+        setTimeout(() => flySlicesToResult('B'), 420);
+        return;
+      }
+
+      // 觸發視覺飛入粒子動畫
+      launchFlyAnimation(sourceId);
+
+      if (sourceId === 'A') {
+        r.aMoved = true;
+        r.finalCount = r.aCount;
+        const btnA = document.getElementById('btn-fly-A');
+        btnA.disabled = true;
+        btnA.textContent = `✓ 已移入 ${r.aCount}/${r.den}`;
+        SoundFX.fly();
+      } else if (sourceId === 'B') {
+        r.bMoved = true;
+        if (state.mode === 'add') {
+          r.finalCount = r.aCount + r.bCount;
+          SoundFX.fly();
+        } else {
+          r.finalCount = Math.max(0, r.aCount - r.bCount);
+          SoundFX.cancelOut();
+        }
+        const btnB = document.getElementById('btn-fly-B');
+        btnB.disabled = true;
+        btnB.textContent = state.mode === 'add' ? `✓ 已移入 ${r.bCount}/${r.den}` : `✓ 已抵銷 ${r.bCount}/${r.den}`;
+      }
+
+      updateResultDisplay();
+    }
+
+    // 跨畫布色塊飛行粒子動畫
+    function launchFlyAnimation(sourceId) {
+      const srcEl = document.getElementById(`canvas-${sourceId}`);
+      const dstEl = document.getElementById('canvas-C1');
+      const flyCanvas = document.getElementById('flying-layer');
+      if (!srcEl || !dstEl || !flyCanvas) return;
+
+      const sRect = srcEl.getBoundingClientRect();
+      const dRect = dstEl.getBoundingClientRect();
+
+      flyCanvas.width = window.innerWidth;
+      flyCanvas.height = window.innerHeight;
+      const ctx = flyCanvas.getContext('2d');
+
+      const startX = sRect.left + sRect.width / 2;
+      const startY = sRect.top + sRect.height / 2;
+      const endX = dRect.left + dRect.width / 2;
+      const endY = dRect.top + dRect.height / 2;
+      const color = sourceId === 'A' ? '#F59E0B' : '#0EA5E9';
+
+      let progress = 0;
+      function animateFly() {
+        progress += 0.065;
+        ctx.clearRect(0, 0, flyCanvas.width, flyCanvas.height);
+
+        if (progress < 1) {
+          const ease = 1 - Math.pow(1 - progress, 3);
+          const curX = startX + (endX - startX) * ease;
+          const curY = startY + (endY - startY) * ease - Math.sin(progress * Math.PI) * 60;
+
+          ctx.beginPath();
+          ctx.arc(curX, curY, 22 * (1 - progress * 0.3), 0, Math.PI * 2);
+          ctx.fillStyle = color;
+          ctx.fill();
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = '#FFFFFF';
+          ctx.stroke();
+
+          requestAnimationFrame(animateFly);
+        } else {
+          ctx.clearRect(0, 0, flyCanvas.width, flyCanvas.height);
+        }
+      }
+      requestAnimationFrame(animateFly);
+    }
+
+    function updateResultDisplay() {
+      const r = state.result;
+      const wrapC2 = document.getElementById('wrap-C2');
+      const readoutEl = document.getElementById('merged-visual-readout');
+      const eqPreview = document.getElementById('equation-preview');
+
+      // 若結果超過 1 個圓（假分數），顯示第二個結果圓形
+      if (r.finalCount > r.den) {
+        wrapC2.classList.remove('hidden');
+      } else {
+        wrapC2.classList.add('hidden');
+      }
+
+      const opSign = state.mode === 'add' ? '+' : '−';
+      eqPreview.innerHTML = `${renderFracHTML(r.aCount, r.den, 'text-amber-700')} <span class="mx-1">${opSign}</span> ${renderFracHTML(r.bCount, r.den, 'text-sky-700')}`;
+
+      if (r.finalCount > r.den) {
+        const whole = Math.floor(r.finalCount / r.den);
+        const rem = r.finalCount % r.den;
+        readoutEl.innerHTML = `目前盤中有：${renderFracHTML(r.finalCount, r.den)} 份（等於 <span class="text-amber-700">${whole}</span> 又 ${renderFracHTML(rem, r.den)} 個披薩！）`;
+      } else {
+        readoutEl.innerHTML = `目前盤中有：${renderFracHTML(r.finalCount, r.den)} 份`;
+      }
+
+      drawResultPizza('canvas-C1', 0);
+      if (r.finalCount > r.den) {
+        drawResultPizza('canvas-C2', r.den);
+      }
+    }
+
+    // 繪製結果披薩（保留雙色來源視覺區分，減法時顯示虛線抵銷痕跡）
+    function drawResultPizza(canvasId, sliceOffset) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0) return;
+
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width;
+      const h = rect.height;
+      const cx = w / 2;
+      const cy = h / 2;
+      const outerR = Math.min(cx, cy) * 0.9;
+      const innerR = outerR * 0.88;
+
+      const r = state.result;
+      const den = r.den || 6;
+
+      // 餅皮與底盤
+      ctx.beginPath();
+      ctx.arc(cx, cy, outerR, 0, Math.PI * 2);
+      ctx.fillStyle = '#A7F3D0';
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#059669';
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fill();
+
+      const stepAngle = (Math.PI * 2) / den;
+      const startOffset = -Math.PI / 2;
+
+      for (let i = 0; i < den; i++) {
+        const globalIdx = sliceOffset + i;
+        const a1 = startOffset + i * stepAngle;
+        const a2 = a1 + stepAngle;
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, innerR, a1, a2);
+        ctx.closePath();
+
+        if (state.mode === 'add') {
+          if (r.aMoved && globalIdx < r.aCount) {
+            ctx.fillStyle = '#F59E0B'; // 來自 A 的黃色
+            ctx.fill();
+          } else if (r.bMoved && globalIdx >= r.aCount && globalIdx < r.aCount + r.bCount) {
+            ctx.fillStyle = '#0EA5E9'; // 來自 B 的藍色
+            ctx.fill();
+          }
+        } else {
+          // 減法模式：顯示留下的黃色與被抵銷的虛線扇形
+          if (r.aMoved && globalIdx < r.finalCount) {
+            ctx.fillStyle = '#F59E0B';
+            ctx.fill();
+          } else if (r.aMoved && r.bMoved && globalIdx >= r.finalCount && globalIdx < r.aCount) {
+            ctx.fillStyle = 'rgba(203, 213, 225, 0.45)'; // 被減掉抵銷的區域
+            ctx.fill();
+          } else if (r.aMoved && !r.bMoved && globalIdx < r.aCount) {
+            ctx.fillStyle = '#F59E0B';
+            ctx.fill();
+          }
+        }
+
+        // 繪製等分線
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(cx + Math.cos(a1) * innerR, cy + Math.sin(a1) * innerR);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#065F46';
+        ctx.stroke();
+      }
+    }
+
+    function redrawAll() {
+      drawCircle('A');
+      if (state.mode !== 'equiv') {
+        drawCircle('B');
+      }
+      if (state.step === 4 && state.mode !== 'equiv') {
+        drawResultPizza('canvas-C1', 0);
+        if (state.result.finalCount > state.result.den) {
+          drawResultPizza('canvas-C2', state.result.den);
+        }
+      }
+    }
+
+    // 10. 最終作答驗證與帶分數切換
+    function toggleMixedMode() {
+      state.mixedInput = !state.mixedInput;
+      const wholeInput = document.getElementById('ans-whole');
+      const toggleBtn = document.getElementById('btn-mixed-toggle');
+      if (state.mixedInput) {
+        wholeInput.classList.remove('hidden');
+        toggleBtn.textContent = '切換為假分數輸入';
+      } else {
+        wholeInput.classList.add('hidden');
+        wholeInput.value = '';
+        toggleBtn.textContent = '切換為帶分數輸入';
+      }
+    }
+
+    function checkFinalAnswer() {
+      const r = state.result;
+      const fb = document.getElementById('feedback-banner');
+      fb.classList.remove('hidden');
+
+      const wholeVal = state.mixedInput ? (parseInt(document.getElementById('ans-whole').value, 10) || 0) : 0;
+      const numVal = parseInt(document.getElementById('ans-num').value, 10);
+      const denVal = parseInt(document.getElementById('ans-den').value, 10);
+
+      if (isNaN(numVal) || isNaN(denVal) || denVal <= 0) {
+        fb.className = 'w-full text-center text-xs sm:text-sm font-extrabold p-2.5 rounded-xl bg-rose-100 text-rose-800 border border-rose-300';
+        fb.textContent = '⚠️ 請先輸入完整的分子與分母喔！';
+        SoundFX.error();
+        return;
+      }
+
+      // 正確答案的分子與分母（通分基準）
+      const expectedNum = state.mode === 'add' ? (r.aCount + r.bCount) : (r.aCount - r.bCount);
+      const expectedDen = r.den;
+
+      // 學生輸入的總分子（換算成同分母比較交叉相乘）
+      const userTotalNum = wholeVal * denVal + numVal;
+
+      if (userTotalNum * expectedDen === expectedNum * denVal) {
+        // 答對了！檢查是否為最簡分數
+        const common = gcd(userTotalNum, denVal);
+        let msg = `🎉 完全正確！太棒了！`;
+
+        if (common > 1 && userTotalNum > 0) {
+          const simpNum = userTotalNum / common;
+          const simpDen = denVal / common;
+          msg += `（小提醒：${userTotalNum}/${denVal} 還可以再約分成最簡分數 ${simpNum}/${simpDen} 喔！）`;
+        } else if (expectedNum > expectedDen && !state.mixedInput) {
+          const w = Math.floor(expectedNum / expectedDen);
+          const rem = expectedNum % expectedDen;
+          if (rem > 0) {
+            msg += `（假分數 ${expectedNum}/${expectedDen} 也可以寫成帶分數 ${w} 又 ${rem}/${expectedDen}！）`;
+          }
+        }
+
+        fb.className = 'w-full text-center text-xs sm:text-sm font-extrabold p-2.5 rounded-xl bg-emerald-100 text-emerald-900 border border-emerald-400 animate-pop';
+        fb.textContent = msg;
+
+        // 自動把結果盤也更新完整
+        if (!r.aMoved || !r.bMoved) {
+          r.aMoved = true;
+          r.bMoved = true;
+          r.finalCount = expectedNum;
+          updateResultDisplay();
+        }
+
+        if (!r.solved) {
+          r.solved = true;
+          addStar();
+          SoundFX.success();
+        }
+      } else {
+        fb.className = 'w-full text-center text-xs sm:text-sm font-extrabold p-2.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300';
+        fb.textContent = `🤔 再數一數結果披薩盤裡共有幾個 1/${expectedDen} 喔！`;
+        SoundFX.error();
+      }
+    }
+
+    function addStar() {
+      state.stars++;
+      const el = document.getElementById('star-count');
+      el.textContent = state.stars;
+      el.parentElement.classList.add('animate-pop');
+      setTimeout(() => el.parentElement.classList.remove('animate-pop'), 400);
+    }
+
+    function toggleMute() {
+      const muted = SoundFX.toggleMute();
+      document.getElementById('btn-mute').textContent = muted ? '🔇' : '🔊';
+    }
+
+    // 11. 自訂題目彈窗邏輯
+    function openCustomModal() {
+      document.getElementById('custom-modal').classList.remove('hidden');
+      document.getElementById('custom-mode').value = state.mode;
+      updateCustomModalFields();
+    }
+
+    function closeCustomModal() {
+      document.getElementById('custom-modal').classList.add('hidden');
+      document.getElementById('custom-error').classList.add('hidden');
+    }
+
+    function updateCustomModalFields() {
+      const m = document.getElementById('custom-mode').value;
+      const bGroup = document.getElementById('custom-b-group');
+      const eqGroup = document.getElementById('custom-equiv-target-group');
+      if (m === 'equiv') {
+        bGroup.classList.add('hidden');
+        eqGroup.classList.remove('hidden');
+      } else {
+        bGroup.classList.remove('hidden');
+        eqGroup.classList.add('hidden');
+      }
+    }
+
+    function applyCustomProblem() {
+      const m = document.getElementById('custom-mode').value;
+      const n1 = parseInt(document.getElementById('custom-n1').value, 10);
+      const d1 = parseInt(document.getElementById('custom-d1').value, 10);
+      const n2 = parseInt(document.getElementById('custom-n2').value, 10);
+      const d2 = parseInt(document.getElementById('custom-d2').value, 10);
+      const targetD = parseInt(document.getElementById('custom-target-d').value, 10);
+      const errEl = document.getElementById('custom-error');
+
+      // 驗證輸入範圍
+      if (isNaN(n1) || isNaN(d1) || d1 < 2 || d1 > 16 || n1 < 1 || n1 > d1) {
+        errEl.textContent = '第一個分數請輸入真分數（分子 1~分母，分母 2~16）！';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      if (m === 'equiv') {
+        if (isNaN(targetD) || targetD < 2 || targetD > 24 || (targetD % d1 !== 0 && d1 % targetD !== 0)) {
+          errEl.textContent = `目標分母必須是 ${d1} 的倍數或因數（例如 ${d1 * 2} 或 ${d1 * 3}）！`;
+          errEl.classList.remove('hidden');
+          return;
+        }
+        state.mode = 'equiv';
+        state.problem = { n1, d1, targetD, hint: `觀察 ${d1} 與 ${targetD} 的倍數關係，使用擴分或約分完成變身！` };
+      } else {
+        if (isNaN(n2) || isNaN(d2) || d2 < 2 || d2 > 16 || n2 < 1 || n2 > d2) {
+          errEl.textContent = '第二個分數請輸入真分數（分子 1~分母，分母 2~16）！';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        if (m === 'sub' && (n1 / d1 < n2 / d2)) {
+          errEl.textContent = '國小五年級減法題目中，第一個分數 (A) 必須大於或等於第二個分數 (B) 喔！';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        const common = lcm(d1, d2);
+        if (common > 24) {
+          errEl.textContent = `這兩個分母的最小公倍數是 ${common}（超過 24 等份會太細不好看），建議換一組分母（如 2, 3, 4, 5, 6, 8, 10, 12）！`;
+          errEl.classList.remove('hidden');
+          return;
+        }
+        state.mode = m;
+        state.problem = {
+          n1, d1, n2, d2,
+          hint: `${d1} 和 ${d2} 的最小公倍數是 ${common}，把兩個披薩都通分成 ${common} 等份吧！`
+        };
+      }
+
+      closeCustomModal();
+
+      // 更新模式頁籤與經典題庫列表
+      document.querySelectorAll('.mode-tab').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-amber-900', 'shadow');
+        btn.classList.add('text-amber-950');
+      });
+      document.getElementById(`tab-${state.mode}`).classList.add('bg-white', 'text-amber-900', 'shadow');
+
+      const presetContainer = document.getElementById('preset-buttons');
+      presetContainer.innerHTML = '';
+      PRESETS[state.mode].forEach((p, idx) => {
+        const btn = document.createElement('button');
+        btn.className = 'px-2.5 py-1 rounded-xl text-xs font-extrabold bg-amber-50 hover:bg-amber-200 text-amber-900 border border-amber-300 transition';
+        btn.textContent = p.label;
+        btn.onclick = () => loadPreset(state.mode, idx);
+        presetContainer.appendChild(btn);
+      });
+
+      resetCurrentProblem();
+    }
+  </script>
+</body>
+</html>
